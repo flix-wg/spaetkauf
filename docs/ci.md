@@ -4,7 +4,7 @@
 
 - `backend`: uv (cached), `ruff check`, `pytest`.
 - `frontend`: Node 22 (npm cached), `npm ci`, `npm run typecheck`, `npm run build`.
-- `deploy`: after both are green, on pushes to `main` and manual runs. Calls `deploy-compose.yml`, which copies the commit to the VM (`git archive | ssh tar`), runs `docker compose up -d --build` and waits up to 90 s for the health URL. Runs never overlap (`concurrency: deploy`). It skips itself while `DEPLOY_SSH_KEY` or `DEPLOY_HOST` is unset, so forks and fresh repos stay green. `.env` on the server is never touched.
+- `deploy`: after both are green, on pushes to `main` and manual runs. Calls `deploy-compose.yml`, which copies the commit to the VM (`git archive | ssh tar`), runs `docker compose up -d --build` and waits up to 90 s for the health URL. Deploys never overlap (the reusable workflow holds a per-target concurrency group). It skips itself while `DEPLOY_SSH_KEY` or `DEPLOY_HOST` is unset, so forks and fresh repos stay green. `.env` on the server is never touched.
 - Roll back: Actions, CI, Run workflow, enter an old sha as `ref`.
 
 ## One-time setup (dev box, then the VM)
@@ -29,7 +29,6 @@ gh secret set DEPLOY_HOST -R flix-wg/spaetkauf --body 65.108.33.75
    deploy:
      needs: [test]
      if: github.ref == 'refs/heads/main'
-     concurrency: { group: deploy, cancel-in-progress: false }
      uses: flix-wg/spaetkauf/.github/workflows/deploy-compose.yml@main
      with:
        target_dir: /opt/myapp

@@ -59,7 +59,7 @@ jobs:
 
   deploy:
     needs: gate
-    if: needs.gate.outputs.ready == true
+    if: needs.gate.outputs.ready == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     concurrency:
@@ -84,12 +84,12 @@ jobs:
           TARGET="${DEPLOY_USER:-root}@$DEPLOY_HOST"
           [ -n "$KNOWN_HOSTS" ] || { echo "::error::DEPLOY_KNOWN_HOSTS is not set"; exit 1; }
           install -d -m 700 ~/.ssh
-          (umask 077; printf %sn "$KEY" > ~/.ssh/deploy_key; printf %sn "$KNOWN_HOSTS" > ~/.ssh/known_hosts)
+          (umask 077; printf '%s\n' "$KEY" > ~/.ssh/deploy_key; printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts)
           # Keepalives: a quiet build must not leave a silently dropped session hanging.
           ssh_opts=(-i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes
                     -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=6)
           sha="$(git rev-parse --short HEAD)"
-          dir_q="$(printf %q "$DIR")"; compose_q="$(printf %q "$COMPOSE")"; env_q="$(printf %q "$ENVFILE")"
+          dir_q="$(printf '%q' "$DIR")"; compose_q="$(printf '%q' "$COMPOSE")"; env_q="$(printf '%q' "$ENVFILE")"
           # One ssh connection only: some hosts stall a second connection opened right after the first.
           git archive HEAD | ssh "${ssh_opts[@]}" "$TARGET" "set -e; mkdir -p $dir_q; tar -x -C $dir_q; echo $sha > $dir_q/REVISION; cd $dir_q; test -f $env_q; docker compose --env-file $env_q -f $compose_q up -d --build --quiet-pull </dev/null"
           for _ in $(seq 18); do
