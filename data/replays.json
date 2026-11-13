@@ -1,0 +1,508 @@
+{
+ "attribution": "Delay history: piebro/deutsche-bahn-data (CC BY 4.0).",
+ "runs": [
+  {
+   "id": "ice611-2026-10-30",
+   "train": "ICE 611",
+   "date": "2026-10-30",
+   "from": "Hamburg Hbf",
+   "to": "München Hbf",
+   "dep": "2026-10-30T10:45:00Z",
+   "arr": "2026-10-30T19:32:00Z",
+   "stops": [
+    {
+     "stop": "Hamburg-Harburg",
+     "planned_arr": "2026-10-30T10:55:00Z",
+     "actual_arr": "2026-10-30T10:57:00Z",
+     "delay_min": 2,
+     "cancelled": false
+    },
+    {
+     "stop": "Bremen Hbf",
+     "planned_arr": "2026-10-30T11:41:00Z",
+     "actual_arr": "2026-10-30T11:41:00Z",
+     "delay_min": 0,
+     "cancelled": false
+    },
+    {
+     "stop": "Osnabrück Hbf",
+     "planned_arr": "2026-10-30T12:34:00Z",
+     "actual_arr": "2026-10-30T12:37:00Z",
+     "delay_min": 3,
+     "cancelled": false
+    },
+    {
+     "stop": "Münster (Westf) Hbf",
+     "planned_arr": "2026-10-30T13:00:00Z",
+     "actual_arr": "2026-10-30T13:02:00Z",
+     "delay_min": 2,
+     "cancelled": false
+    },
+    {
+     "stop": "Dortmund Hbf",
+     "planned_arr": "2026-10-30T13:32:00Z",
+     "actual_arr": "2026-10-30T14:04:00Z",
+     "delay_min": 32,
+     "cancelled": false
+    },
+    {
+     "stop": "Hagen Hbf",
+     "planned_arr": "2026-10-30T13:56:00Z",
+     "actual_arr": "2026-10-30T14:49:00Z",
+     "delay_min": 53,
+     "cancelled": false
+    },
+    {
+     "stop": "Wuppertal Hbf",
+     "planned_arr": "2026-10-30T14:13:00Z",
+     "actual_arr": "2026-10-30T15:08:00Z",
+     "delay_min": 55,
+     "cancelled": false
+    },
+    {
+     "stop": "Solingen Hbf",
+     "planned_arr": "2026-10-30T14:26:00Z",
+     "actual_arr": "2026-10-30T15:29:00Z",
+     "delay_min": 63,
+     "cancelled": false
+    },
+    {
+     "stop": "Köln Hbf",
+     "planned_arr": "2026-10-30T14:46:00Z",
+     "actual_arr": "2026-10-30T15:52:00Z",
+     "delay_min": 66,
+     "cancelled": false
+    },
+    {
+     "stop": "Frankfurt am Main Flughafen Fernbahnhof",
+     "planned_arr": "2026-10-30T15:49:00Z",
+     "actual_arr": "2026-10-30T18:26:00Z",
+     "delay_min": 157,
+     "cancelled": false
+    },
+    {
+     "stop": "Mannheim Hbf",
+     "planned_arr": "2026-10-30T16:25:00Z",
+     "actual_arr": "2026-10-30T19:00:00Z",
+     "delay_min": 155,
+     "cancelled": false
+    },
+    {
+     "stop": "Stuttgart Hbf",
+     "planned_arr": "2026-10-30T17:11:00Z",
+     "actual_arr": "2026-10-30T19:38:00Z",
+     "delay_min": 147,
+     "cancelled": false
+    },
+    {
+     "stop": "Ulm Hbf",
+     "planned_arr": "2026-10-30T18:13:00Z",
+     "actual_arr": "2026-10-30T20:25:00Z",
+     "delay_min": 132,
+     "cancelled": false
+    },
+    {
+     "stop": "Augsburg Hbf",
+     "planned_arr": "2026-10-30T18:56:00Z",
+     "actual_arr": "2026-10-30T21:07:00Z",
+     "delay_min": 131,
+     "cancelled": false
+    },
+    {
+     "stop": "München Hbf",
+     "planned_arr": "2026-10-30T19:32:00Z",
+     "actual_arr": "2026-10-30T21:36:00Z",
+     "delay_min": 124,
+     "cancelled": false
+    }
+   ]
+  },
+  {
+   "id": "ice611-2026-09-30",
+   "train": "ICE 611",
+   "date": "2026-09-30",
+   "from": "Hamburg Hbf",
+   "to": "München Hbf",
+   "dep": "2026-09-30T09:45:00Z",
+   "arr": "2026-09-30T18:32:00Z",
+   "stops": [
+    {
+     "stop": "Hamburg-Harburg",
+     "planned_arr": "2026-09-30T09:55:00Z",
+     "actual_arr": "2026-09-30T09:58:00Z",
+     "delay_min": 3,
+     "cancelled": false
+    },
+    {
+     "stop": "Bremen Hbf",
+     "planned_arr": "2026-09-30T10:41:00Z",
+     "actual_arr": "2026-09-30T10:46:00Z",
+     "delay_min": 5,
+     "cancelled": false
+    },
+    {
+     "stop": "Osnabrück Hbf",
+     "planned_arr": "2026-09-30T11:34:00Z",
+     "actual_arr": "2026-09-30T11:34:00Z",
+     "delay_min": 0,
+     "cancelled": false
+    },
+    {
+     "stop": "Münster (Westf) Hbf",
+     "planned_arr": "2026-09-30T12:00:00Z",
+     "actual_arr": "2026-09-30T12:02:00Z",
+     "delay_min": 2,
+     "cancelled": false
+    },
+    {
+     "stop": "Dortmund Hbf",
+     "planned_arr": "2026-09-30T12:32:00Z",
+     "actual_arr": "2026-09-30T12:34:00Z",
+     "delay_min": 2,
+     "cancelled": false
+    },
+    {
+     "stop": "Hagen Hbf",
+     "planned_arr": "2026-09-30T12:56:00Z",
+     "actual_arr": "2026-09-30T13:05:00Z",
+     "delay_min": 9,
+     "cancelled": false
+    },
+    {
+     "stop": "Wuppertal Hbf",
+     "planned_arr": "2026-09-30T13:13:00Z",
+     "actual_arr": "2026-09-30T13:23:00Z",
+     "delay_min": 10,
+     "cancelled": false
+    },
+    {
+     "stop": "Solingen Hbf",
+     "planned_arr": "2026-09-30T13:26:00Z",
+     "actual_arr": "2026-09-30T13:38:00Z",
+     "delay_min": 12,
+     "cancelled": false
+    },
+    {
+     "stop": "Köln Hbf",
+     "planned_arr": "2026-09-30T13:46:00Z",
+     "actual_arr": "2026-09-30T14:55:00Z",
+     "delay_min": 69,
+     "cancelled": false
+    },
+    {
+     "stop": "Frankfurt am Main Flughafen Fernbahnhof",
+     "planned_arr": "2026-09-30T14:49:00Z",
+     "actual_arr": "2026-09-30T16:24:00Z",
+     "delay_min": 95,
+     "cancelled": false
+    },
+    {
+     "stop": "Mannheim Hbf",
+     "planned_arr": "2026-09-30T15:25:00Z",
+     "actual_arr": "2026-09-30T17:36:00Z",
+     "delay_min": 131,
+     "cancelled": false
+    },
+    {
+     "stop": "Stuttgart Hbf",
+     "planned_arr": "2026-09-30T16:11:00Z",
+     "actual_arr": "2026-09-30T18:22:00Z",
+     "delay_min": 131,
+     "cancelled": false
+    },
+    {
+     "stop": "Ulm Hbf",
+     "planned_arr": "2026-09-30T17:13:00Z",
+     "actual_arr": "2026-09-30T19:22:00Z",
+     "delay_min": 129,
+     "cancelled": false
+    },
+    {
+     "stop": "Augsburg Hbf",
+     "planned_arr": "2026-09-30T17:56:00Z",
+     "actual_arr": "2026-09-30T20:09:00Z",
+     "delay_min": 133,
+     "cancelled": false
+    },
+    {
+     "stop": "München-Pasing",
+     "planned_arr": "2026-09-30T18:20:00Z",
+     "actual_arr": "2026-09-30T20:35:00Z",
+     "delay_min": 135,
+     "cancelled": false
+    },
+    {
+     "stop": "München Hbf",
+     "planned_arr": "2026-09-30T18:32:00Z",
+     "actual_arr": "2026-09-30T20:44:00Z",
+     "delay_min": 132,
+     "cancelled": false
+    }
+   ]
+  },
+  {
+   "id": "ice544-2026-10-27",
+   "train": "ICE 544",
+   "date": "2026-10-27",
+   "from": "Berlin Hauptbahnhof",
+   "to": "Köln Hbf",
+   "dep": "2026-10-27T14:32:00Z",
+   "arr": "2026-10-27T20:53:00Z",
+   "stops": [
+    {
+     "stop": "Potsdam Hbf",
+     "planned_arr": "2026-10-27T14:58:00Z",
+     "actual_arr": "2026-10-27T15:05:00Z",
+     "delay_min": 7,
+     "cancelled": false
+    },
+    {
+     "stop": "Braunschweig Hbf",
+     "planned_arr": "2026-10-27T16:52:00Z",
+     "actual_arr": "2026-10-27T17:05:00Z",
+     "delay_min": 13,
+     "cancelled": false
+    },
+    {
+     "stop": "Hannover Hbf",
+     "planned_arr": "2026-10-27T17:28:00Z",
+     "actual_arr": "2026-10-27T18:00:00Z",
+     "delay_min": 32,
+     "cancelled": false
+    },
+    {
+     "stop": "Minden (Westf)",
+     "planned_arr": "2026-10-27T18:00:00Z",
+     "actual_arr": "2026-10-27T18:40:00Z",
+     "delay_min": 40,
+     "cancelled": false
+    },
+    {
+     "stop": "Bielefeld Hbf",
+     "planned_arr": "2026-10-27T18:24:00Z",
+     "actual_arr": "2026-10-27T19:17:00Z",
+     "delay_min": 53,
+     "cancelled": false
+    },
+    {
+     "stop": "Hamm (Westf) Hbf",
+     "planned_arr": "2026-10-27T18:54:00Z",
+     "actual_arr": "2026-10-27T19:54:00Z",
+     "delay_min": 60,
+     "cancelled": false
+    },
+    {
+     "stop": "Dortmund Hbf",
+     "planned_arr": "2026-10-27T19:13:00Z",
+     "actual_arr": "2026-10-27T20:14:00Z",
+     "delay_min": 61,
+     "cancelled": false
+    },
+    {
+     "stop": "Duisburg Hbf",
+     "planned_arr": "2026-10-27T19:58:00Z",
+     "actual_arr": "2026-10-27T21:07:00Z",
+     "delay_min": 69,
+     "cancelled": false
+    },
+    {
+     "stop": "Düsseldorf Hbf",
+     "planned_arr": "2026-10-27T20:20:00Z",
+     "actual_arr": "2026-10-27T21:32:00Z",
+     "delay_min": 72,
+     "cancelled": false
+    },
+    {
+     "stop": "Köln Hbf",
+     "planned_arr": "2026-10-27T20:53:00Z",
+     "actual_arr": "2026-10-27T22:03:00Z",
+     "delay_min": 70,
+     "cancelled": false
+    }
+   ]
+  },
+  {
+   "id": "ice844-2026-10-30",
+   "train": "ICE 844",
+   "date": "2026-10-30",
+   "from": "Berlin Hauptbahnhof",
+   "to": "Köln Hbf",
+   "dep": "2026-10-30T15:38:00Z",
+   "arr": "2026-10-30T22:13:00Z",
+   "stops": [
+    {
+     "stop": "Magdeburg Hbf",
+     "planned_arr": "2026-10-30T16:58:00Z",
+     "actual_arr": "2026-10-30T16:59:00Z",
+     "delay_min": 1,
+     "cancelled": false
+    },
+    {
+     "stop": "Braunschweig Hbf",
+     "planned_arr": "2026-10-30T17:50:00Z",
+     "actual_arr": "2026-10-30T17:53:00Z",
+     "delay_min": 3,
+     "cancelled": false
+    },
+    {
+     "stop": "Hannover Hbf",
+     "planned_arr": "2026-10-30T18:28:00Z",
+     "actual_arr": "2026-10-30T18:49:00Z",
+     "delay_min": 21,
+     "cancelled": false
+    },
+    {
+     "stop": "Bielefeld Hbf",
+     "planned_arr": "2026-10-30T19:20:00Z",
+     "actual_arr": "2026-10-30T20:30:00Z",
+     "delay_min": 70,
+     "cancelled": false
+    },
+    {
+     "stop": "Hamm (Westf) Hbf",
+     "planned_arr": "2026-10-30T19:49:00Z",
+     "actual_arr": "2026-10-30T21:02:00Z",
+     "delay_min": 73,
+     "cancelled": false
+    },
+    {
+     "stop": "Dortmund Hbf",
+     "planned_arr": "2026-10-30T20:10:00Z",
+     "actual_arr": "2026-10-30T21:27:00Z",
+     "delay_min": 77,
+     "cancelled": false
+    },
+    {
+     "stop": "Düsseldorf Hbf",
+     "planned_arr": "2026-10-30T21:10:00Z",
+     "actual_arr": "2026-10-30T22:57:00Z",
+     "delay_min": 107,
+     "cancelled": false
+    },
+    {
+     "stop": "Köln Hbf",
+     "planned_arr": "2026-10-30T22:13:00Z",
+     "actual_arr": "2026-10-30T23:29:00Z",
+     "delay_min": 76,
+     "cancelled": false
+    }
+   ]
+  },
+  {
+   "id": "ice519-2026-10-30",
+   "train": "ICE 519",
+   "date": "2026-10-30",
+   "from": "Hamburg Hbf",
+   "to": "München Hbf",
+   "dep": "2026-10-30T08:45:00Z",
+   "arr": "2026-10-30T17:29:00Z",
+   "stops": [
+    {
+     "stop": "Hamburg-Harburg",
+     "planned_arr": "2026-10-30T08:55:00Z",
+     "actual_arr": "2026-10-30T08:56:00Z",
+     "delay_min": 1,
+     "cancelled": false
+    },
+    {
+     "stop": "Bremen Hbf",
+     "planned_arr": "2026-10-30T09:41:00Z",
+     "actual_arr": "2026-10-30T09:42:00Z",
+     "delay_min": 1,
+     "cancelled": false
+    },
+    {
+     "stop": "Osnabrück Hbf",
+     "planned_arr": "2026-10-30T10:34:00Z",
+     "actual_arr": "2026-10-30T10:33:00Z",
+     "delay_min": -1,
+     "cancelled": false
+    },
+    {
+     "stop": "Münster (Westf) Hbf",
+     "planned_arr": "2026-10-30T11:00:00Z",
+     "actual_arr": "2026-10-30T11:00:00Z",
+     "delay_min": 0,
+     "cancelled": false
+    },
+    {
+     "stop": "Dortmund Hbf",
+     "planned_arr": "2026-10-30T11:32:00Z",
+     "actual_arr": "2026-10-30T11:50:00Z",
+     "delay_min": 18,
+     "cancelled": false
+    },
+    {
+     "stop": "Hagen Hbf",
+     "planned_arr": "2026-10-30T11:56:00Z",
+     "actual_arr": "2026-10-30T12:23:00Z",
+     "delay_min": 27,
+     "cancelled": false
+    },
+    {
+     "stop": "Wuppertal Hbf",
+     "planned_arr": "2026-10-30T12:13:00Z",
+     "actual_arr": "2026-10-30T12:42:00Z",
+     "delay_min": 29,
+     "cancelled": false
+    },
+    {
+     "stop": "Solingen Hbf",
+     "planned_arr": "2026-10-30T12:26:00Z",
+     "actual_arr": "2026-10-30T13:02:00Z",
+     "delay_min": 36,
+     "cancelled": false
+    },
+    {
+     "stop": "Köln Hbf",
+     "planned_arr": "2026-10-30T12:46:00Z",
+     "actual_arr": "2026-10-30T13:23:00Z",
+     "delay_min": 37,
+     "cancelled": false
+    },
+    {
+     "stop": "Frankfurt am Main Flughafen Fernbahnhof",
+     "planned_arr": "2026-10-30T13:49:00Z",
+     "actual_arr": "2026-10-30T14:34:00Z",
+     "delay_min": 45,
+     "cancelled": false
+    },
+    {
+     "stop": "Mannheim Hbf",
+     "planned_arr": "2026-10-30T14:25:00Z",
+     "actual_arr": "2026-10-30T15:09:00Z",
+     "delay_min": 44,
+     "cancelled": false
+    },
+    {
+     "stop": "Stuttgart Hbf",
+     "planned_arr": "2026-10-30T15:11:00Z",
+     "actual_arr": "2026-10-30T15:51:00Z",
+     "delay_min": 40,
+     "cancelled": false
+    },
+    {
+     "stop": "Ulm Hbf",
+     "planned_arr": "2026-10-30T16:13:00Z",
+     "actual_arr": "2026-10-30T16:46:00Z",
+     "delay_min": 33,
+     "cancelled": false
+    },
+    {
+     "stop": "Augsburg Hbf",
+     "planned_arr": "2026-10-30T16:56:00Z",
+     "actual_arr": "2026-10-30T17:26:00Z",
+     "delay_min": 30,
+     "cancelled": false
+    },
+    {
+     "stop": "München Hbf",
+     "planned_arr": "2026-10-30T17:29:00Z",
+     "actual_arr": "2026-10-30T17:53:00Z",
+     "delay_min": 24,
+     "cancelled": false
+    }
+   ]
+  }
+ ]
+}
