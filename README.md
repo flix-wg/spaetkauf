@@ -19,4 +19,5 @@ One VM with Docker and Compose. Run from the repo root.
 - Update: `git pull && docker compose --env-file .env -f deploy/docker-compose.yml up -d --build`
 - Restart: `docker compose --env-file .env -f deploy/docker-compose.yml restart`
 - Reset the app database: `docker compose --env-file .env -f deploy/docker-compose.yml down && docker volume rm deploy_appdata` (`down -v` would also drop the certificates).
+- CI and automatic deploys on `main`: see [docs/ci.md](docs/ci.md); by hand `deploy/ship.sh root@<ip>`.
 - Data: the app database is the `appdata` volume at `/data/app.sqlite`; `data/odds.sqlite` and `data/backtest.json` are baked into the image, so rebuild after changing them. Check `/api/health` for status.
