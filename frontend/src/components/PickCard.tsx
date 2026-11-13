@@ -14,7 +14,7 @@ export function oddsLine(p: Pick) {
   const counts = o.late !== null && o.n !== null ? `${o.late} of ${o.n} ${days}` : null
   if (o.basis === 'estimate') {
     const last = p.legs[p.legs.length - 1]?.train ?? 'The last train'
-    return `Whole trip, a missed change counts too.${counts ? ` ${last} alone was late ${counts}.` : ''}`
+    return `${pctNum(o.p20)} % is for the whole trip, a missed change included.${counts ? ` ${last} alone: late ${counts}.` : ''}`
   }
   return `Late ${counts ?? days}`
 }
