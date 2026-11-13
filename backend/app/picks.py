@@ -29,7 +29,6 @@ FOREIGN_STOPS = (
     "paris", "strasbourg", "marseille", "lyon", "milano", "warszawa",
     "poznan", "gdansk", "krakow", "wroclaw", "szczecin",
 )  # fmt: skip
-)
 
 
 def _t(ts: str) -> datetime:
