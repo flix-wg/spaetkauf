@@ -1,4 +1,4 @@
-import { ApiError, type Created } from '../api'
+import { ApiError, type Created, type Recording } from '../api'
 import { BACKTEST, STATIONS, claimFor, lateNow, picksFor, tripAt } from './fixtures'
 
 const flag = (k: string) => {
@@ -16,10 +16,36 @@ function replayTrip(id: string) {
   const t0 = started.get(id) ?? Date.now()
   const s = (Date.now() - t0) / 1000
   const delay = s < 20 ? 12 : s < 40 ? 24 : s < 60 ? 27 : 63
-  return tripAt(DATE, { delay, is_replay: true, replay_of: '2026-10-23' })
+  return tripAt(DATE, { delay, is_replay: true, replay_of: '2026-10-23', delay_basis: 'destination_forecast', at_stop: null })
 }
 
+// A past run: one frame per stop, delay measured there, local times stamped as UTC like the real dataset.
+const STOPS: [string, string, number][] = [
+  ['Hannover Hbf', '11:24', 4], ['Göttingen', '11:58', 9], ['Kassel-Wilhelmshöhe', '12:18', 24],
+  ['Fulda', '12:50', 31], ['Frankfurt(Main)Hbf', '13:40', 66], ['Nürnberg Hbf', '15:48', 58], ['München Hbf', '17:02', 71],
+]
+function historyTrip(id: string) {
+  const t0 = started.get(id) ?? Date.now()
+  const i = Math.min(STOPS.length - 1, Math.floor((Date.now() - t0) / 8000))
+  const [name, hm, delay] = STOPS[i]
+  const day = '2026-10-30'
+  const planned = `${day}T${hm}:00Z`
+  const actual = new Date(new Date(planned).getTime() + delay * 60000).toISOString()
+  const last = i === STOPS.length - 1
+  return tripAt(DATE, {
+    delay, is_replay: true, replay_of: day, delay_basis: 'at_stop', at_stop: { name, planned_arr: planned, actual_arr: actual },
+    expected_arr: last ? actual : null, finished: last, final_delay_min: last ? delay : null, alternatives: [],
+  })
+}
+
+const RECORDINGS: Recording[] = [
+  { id: 'history:ice611-2026-10-30', source: 'history', delay_basis: 'at_stop', train: 'ICE 611', from: 'Hamburg Hbf', to: 'München Hbf', date: '2026-10-30', frames: 7, finished: true, max_delay_min: 71, crosses_20: true, crosses_60: true },
+  { id: 'history:ice519-2026-10-30', source: 'history', delay_basis: 'at_stop', train: 'ICE 519', from: 'Hamburg Hbf', to: 'München Hbf', date: '2026-10-30', frames: 7, finished: true, max_delay_min: 45, crosses_20: true, crosses_60: false },
+  { id: 'live:demo', source: 'live', delay_basis: 'destination_forecast', train: 'ICE 1583', from: 'Hamburg Hbf', to: 'München Hbf', date: '2026-10-23', frames: 16, finished: true, max_delay_min: 63, crosses_20: true, crosses_60: true },
+]
+
 function trip(id: string) {
+  if (id.startsWith('replay-hist-')) return historyTrip(id)
   if (id.startsWith('replay-')) return replayTrip(id)
   switch (id) {
     case 'demo-replay': return tripAt(DATE, { delay: 27, is_replay: true, replay_of: '2026-10-23' })
@@ -34,7 +60,7 @@ function trip(id: string) {
   }
 }
 
-export async function mockCall<T>(method: string, path: string, _body?: unknown): Promise<T> {
+export async function mockCall<T>(method: string, path: string, body?: unknown): Promise<T> {
   await new Promise((r) => setTimeout(r, 160))
   const u = new URL(path, 'http://x')
   const p = u.pathname
@@ -56,8 +82,12 @@ export async function mockCall<T>(method: string, path: string, _body?: unknown)
     const tn = name(to, to)
     if (flag('picks') === 'budget') throw new ApiError(429, 'Kurt has used up today’s route searches.')
     if (flag('picks') === 'none') return out({ from: fn, to: tn, date, tz: 'Europe/Berlin', picks: [], note: '' })
+    // mock.picks=nopick: the backend flags no Kurt's pick (none at 30 %+ with a ride-instead).
+    const list = picksFor(date, fn, tn).map((x) => (flag('picks') !== 'nopick' ? x : {
+      ...x, is_kurts_pick: false, odds: x.odds && { ...x.odds, p20: x.odds.p20 === null ? null : Math.min(x.odds.p20, 0.24) },
+    }))
     return out({
-      from: fn, to: tn, date, tz: 'Europe/Berlin', picks: picksFor(date, fn, tn),
+      from: fn, to: tn, date, tz: 'Europe/Berlin', picks: list,
       note: 'A delay already posted when you buy does not count.',
     })
   }
@@ -95,11 +125,13 @@ export async function mockCall<T>(method: string, path: string, _body?: unknown)
   if (p === '/api/late-now') return out(lateNow(flag('late')))
   if (p === '/api/backtest') return out(BACKTEST)
   if (p === '/api/push/key') return out({ public_key: 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U' })
+  if (p === '/api/demo/recordings') return out(flag('replay') === 'off' ? [] : RECORDINGS)
   if (p === '/api/demo/replay') {
     if (flag('replay') === 'off') throw new ApiError(404, 'No recording yet.')
-    const id = `replay-${++seq}`
+    const rec = RECORDINGS.find((r) => r.id === (body as { recording?: string } | undefined)?.recording) ?? RECORDINGS[0]
+    const id = `replay-${rec.source === 'history' ? 'hist-' : ''}${++seq}`
     started.set(id, Date.now())
-    return out({ trip_id: id, secret: 'mock' } satisfies Created)
+    return out({ trip_id: id, secret: 'mock', recording: rec })
   }
   throw new ApiError(404, 'Not found.')
 }

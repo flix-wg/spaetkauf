@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { api, ApiError, type TripRef } from '../api'
+import { api, ApiError, type Recording, type TripRef } from '../api'
 import { Flap } from '../components/Flap'
 import { IconChevron } from '../components/Icons'
 import { ScreenHeader } from '../components/Shell'
@@ -8,15 +8,6 @@ import { Empty } from '../components/States'
 import { changesLabel, dayLabel, hhmm, shortStation } from '../format'
 import { useAsync } from '../hooks'
 import { addTrip, loadTrips, removeTrip } from '../store'
-
-const NO_REPLAY = 'spaetkauf.noReplay'
-const noReplay = () => {
-  try {
-    return sessionStorage.getItem(NO_REPLAY) === '1'
-  } catch {
-    return false
-  }
-}
 
 function Row({ r }: { r: TripRef }) {
   const [s] = useAsync(() => api.trip(r), [r.id], 30000)
@@ -27,6 +18,8 @@ function Row({ r }: { r: TripRef }) {
   const t = s.status === 'ok' ? s.data : null
   const b = t?.booked
   const d = t ? (t.finished ? t.final_delay_min : t.delay_min) : null
+  // History runs carry Berlin local times stamped as UTC.
+  const tz = t?.delay_basis === 'at_stop' ? 'UTC' : undefined
   return (
     <Link
       to={`/trip/${encodeURIComponent(r.id)}`}
@@ -36,8 +29,8 @@ function Row({ r }: { r: TripRef }) {
         {b ? (
           <>
             <span className="mono whitespace-nowrap text-[15px] font-bold">
-              {b.legs[0].dep ? `${hhmm(b.dep)} → ${hhmm(b.arr)}` : `due ${hhmm(b.arr)}`}{' '}
-              <span className="font-sans text-[12px] font-semibold text-muted">{dayLabel(b.arr)}</span>
+              {b.legs[0].dep ? `${hhmm(b.dep, tz)} → ${hhmm(b.arr, tz)}` : `due ${hhmm(b.arr, tz)}`}{' '}
+              <span className="font-sans text-[12px] font-semibold text-muted">{dayLabel(b.arr, tz)}</span>
             </span>
             <span className="truncate text-[12px] text-muted">
               {shortStation(b.legs[0].from) || '…'} → {shortStation(b.legs[b.legs.length - 1].to)} · {changesLabel(b.changes)}
@@ -69,65 +62,101 @@ function Row({ r }: { r: TripRef }) {
   )
 }
 
-export function Trips() {
-  const nav = useNavigate()
-  const [trips] = useState(loadTrips)
-  const [hidden, setHidden] = useState(noReplay)
-  const [busy, setBusy] = useState(false)
-  const [err, setErr] = useState('')
+const crossing = (r: Recording) =>
+  r.crosses_60
+    ? 'crosses +20, then +60'
+    : r.crosses_20
+      ? 'crosses +20'
+      : r.max_delay_min >= 20
+        ? 'already +20 at the start'
+        : 'stays under +20'
 
-  async function replay() {
-    setBusy(true)
+function RecordingRow({ r, busy, onPlay }: { r: Recording; busy: boolean; onPlay: () => void }) {
+  const past = r.source === 'history'
+  return (
+    <button
+      type="button"
+      onClick={onPlay}
+      disabled={busy}
+      className="flex min-h-[64px] w-full items-center justify-between gap-3 rounded-2xl border border-line px-3.5 py-3 text-left disabled:opacity-60"
+    >
+      <span className="flex min-w-0 flex-col gap-0.5">
+        <span className="text-[15px] font-bold">
+          {r.train}{' '}
+          <span className="text-[12px] font-semibold text-muted">{dayLabel(`${r.date}T12:00:00Z`)}</span>
+        </span>
+        <span className="truncate text-[12px] text-muted">
+          {shortStation(r.from) || '…'} → {shortStation(r.to)} · {crossing(r)}
+        </span>
+        <span className={`tag w-fit rounded px-1.5 py-0.5 ${past ? 'bg-ink text-white' : 'bg-tint text-accent-text'}`}>
+          {past ? 'PAST RUN · DB DELAY DATA' : 'RECORDED LIVE'}
+        </span>
+      </span>
+      <span className="flex shrink-0 flex-col items-end gap-0.5">
+        <span className="mono text-[17px] font-bold">+{r.max_delay_min}</span>
+        <span className="text-[11px] font-semibold text-muted">{busy ? 'starting…' : 'worst'}</span>
+      </span>
+    </button>
+  )
+}
+
+function Replays() {
+  const nav = useNavigate()
+  const [recs] = useAsync(() => api.recordings(), [])
+  const [all, setAll] = useState(false)
+  const [busy, setBusy] = useState('')
+  const [err, setErr] = useState('')
+  if (recs.status !== 'ok' || recs.data.length === 0) return null
+  const list = all ? recs.data : recs.data.slice(0, 4)
+
+  async function play(id: string) {
+    setBusy(id)
     setErr('')
     try {
-      const c = await api.demoReplay()
+      const c = await api.demoReplay(id)
       addTrip(c)
       nav(`/trip/${encodeURIComponent(c.trip_id)}`)
     } catch (e) {
-      if (e instanceof ApiError && e.status === 404) {
-        try {
-          sessionStorage.setItem(NO_REPLAY, '1')
-        } catch {
-          /* ignore */
-        }
-        setHidden(true)
-      } else setErr((e as Error).message)
-      setBusy(false)
+      setErr((e as Error).message)
+      setBusy('')
     }
   }
 
-  const replayBtn = hidden ? null : (
-    <button type="button" onClick={replay} disabled={busy} className="btn-ghost">
-      {busy ? 'Starting…' : 'Play a replay'}
-    </button>
+  return (
+    <section className="mt-3 flex flex-col gap-2" aria-label="Replays">
+      <h2 className="font-display text-[18px] font-bold">Watch a replay</h2>
+      <p className="-mt-1 text-[12px] leading-snug text-muted">
+        Real late trains, played back in about a minute and labelled as replays. Past runs show the delay measured at
+        each stop; live recordings show the forecast Kurt saw for the destination.
+      </p>
+      {list.map((r) => (
+        <RecordingRow key={r.id} r={r} busy={busy === r.id} onPlay={() => play(r.id)} />
+      ))}
+      {recs.data.length > list.length && (
+        <button type="button" onClick={() => setAll(true)} className="btn-ghost">
+          All {recs.data.length} replays
+        </button>
+      )}
+      {err && <p className="text-[13px] text-accent-text" role="alert">{err}</p>}
+    </section>
   )
+}
+
+export function Trips() {
+  const [trips] = useState(loadTrips)
 
   return (
     <>
       <ScreenHeader title="My trips" />
       <div className="flex flex-col gap-3 px-4 pb-8">
         {trips.length === 0 ? (
-          <Empty
-            title="No trips yet"
-            action={
-              <div className="flex flex-col gap-2">
-                <Link to="/" className="btn-primary">Find late trains</Link>
-                {replayBtn}
-              </div>
-            }
-          >
+          <Empty title="No trips yet" action={<Link to="/" className="btn-primary">Find late trains</Link>}>
             Book one of Kurt’s picks and tap “I booked this”. Kurt watches it from there.
           </Empty>
         ) : (
-          <>
-            {trips.map((r) => <Row key={r.id} r={r} />)}
-            <div className="mt-1 flex flex-col gap-2">{replayBtn}</div>
-          </>
+          trips.map((r) => <Row key={r.id} r={r} />)
         )}
-        {err && <p className="text-[13px] text-accent-text" role="alert">{err}</p>}
-        {!hidden && (
-          <p className="text-center text-[12px] text-muted">A replay plays back a recorded real trip at higher speed and is labelled as such.</p>
-        )}
+        <Replays />
       </div>
     </>
   )

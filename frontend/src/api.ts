@@ -99,6 +99,24 @@ export interface Trip {
   switched: boolean
   stay?: { amount_at_60_eur: number | null; amount_at_120_eur: number | null }
   connection_at_risk?: boolean
+  // History replays: the delay is the one measured at `at_stop`, not a destination forecast.
+  delay_basis?: DelayBasis
+  at_stop?: { name: string; planned_arr: string; actual_arr: string } | null
+}
+export type DelayBasis = 'at_stop' | 'destination_forecast'
+export interface Recording {
+  id: string
+  source: 'history' | 'live'
+  delay_basis: DelayBasis
+  train: string
+  from: string
+  to: string
+  date: string
+  frames: number
+  finished: boolean
+  max_delay_min: number
+  crosses_20: boolean
+  crosses_60: boolean
 }
 export interface Claim {
   due: boolean
@@ -228,5 +246,7 @@ export const api = {
   lateNow: () => call<LateNow>('GET', '/api/late-now'),
   backtest: () => call<Backtest>('GET', '/api/backtest'),
   pushKey: () => call<{ public_key: string }>('GET', '/api/push/key'),
-  demoReplay: () => call<Created>('POST', '/api/demo/replay'),
+  recordings: () => call<Recording[]>('GET', '/api/demo/recordings'),
+  demoReplay: (recording?: string) =>
+    call<Created & { recording: Recording }>('POST', '/api/demo/replay', recording ? { recording } : {}),
 }

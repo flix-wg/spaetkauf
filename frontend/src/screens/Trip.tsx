@@ -26,14 +26,15 @@ const LABEL: Record<TripState, string> = {
 function alertFor(prev: TripState, t: Trip): string | null {
   if (prev === t.state) return null
   const d = t.delay_min !== null ? `+${t.delay_min}` : ''
+  const stop = t.at_stop ? stopName(t.at_stop.name) : ''
   const money = (at: number) => {
     const a = t.thresholds.find((x) => x.at === at)?.amount_eur
     return a != null ? ` (${eur(a)})` : ''
   }
   const msg = {
-    unlocked: `It’s late. You win: ${d} min expected. Ticket unlocked, ride any train.`,
-    cash25: `${d} min: 25 % of your ticket comes back${money(60)}.`,
-    cash50: `${d} min: half your ticket comes back${money(120)}.`,
+    unlocked: `It’s late. You win: ${d} min ${stop ? `at ${stop}` : 'expected'}. Ticket unlocked, ride any train.`,
+    cash25: `${d} min${stop ? ` at ${stop}` : ''}: 25 % of your ticket comes back${money(60)}.`,
+    cash50: `${d} min${stop ? ` at ${stop}` : ''}: half your ticket comes back${money(120)}.`,
     cancelled: 'Your train is cancelled. Ticket unlocked: ride any train, or get a full refund.',
     on_time: 'The expected delay dropped back under 20 minutes.',
   }[t.state]
@@ -143,17 +144,25 @@ function TripView({
   const showClaim = !doneOk && (done || delay >= 60)
   const showSwitch = !done && wonUnlocked && !t.switched
   const notYet = waiting && Date.now() < new Date(b.dep).getTime() - 3 * 3600_000
+  // History runs carry Berlin local times stamped as UTC (docs/replays.md), so they are shown as UTC.
+  const atStop = t.delay_basis === 'at_stop'
+  const tz = atStop ? 'UTC' : undefined
+  const stop = t.at_stop ? stopName(t.at_stop.name) : ''
 
   return (
     <>
       {t.is_replay && (
-        <div className="flex items-center gap-2 rounded-xl bg-ink px-3 py-2.5 text-white" role="note">
-          <span className="flex flex-col">
-            <span className="text-[14px] font-bold">
-              Replay of {t.replay_of ? longDate(`${t.replay_of}T12:00:00Z`) : 'a recorded trip'}
-            </span>
-            <span className="text-[12px] opacity-80">A real recorded trip, played back fast. Not live.</span>
+        <div className="flex flex-col gap-0.5 rounded-xl bg-ink px-3 py-2.5 text-white" role="note">
+          <span className="text-[14px] font-bold">
+            Replay of {t.replay_of ? longDate(`${t.replay_of}T12:00:00Z`) : 'a recorded trip'}
+            {atStop ? ' · past run' : ' · recorded live'}
           </span>
+          <span className="text-[12px] leading-snug opacity-80">
+            {atStop
+              ? 'A real run from DB’s delay data, played back fast. Each step is the delay measured at that stop, not a forecast for the destination.'
+              : `Recorded live by Kurt, played back fast. Each step is what the forecast for ${dest} said at that moment.`}
+          </span>
+          {atStop && <span className="text-[11px] opacity-60">Delay history: piebro/deutsche-bahn-data (CC BY 4.0).</span>}
         </div>
       )}
       {alert && (
@@ -170,7 +179,7 @@ function TripView({
       <div className="flex items-center justify-between rounded-2xl bg-surface px-3.5 py-3">
         <span className="flex min-w-0 flex-col">
           <span className="mono font-bold">
-            {dayLabel(b.arr)} {depKnown ? `${hhmm(b.dep)} → ${hhmm(b.arr)}` : `due ${hhmm(b.arr)}`}
+            {dayLabel(b.arr, tz)} {depKnown ? `${hhmm(b.dep, tz)} → ${hhmm(b.arr, tz)}` : `due ${hhmm(b.arr, tz)}`}
           </span>
           <span className="text-[13px] leading-snug text-muted">
             {stopName(first.from) || '…'} → {dest} · {changesLabel(b.changes)}
@@ -184,8 +193,14 @@ function TripView({
       <section className={`${card} flex flex-col gap-3 rounded-[22px] p-4`} aria-label="Live delay">
         <div className="flex items-center justify-between gap-2">
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="tag">{doneOk ? 'ARRIVED · ON TIME' : done ? `ARRIVED · ${LABEL[t.state]}` : waiting ? 'WAITING FOR LIVE DATA' : LABEL[t.state]}</span>
-            <span className="text-[13px]">{done ? `Final delay at ${dest}` : `Expected delay at ${dest}`}</span>
+            <span className="tag">{doneOk ? 'ARRIVED · ON TIME' : done ? `ARRIVED · ${LABEL[t.state]}` : waiting ? (t.is_replay ? 'REPLAY STARTING' : 'WAITING FOR LIVE DATA') : LABEL[t.state]}</span>
+            <span className="text-[13px]">
+              {done
+                ? `Final delay at ${dest}`
+                : atStop
+                  ? stop ? `Delay measured at ${stop}` : 'Delay measured at the last stop'
+                  : `Expected delay at ${dest}`}
+            </span>
           </span>
           {waiting ? (
             <span className="font-display text-[20px] font-bold">–</span>
@@ -212,6 +227,12 @@ function TripView({
           <p className="rounded-lg bg-white/70 px-3 py-2 text-[13px] font-semibold" role="alert">
             Live data is stale. Last update {t.updated_at ? hhmm(t.updated_at) : 'unknown'}. Check the DB app before you board another train.
           </p>
+        ) : atStop ? (
+          t.at_stop && (
+            <p className="text-[12px]">
+              {done ? 'Arrived' : 'Reached'} {stop} {hhmm(t.at_stop.actual_arr, 'UTC')}, timetable {hhmm(t.at_stop.planned_arr, 'UTC')}
+            </p>
+          )
         ) : (
           <p className="text-[12px]">
             {t.updated_at ? `Updated ${timeAgo(t.updated_at)}` : ''}
