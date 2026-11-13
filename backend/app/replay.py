@@ -19,7 +19,7 @@ from . import push
 from .config import REPO_ROOT
 from .db import connect
 from .tracker import BERLIN, finish, record
-from .trips import create_trip
+from .trips import create_trip, derive_state
 
 log = logging.getLogger("spaetkauf.replay")
 router = APIRouter(prefix="/api/demo")
@@ -71,6 +71,11 @@ def _live(db_path) -> list[dict]:
             )
         ]
         pick = json.loads(row["pick"])
+        last = conn.execute(
+            "SELECT delay_min, cancelled FROM trip_snapshots WHERE trip_id = ?"
+            " ORDER BY at DESC, rowid DESC LIMIT 1",
+            (row["id"],),
+        ).fetchone()
         legs = pick.get("legs") or [{}]
         out.append(
             {
@@ -83,6 +88,7 @@ def _live(db_path) -> list[dict]:
                 "date": _day(pick, row["created_at"]),
                 "frames": len(delays),
                 "finished": row["finished_at"] is not None,
+                "outcome": derive_state(last["delay_min"], bool(last["cancelled"])),
                 **_flags(delays),
             }
         )
@@ -109,6 +115,9 @@ def _history() -> list[dict]:
                 "date": run["date"],
                 "frames": len(delays),
                 "finished": True,
+                "outcome": derive_state(
+                    run["stops"][-1]["delay_min"], run["stops"][-1]["cancelled"]
+                ),
                 **_flags(delays),
             }
         )
@@ -185,7 +194,10 @@ def schedule(snaps: list[dict]) -> list[tuple[float, dict]]:
     Frames are only dropped from the front, and only when the first +20 would otherwise come
     after FIRST_CROSSING_BY."""
     snaps = [s for s in snaps if s["delay_min"] is not None or s["cancelled"]]
-    first = next(i for i, s in enumerate(snaps) if s["cancelled"] or (s["delay_min"] or 0) >= 20)
+    first = next(
+        (i for i, s in enumerate(snaps) if s["cancelled"] or (s["delay_min"] or 0) >= 20),
+        0,
+    )
 
     def offsets(start: int) -> list[float]:
         t = [datetime.fromisoformat(s["at"]) for s in snaps[start:]]

@@ -1,6 +1,6 @@
 # Replays
 
-A replay plays a real train run on a compressed clock: about 60 s for the whole run, first +20 within about 25 s. It goes through the same snapshot, state and alert code as live tracking (`tracker.record`). A replay trip has `is_replay: true` and `replay_of: <original date>`, and every push title starts with "Replay · " and every body ends with "(replay of <date>)". Nothing is interpolated or padded. Frames are dropped from the front only when the first +20 would otherwise come too late.
+A replay plays a real train run on a compressed clock: about 60 s for the whole run, first +20 within about 25 s. It goes through the same snapshot, state and alert code as live tracking (`tracker.record`). A replay trip has `is_replay: true` and `replay_of: <original date>`, and every push title starts with "Replay · " and every body ends with "(replay of <date>)". Nothing is interpolated or padded. Frames are dropped from the front only when the first +20 would otherwise come too late. Runs that never reach +20 play every frame and fire no threshold alert.
 
 ## Sources
 
@@ -8,6 +8,9 @@ A replay plays a real train run on a compressed clock: about 60 s for the whole 
 - `history`: runs in `data/replays.json`, built by `scripts/build_replays.py` from the raw DB delay dataset (`data/raw/data-2026-09/10.parquet`). One frame per stop the train reached after boarding, ending at the alighting stop. The delay is the one **measured at that stop**: `arrival_change_time − arrival_planned_time`, from the last observation of each stop. The dataset's times are local (Europe/Berlin) and are stored as UTC. A run is identified by `id` without its last `-<stop>` part. Coupled trains share a run and are listed once (ICE 844, not ICE 854, on 2026-10-30).
 
 Runs in the file: ICE 611 on 2026-10-30 and 2026-09-30 (Hamburg Hbf → München Hbf), ICE 544 on 2026-10-27 and ICE 844 on 2026-10-30 (Berlin Hauptbahnhof → Köln Hbf), and ICE 519 on 2026-10-30 (Hamburg → München, crosses +20 and ends at +24).
+
+- ICE 611, 2026-10-24 (Saturday): Hamburg Hbf → München Hbf, peak +12, final −5 min; no Friday in Sep/Oct meets the limits (lowest Friday peak: +20 on 2026-10-09).
+- ICE 789, 2026-10-30: Hamburg Hbf → München Hbf, peak +16, final −3 min (near miss; no +20 alert).
 
 Credit (show with any history replay): "Delay history: piebro/deutsche-bahn-data (CC BY 4.0)."
 
@@ -18,10 +21,11 @@ Credit (show with any history replay): "Delay history: piebro/deutsche-bahn-data
 ```json
 {"id": "history:ice611-2026-10-30", "source": "history", "delay_basis": "at_stop",
  "train": "ICE 611", "from": "Hamburg Hbf", "to": "München Hbf", "date": "2026-10-30",
- "frames": 15, "finished": true, "max_delay_min": 157, "crosses_20": true, "crosses_60": true}
+ "frames": 15, "finished": true, "outcome": "cash50", "max_delay_min": 157, "crosses_20": true, "crosses_60": true}
 ```
 
 - `id` is `live:<trip id>` or `history:<run id>`.
+- `outcome` comes from the last frame: `on_time` (<20 min), `unlocked` (20–59), `cash25` (60–119), `cash50` (120+), or `cancelled` if that frame is cancelled. For an unfinished live recording, this is its latest recorded state.
 - `delay_basis` is `destination_forecast` for live and `at_stop` for history.
 - `crosses_20` is true when the first frame is under 20 and a later frame reaches 20.
 - `crosses_60` is true when the first frame that reaches 20 is still under 60 and a later frame reaches 60.

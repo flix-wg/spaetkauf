@@ -280,3 +280,34 @@ def test_replay_prefers_a_recording_that_crosses_20(client, settings, monkeypatc
     assert got[0]["id"] == f"live:{tid}" and got[0]["source"] == "live"
     r = client.post("/api/demo/replay").json()
     assert r["recording"]["id"] == f"live:{tid}"
+
+
+def test_on_time_history_replay_finishes_without_alerts(client, settings, monkeypatch):
+    monkeypatch.setattr(replay, "PLAY_SECONDS", 0.2)
+    monkeypatch.setattr(replay, "LEAD_IN", 0.01)
+    sent = []
+
+    async def notify(db, row, payload):
+        sent.append(payload)
+
+    client.app.state.notify = notify
+    recordings = client.get("/api/demo/recordings").json()
+    rec = next(r for r in recordings if r["id"] == "history:ice789-2026-10-30")
+    assert rec["outcome"] == "on_time" and not rec["crosses_20"]
+    response = client.post("/api/demo/replay", json={"recording": rec["id"]})
+    assert response.status_code == 200
+    r = response.json()
+    for _ in range(20):
+        view = client.get(f"/api/trips/{r['trip_id']}", params={"secret": r["secret"]}).json()
+        if view["finished"]:
+            break
+        time.sleep(0.1)
+
+    assert view["finished"] and view["state"] == "on_time"
+    assert view["final_delay_min"] == -3
+    assert view["at_stop"]["name"] == "München Hbf"
+    assert not sent and not any(t["reached"] for t in view["thresholds"])
+    assert r["trip_id"] not in client.app.state.replays
+    conn = connect(settings.db_path)
+    assert conn.execute("SELECT COUNT(*) FROM trip_alerts").fetchone()[0] == 0
+    conn.close()

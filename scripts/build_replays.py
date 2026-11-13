@@ -29,6 +29,9 @@ RUNS = [
     ("ICE", "544", "2026-10-27", "Berlin Hauptbahnhof", "Köln Hbf"),
     ("ICE", "844", "2026-10-30", "Berlin Hauptbahnhof", "Köln Hbf"),
     ("ICE", "519", "2026-10-30", "Hamburg Hbf", "München Hbf"),
+    # No Friday ICE 611 in Sep/Oct stays below +20; use Saturday for the honest miss.
+    ("ICE", "611", "2026-10-24", "Hamburg Hbf", "München Hbf"),
+    ("ICE", "789", "2026-10-30", "Hamburg Hbf", "München Hbf"),
 ]
 
 
