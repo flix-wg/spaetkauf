@@ -11,10 +11,10 @@ Checkpoints (Helsinki time): core path on real data by Sat 14 Nov 10:00 · deplo
 
 ## 2. Odds data
 
-- [ ] 2.1 Write `scripts/build_odds.py` (DuckDB) that downloads the monthly parquet files for 2025-12 to 2026-10 into `data/raw/` and builds `data/odds.sqlite` per design D4; verify row counts per train type are printed and a spot check of one ICE train number matches a manual DuckDB query
-- [ ] 2.2 Document in `docs/odds.md` which delay column is used, the date range, the filters and the attribution line; verify the numbers quoted there come from the script output
-- [ ] 2.3 Probe matching (design D5): take 50 upcoming long-distance connections from Transitous on 5 routes, match every leg to `odds.sqlite`, and write the match rate and the misses to `docs/matching-probe.md`; verify the rate is at least 90 % or the coordinate fallback is added and the rate re-measured
-- [ ] 2.4 Write `scripts/backtest.py`: odds from 2025-12-14 to 2026-08-31, outcomes from 2026-09-01 to 2026-10-31, buckets of 10 points, overall base rate; write `data/backtest.json` and `docs/backtest.md`; verify bucket run counts sum to the test-period total
+- [x] 2.1 Write `scripts/build_odds.py` (DuckDB) that downloads the monthly parquet files for 2025-12 to 2026-10 into `data/raw/` and builds `data/odds.sqlite` per design D4; verify row counts per train type are printed and a spot check of one ICE train number matches a manual DuckDB query
+- [x] 2.2 Document in `docs/odds.md` which delay column is used, the date range, the filters and the attribution line; verify the numbers quoted there come from the script output
+- [x] 2.3 Probe matching (design D5): take 50 upcoming long-distance connections from Transitous on 5 routes, match every leg to `odds.sqlite`, and write the match rate and the misses to `docs/matching-probe.md`; verify the rate is at least 90 % or the coordinate fallback is added and the rate re-measured
+- [x] 2.4 Write `scripts/backtest.py`: odds from 2025-12-14 to 2026-08-31, outcomes from 2026-09-01 to 2026-10-31, buckets of 10 points, overall base rate; write `data/backtest.json` and `docs/backtest.md`; verify bucket run counts sum to the test-period total
 
 ## 3. Picks
 

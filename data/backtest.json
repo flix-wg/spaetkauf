@@ -1,0 +1,88 @@
+{
+ "train_period": {
+  "from": "2025-12-14",
+  "to": "2026-08-31"
+ },
+ "test_period": {
+  "from": "2026-09-01",
+  "to": "2026-10-31"
+ },
+ "threshold_min": 20,
+ "min_training_runs_per_cell": 10,
+ "cell": "train type + number, stop (EVA), weekday",
+ "runs": 414655,
+ "test_arrivals_all": 511709,
+ "coverage": 0.8103,
+ "base_rate": 0.2635,
+ "base_rate_scored_runs": 0.2457,
+ "base_rate_training": 0.2602,
+ "cancelled_share_test": 0.0502,
+ "brier": 0.168,
+ "brier_constant_base_rate": 0.1855,
+ "brier_skill": 0.0947,
+ "buckets": [
+  {
+   "bucket": "0-10%",
+   "predicted_mean": 0.0556,
+   "observed_rate": 0.1002,
+   "n": 77997
+  },
+  {
+   "bucket": "10-20%",
+   "predicted_mean": 0.1478,
+   "observed_rate": 0.1549,
+   "n": 109498
+  },
+  {
+   "bucket": "20-30%",
+   "predicted_mean": 0.2464,
+   "observed_rate": 0.2373,
+   "n": 92986
+  },
+  {
+   "bucket": "30-40%",
+   "predicted_mean": 0.3442,
+   "observed_rate": 0.3253,
+   "n": 58767
+  },
+  {
+   "bucket": "40-50%",
+   "predicted_mean": 0.439,
+   "observed_rate": 0.4084,
+   "n": 37250
+  },
+  {
+   "bucket": "50-60%",
+   "predicted_mean": 0.536,
+   "observed_rate": 0.4963,
+   "n": 22626
+  },
+  {
+   "bucket": "60-70%",
+   "predicted_mean": 0.6384,
+   "observed_rate": 0.5783,
+   "n": 9656
+  },
+  {
+   "bucket": "70-80%",
+   "predicted_mean": 0.732,
+   "observed_rate": 0.6512,
+   "n": 3701
+  },
+  {
+   "bucket": "80-90%",
+   "predicted_mean": 0.8241,
+   "observed_rate": 0.6831,
+   "n": 1502
+  },
+  {
+   "bucket": "90-100%",
+   "predicted_mean": 0.9306,
+   "observed_rate": 0.6741,
+   "n": 672
+  }
+ ],
+ "note": "Late = arrival 20+ min after plan or cancelled at that stop. Odds are base rates, not a forecast.",
+ "source": "piebro/deutsche-bahn-data (Hugging Face), CC BY 4.0",
+ "built_at": "2026-11-13T22:23:43Z"
+}
