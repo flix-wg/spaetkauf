@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spätkauf safe mode: data sources</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;family=Space+Grotesk:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1440px; height: 844px; box-sizing: border-box; background: #FFFFFF; color: #14161A; font-family: Inter, system-ui, sans-serif; padding: 48px; display: flex; flex-direction: column; gap: 28px">
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: {{accentText}}; font-weight: 700; letter-spacing: 1px">SAFE MODE · KURT NEVER TOUCHES BAHN.DE</span>
+    <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 48px; line-height: 1.05">Where every number comes from</h1>
+  </div>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 28px; flex-grow: 1">
+    <div style="display: flex; flex-direction: column">
+      <div style="display: grid; grid-template-columns: 150px minmax(0, 1fr) 210px; gap: 16px; padding: 0 0 10px; border-bottom: 2px solid #14161A; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B616B; letter-spacing: 1px">
+        <span>NEED</span><span>SOURCE</span><span>TERMS</span>
+      </div>
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="7">
+        <div style="display: grid; grid-template-columns: 150px minmax(0, 1fr) 210px; gap: 16px; padding: 12px 0; border-bottom: 1px solid #E4E4E0; align-items: start">
+          <span style="font-weight: 700; font-size: 15px">{{r.need}}</span>
+          <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600; font-size: 15px">{{r.src}}</span><span style="font-size: 13px; color: #5B616B; line-height: 1.4">{{r.note}}</span></span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.4; border-radius: 6px; padding: 4px 8px; align-self: start; background: {{r.bg}}">{{r.terms}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <div style="background: #14161A; color: #FFFFFF; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 1px; color: {{accent}}">KURT NEVER</span>
+        <span style="font-size: 14px; line-height: 1.5">reads or changes bahn.de pages</span>
+        <span style="font-size: 14px; line-height: 1.5">calls bahn.de’s internal APIs (what db-vendo-client wraps; its README: “strictly speaking, permission is necessary”)</span>
+        <span style="font-size: 14px; line-height: 1.5">sees prices, payment, logins or your IBAN</span>
+        <span style="font-size: 14px; line-height: 1.5">buys, books or sends anything</span>
+      </div>
+      <div style="background: #FFF1EA; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 1px; color: {{accentText}}">HOW BAHN.EXPERT DOES IT</span>
+        <span style="font-size: 14px; line-height: 1.5">Closed source now, and its public API was shut down, so its current sources aren’t documented. The open, official route is DB’s API Marketplace; paid RIS APIs need a contract.</span>
+      </div>
+      <span style="font-size: 12px; color: #5B616B; line-height: 1.5">My reading of the terms, not legal advice. Transitous is fine for an open-source hackathon demo, not for a product. Check OpenBoards’ terms before any paid launch.</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#FD4F00","options":["#FD4F00","#C93D00","#14161A"]},"$preview":{"width":1440,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#FD4F00';
+    const accentText = this.props.accentText ?? '#C93D00';
+    const ok = '#E9F5EC', warn = '#FFF1EA';
+    const rows = [
+      { need: 'Live delay', src: 'DB Timetables API (DB InfraGO)', note: 'Plan + changes per station, 60 calls/min. Being replaced by OpenBoards.', terms: 'Free · CC BY 4.0', bg: ok },
+      { need: 'Live delay (next)', src: 'DB OpenBoards', note: 'Forecast times per stop, cancellations, replacement trains. 10 req/s.', terms: 'Free · terms of the Web-Bahnhofstafel: check for commercial use', bg: warn },
+      { need: 'Delay history', src: 'piebro/deutsche-bahn-data · Bahn-Vorhersage dataset', note: 'Years of past delays per train and stop, for the odds.', terms: 'CC BY 4.0 · ODbL', bg: ok },
+      { need: 'You’d ride', src: 'gtfs.de long-distance GTFS + own MOTIS router', note: 'Next trains on any route, earlier or later the same day. No reservation-only domestic trains per DB’s FAQ.', terms: 'CC BY 4.0 · MOTIS open source', bg: ok },
+      { need: 'Demo routing', src: 'Transitous (MOTIS, public)', note: 'Same answer without a server, for the hackathon.', terms: 'Non-commercial, open source, ≤720 /plan per day', bg: warn },
+      { need: 'Risk signals', src: 'Exa news search · Context.dev page monitors', note: 'Strikes, track works, closures from public news and notice pages.', terms: 'Per their API terms', bg: ok },
+      { need: 'Your ticket', src: 'Your ticket PDF, shared by you', note: 'Train, price, order number. Your own data, on your phone.', terms: 'Yours', bg: ok },
+    ];
+    return { accent, accentText, rows };
+  }
+}
+</script>
+</body>
+</html>

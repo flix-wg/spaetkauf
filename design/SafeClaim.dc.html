@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spätkauf safe mode: claim helper</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;family=Space+Grotesk:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; color: #14161A; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; position: relative; overflow: hidden">
+<div style="height: 47px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 28px; font: 600 15px Inter, sans-serif; color: #14161A; position: relative; z-index: 2"><span>10:12</span><svg width="64" height="12" viewBox="0 0 64 12" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1" fill="#14161A"/><rect x="5" y="5" width="3" height="7" rx="1" fill="#14161A"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#14161A"/><rect x="15" y="1" width="3" height="11" rx="1" fill="#14161A"/><rect x="38" y="1" width="22" height="10" rx="3" fill="none" stroke="#14161A" stroke-width="1.2"/><rect x="40" y="3" width="15" height="6" rx="1.5" fill="#14161A"/><rect x="61" y="4" width="2" height="4" rx="1" fill="#14161A"/></svg></div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 20px 12px"><span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 24px">Claims</span><span style="display: flex; align-items: center; gap: 5px; font: 600 12px Inter, sans-serif; border: 1.5px solid #14161A; border-radius: 999px; padding: 4px 10px"><svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><path d="M6 1l5 2v4c0 3-2.2 5.3-5 6-2.8-.7-5-3-5-6V3z" fill="none" stroke="#14161A" stroke-width="1.5"/></svg>Safe mode</span></div>
+<div style="padding: 0 16px; display: flex; flex-direction: column; gap: 12px; flex-grow: 1">
+  <div style="background: {{accent}}; border-radius: 20px; padding: 16px; display: flex; align-items: center; gap: 12px">
+    <span style="display: flex; flex-direction: column; flex-grow: 1"><span style="font: 700 12px 'JetBrains Mono', monospace; letter-spacing: 1px">BET WON · CASH BACK</span><span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 38px; line-height: 1.1">€8.75</span><span style="font-size: 13px">25 % of €34.99 · 71 min late</span></span>
+    <svg width="72" height="54" viewBox="0 0 80 60" aria-hidden="true"><rect x="4" y="44" width="68" height="10" rx="5" fill="#14161A"/><path d="M11 46 C9 37 11 29 17 25" stroke="#14161A" stroke-width="6" stroke-linecap="round" fill="none"/><line x1="16" y1="25" x2="10" y2="11" stroke="#14161A" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="25" x2="23" y2="10" stroke="#14161A" stroke-width="2.5" stroke-linecap="round"/><circle cx="10" cy="10" r="3.2" fill="#14161A"/><circle cx="23" cy="9" r="3.2" fill="#14161A"/><circle cx="47" cy="27" r="19" fill="#FFFFFF" stroke="#14161A" stroke-width="2.5"/><path d="M44 27 a3 3 0 1 1 6 0 a6 6 0 1 1 -12 0 a9 9 0 1 1 18 0 a12 12 0 1 1 -24 0" stroke="#14161A" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
+  </div>
+  <div style="display: flex; flex-direction: column">
+    <div style="display: flex; justify-content: space-between; align-items: center; min-height: 54px; border-bottom: 1px solid #E4E4E0"><span style="display: flex; flex-direction: column"><span style="font-size: 12px; color: #5B616B">Trip</span><span style="font-weight: 600; font-size: 15px">Berlin Hbf → Köln Hbf · Mon 2 Nov</span></span><button type="button" style="min-height: 36px; min-width: 64px; border: 1.5px solid #14161A; border-radius: 10px; background: #FFFFFF; font: 600 13px Inter, sans-serif; color: #14161A">Copy</button></div><div style="display: flex; justify-content: space-between; align-items: center; min-height: 54px; border-bottom: 1px solid #E4E4E0"><span style="display: flex; flex-direction: column"><span style="font-size: 12px; color: #5B616B">Booked train</span><span style="font-weight: 600; font-size: 15px">ICE 10:29 → 14:52</span></span><button type="button" style="min-height: 36px; min-width: 64px; border: 1.5px solid #14161A; border-radius: 10px; background: #FFFFFF; font: 600 13px Inter, sans-serif; color: #14161A">Copy</button></div><div style="display: flex; justify-content: space-between; align-items: center; min-height: 54px; border-bottom: 1px solid #E4E4E0"><span style="display: flex; flex-direction: column"><span style="font-size: 12px; color: #5B616B">Arrived</span><span style="font-weight: 600; font-size: 15px">16:03 · 71 min late</span></span><button type="button" style="min-height: 36px; min-width: 64px; border: 1.5px solid #14161A; border-radius: 10px; background: #FFFFFF; font: 600 13px Inter, sans-serif; color: #14161A">Copy</button></div><div style="display: flex; justify-content: space-between; align-items: center; min-height: 54px; border-bottom: 1px solid #E4E4E0"><span style="display: flex; flex-direction: column"><span style="font-size: 12px; color: #5B616B">Order number</span><span style="font-weight: 600; font-size: 15px">from your ticket PDF</span></span><button type="button" style="min-height: 36px; min-width: 64px; border: 1.5px solid #14161A; border-radius: 10px; background: #FFFFFF; font: 600 13px Inter, sans-serif; color: #14161A">Copy</button></div>
+  </div>
+  <button type="button" style="min-height: 52px; border: 0; border-radius: 14px; background: #14161A; color: #FFFFFF; font: 700 15px Inter, sans-serif">Open DB’s claim form ↗</button>
+  <span style="font-size: 12px; color: #5B616B; text-align: center; line-height: 1.4">You paste, you add your IBAN, you send. Deadline: one year after your ticket’s validity.</span>
+  <div style="flex-grow: 1"></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid #E4E4E0"><button type="button" style="min-height: 56px; border: 0; background: transparent; font: 500 13px Inter, sans-serif; color: #5B616B">Picks</button><button type="button" style="min-height: 56px; border: 0; background: transparent; font: 500 13px Inter, sans-serif; color: #5B616B">Trips</button><button type="button" style="min-height: 56px; border: 0; background: transparent; font: 700 13px Inter, sans-serif; color: #14161A; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><span style="width: 24px; height: 4px; border-radius: 2px; background: {{accent}}"></span>Claims</button></div>
+<div style="height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative; z-index: 2"><span style="width: 134px; height: 5px; border-radius: 3px; background: #14161A"></span></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#FD4F00","options":["#FD4F00","#C93D00","#14161A"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#FD4F00', accentText: this.props.accentText ?? '#C93D00' };
+  }
+}
+</script>
+</body>
+</html>

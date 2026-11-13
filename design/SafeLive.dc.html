@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spätkauf safe mode: switch or stay</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;family=Space+Grotesk:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; color: #14161A; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; position: relative; overflow: hidden">
+<div style="height: 47px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 28px; font: 600 15px Inter, sans-serif; color: #14161A; position: relative; z-index: 2"><span>16:53</span><svg width="64" height="12" viewBox="0 0 64 12" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1" fill="#14161A"/><rect x="5" y="5" width="3" height="7" rx="1" fill="#14161A"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#14161A"/><rect x="15" y="1" width="3" height="11" rx="1" fill="#14161A"/><rect x="38" y="1" width="22" height="10" rx="3" fill="none" stroke="#14161A" stroke-width="1.2"/><rect x="40" y="3" width="15" height="6" rx="1.5" fill="#14161A"/><rect x="61" y="4" width="2" height="4" rx="1" fill="#14161A"/></svg></div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 20px 12px"><span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 24px">Your trip</span><span style="display: flex; align-items: center; gap: 5px; font: 600 12px Inter, sans-serif; border: 1.5px solid #14161A; border-radius: 999px; padding: 4px 10px"><svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><path d="M6 1l5 2v4c0 3-2.2 5.3-5 6-2.8-.7-5-3-5-6V3z" fill="none" stroke="#14161A" stroke-width="1.5"/></svg>Safe mode</span></div>
+<div style="padding: 0 16px; display: flex; flex-direction: column; gap: 12px; flex-grow: 1">
+  <div style="background: #F5F5F3; border-radius: 14px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center">
+    <span style="display: flex; flex-direction: column"><span style="font-family: 'JetBrains Mono', monospace; font-weight: 700">Fri 17:24 → 23:28</span><span style="font-size: 13px; color: #5B616B">Sparpreis €39.99 · from your ticket PDF</span></span>
+  </div>
+  <div style="background: {{accent}}; border-radius: 20px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 1px">BET WON · BINDING LIFTED</span><span style="font-size: 13px">DB forecast at München Hbf</span></span>
+      <span style="display: flex; gap: 4px" role="img" aria-label="plus 27 minutes"><span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; background: #14161A; color: #FFFFFF; border-radius: 8px; text-align: center; font-size: 30px; width: 34px">+</span><span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; background: #14161A; color: #FFFFFF; border-radius: 8px; text-align: center; font-size: 30px; width: 34px">2</span><span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; background: #14161A; color: #FFFFFF; border-radius: 8px; text-align: center; font-size: 30px; width: 34px">7</span></span>
+    </div>
+    <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px">Switch or stay?</span>
+    <button type="button" style="display: flex; flex-direction: column; gap: 2px; text-align: left; background: #FFFFFF; border: 2px solid #14161A; border-radius: 12px; padding: 10px 14px; color: #14161A; position: relative">
+      <span style="position: absolute; top: -9px; right: 10px; background: #14161A; color: #FFFFFF; font: 700 10px 'JetBrains Mono', monospace; border-radius: 5px; padding: 2px 6px">KURT’S TIP</span>
+      <span style="font: 700 15px Inter, sans-serif">Switch: 17:54 ICE direct → 23:05</span>
+      <span style="font: 400 12px Inter, sans-serif; color: #5B616B">23 min earlier than you booked · platform shows on the board</span>
+    </button>
+    <button type="button" style="display: flex; flex-direction: column; gap: 2px; text-align: left; background: rgba(255,255,255,0.55); border: 0; border-radius: 12px; padding: 10px 14px; color: #14161A">
+      <span style="font: 700 15px Inter, sans-serif">Stay: ride the 17:24, race to +60</span>
+      <span style="font: 400 12px Inter, sans-serif">€10.00 back if it cracks +60</span>
+    </button>
+  </div>
+  <div style="display: flex; align-items: flex-end; gap: 8px">
+    <svg width="44" height="33" viewBox="0 0 80 60" aria-hidden="true"><rect x="4" y="44" width="68" height="10" rx="5" fill="#14161A"/><path d="M11 46 C9 37 11 29 17 25" stroke="#14161A" stroke-width="6" stroke-linecap="round" fill="none"/><line x1="16" y1="25" x2="10" y2="11" stroke="#14161A" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="25" x2="23" y2="10" stroke="#14161A" stroke-width="2.5" stroke-linecap="round"/><circle cx="10" cy="10" r="3.2" fill="#14161A"/><circle cx="23" cy="9" r="3.2" fill="#14161A"/><circle cx="47" cy="27" r="19" fill="{{accent}}" stroke="#14161A" stroke-width="2.5"/><path d="M44 27 a3 3 0 1 1 6 0 a6 6 0 1 1 -12 0 a9 9 0 1 1 18 0 a12 12 0 1 1 -24 0" stroke="#14161A" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
+    <span style="background: #FFFFFF; border: 2px solid #14161A; border-radius: 16px 16px 16px 4px; padding: 10px 12px; font: 600 14px Inter, sans-serif; line-height: 1.35">Show your ticket as usual. The delay is your pass.</span>
+  </div>
+  <div style="flex-grow: 1"></div>
+  <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5B616B; line-height: 1.35"><span style="width: 8px; height: 8px; flex-shrink: 0; border-radius: 4px; background: #14161A"></span>Live forecast: DB Timetables API (CC BY 4.0), checked for your train only. Push from Kurt’s server.</span>
+  <div style="height: 6px"></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid #E4E4E0"><button type="button" style="min-height: 56px; border: 0; background: transparent; font: 500 13px Inter, sans-serif; color: #5B616B">Picks</button><button type="button" style="min-height: 56px; border: 0; background: transparent; font: 700 13px Inter, sans-serif; color: #14161A; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><span style="width: 24px; height: 4px; border-radius: 2px; background: {{accent}}"></span>Trips</button><button type="button" style="min-height: 56px; border: 0; background: transparent; font: 500 13px Inter, sans-serif; color: #5B616B">Claims</button></div>
+<div style="height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative; z-index: 2"><span style="width: 134px; height: 5px; border-radius: 3px; background: #14161A"></span></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#FD4F00","options":["#FD4F00","#C93D00","#14161A"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#FD4F00', accentText: this.props.accentText ?? '#C93D00' };
+  }
+}
+</script>
+</body>
+</html>
