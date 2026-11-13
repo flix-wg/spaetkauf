@@ -155,7 +155,12 @@ def message(row: dict, view: dict, kind: str) -> dict:
         body = "Ticket unlocked: ride any train, or get a full refund."
     elif kind == "20":
         title = "It's late. You win."
-        body = f"Your {train or 'train'} is now expected +{n} min. Ticket unlocked: ride any train."
+        now = (
+            f"is +{n} min at {view['at_stop']['name']}"
+            if view["at_stop"]
+            else f"is now expected +{n} min"
+        )
+        body = f"Your {train or 'train'} {now}. Ticket unlocked: ride any train."
         if view["alternatives"]:
             best = view["alternatives"][0]
             body += f" Kurt's tip: the {_hhmm(best['dep'])}, in at {_hhmm(best['arr'])}."

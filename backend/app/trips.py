@@ -153,6 +153,14 @@ def trip_view(row: dict, snap: dict | None, now: datetime | None = None) -> dict
             "amount_at_120_eur": thresholds[2]["amount_eur"],
         },
         "connection_at_risk": bool(raw.get("connection_at_risk")),
+        "delay_basis": raw.get("basis", "destination_forecast"),
+        "at_stop": {
+            "name": raw["stop"],
+            "planned_arr": raw.get("planned_arr"),
+            "actual_arr": raw.get("actual_arr"),
+        }
+        if raw.get("stop")
+        else None,
         "is_replay": bool(row["is_replay"]),
         "replay_of": row["replay_of"],
         "finished": finished,

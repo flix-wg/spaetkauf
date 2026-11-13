@@ -135,19 +135,10 @@ def test_switch_to_earlier_arrival_has_no_compensation_at_stake(settings):
     assert found[0] == {**found[0], "changes": 0, "trains": ["ICE 703"]}
 
 
-def test_replay_plays_a_recording_through_the_alerts(client, settings, monkeypatch):
+def test_history_replay_fires_each_threshold_once(client, settings, monkeypatch):
+    monkeypatch.setattr(replay, "HISTORY", settings.db_path.parent / "none.json")
     assert client.post("/api/demo/replay").status_code == 404
-    pick = {**PICK, "arr": "2026-11-13T21:00:00Z"}
-    rec, _ = create_trip(settings.db_path, pick, auto=True)
-    conn = connect(settings.db_path)
-    with conn:
-        for i, d in enumerate([5, 10, 12, 15, 22, 30, 45, 62, 70, 65]):
-            at = (T0 + timedelta(minutes=2 * i)).strftime("%Y-%m-%dT%H:%M:%SZ")
-            conn.execute(
-                "INSERT INTO trip_snapshots(trip_id, at, delay_min, expected_arr) VALUES (?,?,?,?)",
-                (rec, at, d, None),
-            )
-    conn.close()
+    monkeypatch.undo()
     monkeypatch.setattr(replay, "PLAY_SECONDS", 2.0)
     monkeypatch.setattr(replay, "FIRST_CROSSING_BY", 1.0)
     monkeypatch.setattr(replay, "LEAD_IN", 0.1)
@@ -157,21 +148,25 @@ def test_replay_plays_a_recording_through_the_alerts(client, settings, monkeypat
         sent.append(payload)
 
     client.app.state.notify = notify
-    r = client.post("/api/demo/replay", json={"price_eur": 40})
-    tid, secret = r.json()["trip_id"], r.json()["secret"]
+    body = {"recording": "history:ice611-2026-10-30", "price_eur": 40}
+    r = client.post("/api/demo/replay", json=body).json()
+    assert r["recording"]["source"] == "history" and r["recording"]["crosses_60"]
     for _ in range(40):
-        view = client.get(f"/api/trips/{tid}", params={"secret": secret}).json()
+        view = client.get(f"/api/trips/{r['trip_id']}", params={"secret": r["secret"]}).json()
         if view["finished"]:
             break
         time.sleep(0.2)
 
-    assert view["is_replay"] and view["replay_of"] == "2026-11-13"
-    assert view["finished"] and view["final_delay_min"] == 65
+    assert view["is_replay"] and view["replay_of"] == "2026-10-30"
+    assert view["finished"] and view["final_delay_min"] == 124
+    assert view["delay_basis"] == "at_stop" and view["at_stop"]["name"] == "München Hbf"
     assert [p["title"] for p in sent] == [
         "Replay · It's late. You win.",
         "Replay · Cash back unlocked",
+        "Replay · Half your money back",
     ]
-    assert all(p["body"].endswith("(replay of 2026-11-13)") for p in sent)
+    assert sent[0]["body"].startswith("Your ICE 611 is +32 min at Dortmund Hbf.")
+    assert all(p["body"].endswith("(replay of 2026-10-30)") for p in sent)
     assert "10.00 EUR" in sent[1]["body"]
 
 
@@ -254,7 +249,8 @@ def test_rising_trains_are_auto_tracked_within_caps(client, settings, monkeypatc
     assert asyncio.run(board.track_rising(tr, rows, early)) == 1  # open-trip cap
 
 
-def test_replay_prefers_a_recording_that_crosses_20(client, settings):
+def test_replay_prefers_a_recording_that_crosses_20(client, settings, monkeypatch):
+    monkeypatch.setattr(replay, "HISTORY", settings.db_path.parent / "none.json")
     for delays in ([30, 40, 50, 65, 70, 80, 90, 95], [12, 15, 18, 22, 30, 41, 55, 58]):
         tid, _ = create_trip(settings.db_path, PICK, auto=True)
         conn = connect(settings.db_path)
@@ -268,4 +264,6 @@ def test_replay_prefers_a_recording_that_crosses_20(client, settings):
         conn.close()
     got = client.get("/api/demo/recordings").json()
     assert [(r["crosses_20"], r["max_delay_min"]) for r in got] == [(True, 58), (False, 95)]
-    assert replay.best_recording(settings.db_path)["id"] == tid
+    assert got[0]["id"] == f"live:{tid}" and got[0]["source"] == "live"
+    r = client.post("/api/demo/replay").json()
+    assert r["recording"]["id"] == f"live:{tid}"
