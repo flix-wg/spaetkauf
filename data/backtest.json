@@ -17,72 +17,149 @@
  "base_rate_scored_runs": 0.2457,
  "base_rate_training": 0.2602,
  "cancelled_share_test": 0.0502,
- "brier": 0.168,
+ "brier": 0.1649,
  "brier_constant_base_rate": 0.1855,
- "brier_skill": 0.0947,
+ "brier_skill": 0.1111,
  "buckets": [
   {
    "bucket": "0-10%",
-   "predicted_mean": 0.0556,
-   "observed_rate": 0.1002,
-   "n": 77997
+   "predicted_mean": 0.0774,
+   "observed_rate": 0.0764,
+   "n": 38010
   },
   {
    "bucket": "10-20%",
-   "predicted_mean": 0.1478,
-   "observed_rate": 0.1549,
-   "n": 109498
+   "predicted_mean": 0.1505,
+   "observed_rate": 0.1329,
+   "n": 137433
   },
   {
    "bucket": "20-30%",
-   "predicted_mean": 0.2464,
-   "observed_rate": 0.2373,
-   "n": 92986
+   "predicted_mean": 0.2471,
+   "observed_rate": 0.2362,
+   "n": 114505
   },
   {
    "bucket": "30-40%",
-   "predicted_mean": 0.3442,
-   "observed_rate": 0.3253,
-   "n": 58767
+   "predicted_mean": 0.3458,
+   "observed_rate": 0.3532,
+   "n": 69199
   },
   {
    "bucket": "40-50%",
-   "predicted_mean": 0.439,
-   "observed_rate": 0.4084,
-   "n": 37250
+   "predicted_mean": 0.4434,
+   "observed_rate": 0.4834,
+   "n": 37588
   },
   {
    "bucket": "50-60%",
-   "predicted_mean": 0.536,
-   "observed_rate": 0.4963,
-   "n": 22626
+   "predicted_mean": 0.5416,
+   "observed_rate": 0.5971,
+   "n": 14088
   },
   {
    "bucket": "60-70%",
-   "predicted_mean": 0.6384,
-   "observed_rate": 0.5783,
-   "n": 9656
+   "predicted_mean": 0.633,
+   "observed_rate": 0.681,
+   "n": 3423
   },
   {
    "bucket": "70-80%",
-   "predicted_mean": 0.732,
-   "observed_rate": 0.6512,
-   "n": 3701
-  },
-  {
-   "bucket": "80-90%",
-   "predicted_mean": 0.8241,
-   "observed_rate": 0.6831,
-   "n": 1502
-  },
-  {
-   "bucket": "90-100%",
-   "predicted_mean": 0.9306,
-   "observed_rate": 0.6741,
-   "n": 672
+   "predicted_mean": 0.7379,
+   "observed_rate": 0.7751,
+   "n": 409
   }
  ],
+ "method": "shrunk: (k + m * p_parent) / (n + m), m = 50, parent = same train and stop on all weekdays, itself shrunk toward the train type's rate",
+ "shrinkage_m": 50,
+ "m_selection": {
+  "fit": [
+   "2025-12-14",
+   "2026-07-31"
+  ],
+  "holdout": [
+   "2026-08-01",
+   "2026-08-31"
+  ],
+  "brier_by_m": {
+   "plain": 0.18002,
+   "0": 0.18002,
+   "5": 0.17865,
+   "10": 0.17792,
+   "15": 0.17749,
+   "20": 0.17722,
+   "30": 0.17696,
+   "50": 0.17694,
+   "80": 0.17738
+  }
+ },
+ "plain": {
+  "brier": 0.168,
+  "brier_skill": 0.0947,
+  "buckets": [
+   {
+    "bucket": "0-10%",
+    "predicted_mean": 0.0556,
+    "observed_rate": 0.1002,
+    "n": 77997
+   },
+   {
+    "bucket": "10-20%",
+    "predicted_mean": 0.1478,
+    "observed_rate": 0.1549,
+    "n": 109498
+   },
+   {
+    "bucket": "20-30%",
+    "predicted_mean": 0.2464,
+    "observed_rate": 0.2373,
+    "n": 92986
+   },
+   {
+    "bucket": "30-40%",
+    "predicted_mean": 0.3442,
+    "observed_rate": 0.3253,
+    "n": 58767
+   },
+   {
+    "bucket": "40-50%",
+    "predicted_mean": 0.439,
+    "observed_rate": 0.4084,
+    "n": 37250
+   },
+   {
+    "bucket": "50-60%",
+    "predicted_mean": 0.536,
+    "observed_rate": 0.4963,
+    "n": 22626
+   },
+   {
+    "bucket": "60-70%",
+    "predicted_mean": 0.6384,
+    "observed_rate": 0.5783,
+    "n": 9656
+   },
+   {
+    "bucket": "70-80%",
+    "predicted_mean": 0.732,
+    "observed_rate": 0.6512,
+    "n": 3701
+   },
+   {
+    "bucket": "80-90%",
+    "predicted_mean": 0.8241,
+    "observed_rate": 0.6831,
+    "n": 1502
+   },
+   {
+    "bucket": "90-100%",
+    "predicted_mean": 0.9306,
+    "observed_rate": 0.6741,
+    "n": 672
+   }
+  ]
+ },
  "note": "Late = arrival 20+ min after plan or cancelled at that stop. Odds are base rates, not a forecast.",
  "source": "piebro/deutsche-bahn-data (Hugging Face), CC BY 4.0",
- "built_at": "2026-11-13T22:23:43Z"
+ "built_at": "2026-11-13T22:37:24Z"
 }

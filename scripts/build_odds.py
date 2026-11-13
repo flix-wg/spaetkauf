@@ -18,8 +18,8 @@ from pathlib import Path
 
 import duckdb
 
-sys.path.insert(0, str(Path(__file__).parent))
-from matching import LONG_DISTANCE_TYPES, station_key  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backend"))
+from app.matching import LONG_DISTANCE_TYPES, station_key
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "raw"

@@ -19,8 +19,8 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-sys.path.insert(0, str(Path(__file__).parent))
-from matching import find_stats, parse_train  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backend"))
+from app.matching import find_stats, parse_train
 
 ROOT = Path(__file__).resolve().parent.parent
 CACHE = ROOT / "data" / "raw" / "transitous"

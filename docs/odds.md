@@ -1,6 +1,6 @@
 # Odds data
 
-`data/odds.sqlite` is built by `uv run scripts/build_odds.py` (downloads missing months into `data/raw/`, about 10 s once downloaded). Table `train_stop_stats` as in design D4, index `idx_train_weekday (train_type, train_number, weekday)`, table `meta (key, value)` with source, date range, row counts and build time.
+`data/odds.sqlite` (path in the app: `SPAETKAUF_ODDS_PATH`, relative to the repo root; `backtest.json` is read from the same directory) is built by `uv run scripts/build_odds.py` (downloads missing months into `data/raw/`, about 10 s once downloaded). Table `train_stop_stats` as in design D4, index `idx_train_weekday (train_type, train_number, weekday)`, table `meta (key, value)` with source, date range, row counts and build time.
 
 ## Source and attribution
 
@@ -40,9 +40,13 @@ Attribution line for the app: "Delay history: piebro/deutsche-bahn-data (CC BY 4
 - **Replacement trains** (`is_replacement_train`) are dropped: they run under another number than the scheduled train. Rows without a plan record (`has_plan_record = false`, about 7 % of ICE/IC arrivals) and additional stops are kept; they are real arrivals of that train.
 - **Duplicates.** `id` is unique, but the same arrival can appear twice (2 of 525,530 ICE arrivals in Jan–Mar). Arrivals are deduplicated on (type, number, EVA, planned arrival), keeping the latest observation. `train_line_ride_id` is not a run id (it repeats across days).
 - **Weekday** is that of the planned arrival at the stop, local time, 0 = Monday. The backend must use the leg's `scheduledArrival` converted to Europe/Berlin.
-- **Station names.** Each EVA gets its most frequent `station_name`; `station_key` is computed from it with `scripts/matching.py`. Some stations have two EVAs (Berlin Hbf 08011160 and 08098160); the lookup sums rows that share a key.
+- **Station names.** Each EVA gets its most frequent `station_name`; `station_key` is computed from it with `backend/app/matching.py`. Some stations have two EVAs (Berlin Hbf 08011160 and 08098160); the lookup sums rows that share a key.
 - **Monthly coverage** is complete: every day from Dec 2025 to Oct 2026 has ICE arrivals (about 164k–189k per month).
 
 ## Spot check
 
 ICE 785 at München Hbf on Fridays, manual DuckDB query on the parquet files: 46 runs, 3 cancelled, 12 at 20+ min, 5 at 60+ min. Same numbers in `odds.sqlite` (`n=46, n_cancel=3, ge20=12, ge60=5`, 2025-12-19 to 2026-10-30).
+
+## Odds in the app
+
+`backend/app/odds.py` (design D6): direct connections use the last leg's history at the destination for the weekday of the scheduled arrival in Berlin time; connections with changes are labelled "estimate" and add the chance of missing each change. Every percentage is shrunk toward the same train and stop on all weekdays and the train type's rate (m = 50, see `docs/backtest.md`); `late` and `n` stay raw counts. Fewer than 10 runs, or a leg without a train number (FlixTrain "FLX10"), gives no odds for the whole connection.

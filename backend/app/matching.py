@@ -6,7 +6,7 @@ import unicodedata
 
 LONG_DISTANCE_TYPES = (
     "ICE", "IC", "EC", "ECE", "EN", "NJ", "RJ", "RJX", "FLX", "TGV", "WB", "ES", "EST", "EUR", "D",
-)
+)  # fmt: skip
 MIN_RUNS = 10
 GE_COLUMNS = ("ge5", "ge10", "ge15", "ge20", "ge30", "ge45", "ge60", "ge90", "ge120")
 
@@ -45,7 +45,9 @@ def _pick_station(keys: list[str], stop_name: str) -> tuple[str | None, str]:
     return None, "none"
 
 
-def find_stats(conn: sqlite3.Connection, train_type: str, train_number: str, stop_name: str, weekday: int) -> dict:
+def find_stats(
+    conn: sqlite3.Connection, train_type: str, train_number: str, stop_name: str, weekday: int
+) -> dict:
     """History of one train at one stop on one weekday (0 = Monday).
 
     Always returns a dict with `status`: ok | thin | unknown_train | stop_not_matched.
@@ -61,10 +63,15 @@ def find_stats(conn: sqlite3.Connection, train_type: str, train_number: str, sto
         family = next((f for f in _FAMILIES if train_type in f), {train_type}) - {train_type}
         types = conn.execute(
             f"SELECT DISTINCT train_type FROM train_stop_stats WHERE train_number = ? "
-            f"AND train_type IN ({','.join('?' * len(family)) or 'NULL'})", (train_number, *family)
+            f"AND train_type IN ({','.join('?' * len(family)) or 'NULL'})",
+            (train_number, *family),
         ).fetchall()
         if len(types) != 1:
-            return {"status": "unknown_train", "train_type": train_type, "train_number": train_number}
+            return {
+                "status": "unknown_train",
+                "train_type": train_type,
+                "train_number": train_number,
+            }
         found_type = types[0][0]
         rows = conn.execute(
             "SELECT DISTINCT station_key FROM train_stop_stats WHERE train_type = ? AND train_number = ?",
@@ -72,8 +79,13 @@ def find_stats(conn: sqlite3.Connection, train_type: str, train_number: str, sto
         ).fetchall()
     key, how = _pick_station([r[0] for r in rows], stop_name)
     if key is None:
-        return {"status": "stop_not_matched", "train_type": found_type, "train_number": train_number,
-                "stop_key": station_key(stop_name), "known_keys": sorted(r[0] for r in rows)}
+        return {
+            "status": "stop_not_matched",
+            "train_type": found_type,
+            "train_number": train_number,
+            "stop_key": station_key(stop_name),
+            "known_keys": sorted(r[0] for r in rows),
+        }
     sums = ", ".join(f"COALESCE(SUM({c}), 0)" for c in ("n", "n_cancel", *GE_COLUMNS))
     r = conn.execute(
         f"SELECT {sums}, MIN(first_date), MAX(last_date), GROUP_CONCAT(DISTINCT eva), MIN(station_name) "
@@ -82,7 +94,13 @@ def find_stats(conn: sqlite3.Connection, train_type: str, train_number: str, sto
     ).fetchone()
     names = ("n", "n_cancel", *GE_COLUMNS, "first_date", "last_date", "eva", "station_name")
     out = dict(zip(names, r))
-    out.update(train_type=found_type, train_number=train_number, station_key=key, match=how, weekday=weekday,
-               type_fallback=found_type != train_type)
+    out.update(
+        train_type=found_type,
+        train_number=train_number,
+        station_key=key,
+        match=how,
+        weekday=weekday,
+        type_fallback=found_type != train_type,
+    )
     out["status"] = "ok" if out["n"] >= MIN_RUNS else "thin"
     return out
