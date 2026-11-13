@@ -20,6 +20,7 @@ TZ = "Europe/Berlin"
 ENOUGH = 10
 MAX_PAGES = 3
 LATE_MIN = 20
+KURT_MIN_P20 = 0.30
 RIDE_WINDOW = (timedelta(minutes=0), timedelta(minutes=120))
 RIDE_SLACK = timedelta(minutes=20)
 # Reservation-only trains cannot be ridden on a lifted binding (D7): TGV, the 95xx Paris ICEs,
@@ -159,12 +160,15 @@ def bahn_url(from_name: str, to_name: str, dep: str) -> str:
 
 
 def rank(picks: list[dict]) -> list[dict]:
-    """By p20 descending, picks without odds last, then by departure; marks one Kurt's pick."""
+    """By p20 descending, picks without odds last, then by departure; marks Kurt's pick (likeliest late, with ride-instead, p20 >= KURT_MIN_P20)."""
     picks.sort(key=lambda p: (p["odds"]["p20"] is None, -(p["odds"]["p20"] or 0), p["dep"]))
-    eligible = [p for p in picks if p["odds"]["p20"] is not None and not p["already_posted"]]
-    kurt = next((p for p in eligible if p["ride_instead"]), eligible[0] if eligible else None)
-    if kurt:
-        kurt["is_kurts_pick"] = True
+    eligible = [
+        p for p in picks
+        if p["ride_instead"] and not p["already_posted"]
+        and (p["odds"]["p20"] or 0) >= KURT_MIN_P20
+    ]  # fmt: skip
+    if eligible:
+        max(eligible, key=lambda p: p["odds"]["p20"])["is_kurts_pick"] = True
     return picks
 
 

@@ -22,7 +22,7 @@ The system SHALL return real long-distance connections for the chosen origin, de
 
 #### Scenario: Route with history
 - **WHEN** the traveller searches Hamburg Hbf to München Hbf for a date within the published timetable
-- **THEN** at least one connection is listed with trains, times and odds, and the first one is marked as Kurt's pick
+- **THEN** at least one connection is listed with trains, times and odds, and Kurt's pick is the connection with the highest odds that has a ride-instead and at least 30 % odds of arriving 20 or more minutes late (no pick is marked when none qualifies)
 
 #### Scenario: Connection without history
 - **WHEN** a connection's trains have fewer than 10 past runs on that weekday

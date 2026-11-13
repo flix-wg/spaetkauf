@@ -81,7 +81,8 @@ def test_ranking_kurts_pick_ride_instead_and_already_posted(make_client):
     handler = plan_pages([
         [itin(("ICE 1", "München Hbf", "08:00", "12:00"), delay=25),
          itin(("ICE 2", "München Hbf", "09:00", "13:00")),
-         itin(("ICE 3", "Hauptbahnhof", "09:30", "12:50"))],
+         itin(("ICE 3", "Hauptbahnhof", "09:30", "12:50")),
+         itin(("ICE 4", "München Hbf", "10:00", "12:55"))],
         [itin(("FLX10", "München Hbf", "10:00", "14:00")),
          itin(("TGV 9", "München Hbf", "09:10", "12:30")),
          itin(("ICE 9554", "München Hbf", "09:20", "12:20"))],
@@ -90,7 +91,7 @@ def test_ranking_kurts_pick_ride_instead_and_already_posted(make_client):
     assert handler.calls.count("/api/v1/plan") == 2
     assert (body["from"], body["to"], body["tz"]) == ("Hamburg Hbf", "München Hbf", "Europe/Berlin")
     trains = [p["legs"][0]["train"] for p in body["picks"]]
-    assert trains == ["ICE 1", "ICE 2", "ICE 3", "TGV 9", "ICE 9554", "FLX10"]
+    assert trains == ["ICE 1", "ICE 2", "ICE 3", "TGV 9", "ICE 9554", "ICE 4", "FLX10"]
     first, second, third = body["picks"][:3]
     assert first["already_posted"] and not first["is_kurts_pick"]
     assert second["is_kurts_pick"] and sum(p["is_kurts_pick"] for p in body["picks"]) == 1
@@ -99,7 +100,8 @@ def test_ranking_kurts_pick_ride_instead_and_already_posted(make_client):
     # the TGV and ICE 9554 arrive earlier but need a reservation; ICE 1 left before the booked train
     assert second["ride_instead"]["trains"] == ["ICE 3"]
     assert second["ride_instead"]["delta_arr_min"] == -10
-    assert third["ride_instead"] is None
+    # ICE 3 has a ride-instead but only 20 % odds: below KURT_MIN_P20, so it is not highlighted
+    assert third["ride_instead"]["trains"] == ["ICE 4"] and not third["is_kurts_pick"]
     assert third["legs"][0]["to"] == "München Hbf" and third["odds"]["p20"] == 0.2
     assert len(second["legs"]) == 1 and second["changes"] == 0
     assert second["bahn_url"].startswith("https://www.bahn.de/buchung/fahrplan/suche#sts=true")
@@ -107,13 +109,13 @@ def test_ranking_kurts_pick_ride_instead_and_already_posted(make_client):
         "so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&hd=" + DAY.isoformat() + "T09:00:00"
         in (second["bahn_url"])
     )
-    assert body["note"] == "3 of 6 connections have too little history for odds" \
+    assert body["note"] == "4 of 7 connections have too little history for odds" \
         " (no history for FlixTrain legs)."  # fmt: skip
 
 
 def test_no_alternative_and_unknown_station(make_client):
     client = make_client(plan_pages([[itin(("ICE 3", "München Hbf", "09:30", "12:50"))]]))
     (only,) = get(client).json()["picks"]
-    assert only["ride_instead"] is None and only["is_kurts_pick"]
+    assert only["ride_instead"] is None and not only["is_kurts_pick"]  # 20 %: nothing qualifies
     missing = get(client, **{"from": "Nowhere"})
     assert missing.status_code == 404 and "Nowhere" in missing.json()["detail"]

@@ -60,6 +60,8 @@ Key: train type and number from the leg's short name ("ICE 785"), then the stop 
 ### D7. Ride-instead
 From the same `/plan` answer plus one neighbouring page: connections other than the booked one departing at or up to 120 min after it (an earlier train is gone before the delay is known) and arriving no later than the booked arrival plus 20 min, excluding legs on reservation-only trains (per DB's FAQ: TGV/ICE to France, trains to Poland, to Milan via Basel; detected by train type TGV or a foreign terminus in that list). Choose the earliest scheduled arrival; ties go to fewer changes. Live variant (D8) uses departures from now and compares with the booked train's expected arrival.
 
+Kurt's pick is the pick with the highest `p20` among those with odds, not already posted, with a ride-instead and `p20 >= 0.30` (`KURT_MIN_P20`); ties keep the ranking order. When none qualifies, no pick is marked and the screen shows the plain list.
+
 ### D8. Tracking loop and trip state
 One asyncio task, every 120 s: for each trip whose window (departure minus 3 h to arrival plus 45 min) is open, fetch the trip by id, read expected arrival at the alighting stop, store a snapshot, derive the state.
 
