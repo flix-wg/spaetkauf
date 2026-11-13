@@ -36,11 +36,6 @@ body {
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
 }
-@media (min-width: 1280px) {
-  body {
-    background: #f1f1ee;
-  }
-}
 
 button,
 a,

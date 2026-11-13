@@ -14,7 +14,7 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
     }
   }, [onClose])
   return (
-    <div className="absolute inset-0 z-30 flex flex-col justify-end">
+    <div className="absolute inset-0 z-30 flex flex-col justify-end lg:items-center lg:justify-center lg:p-10">
       <button type="button" aria-label="Close" className="absolute inset-0 bg-ink/45" onClick={onClose} tabIndex={-1} />
       <div
         ref={ref}
@@ -22,10 +22,10 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className="sheet-in relative flex max-h-[88%] flex-col rounded-t-3xl bg-white outline-none"
+        className="sheet-in relative flex max-h-[88%] flex-col rounded-t-3xl bg-white outline-none lg:max-h-full lg:w-[640px] lg:rounded-3xl lg:shadow-[0_30px_80px_rgba(20,22,26,0.3)]"
       >
-        <div className="flex items-center justify-between px-5 pb-2 pt-4">
-          <h2 className="font-display text-[22px] font-bold">{title}</h2>
+        <div className="flex items-center justify-between px-5 pb-2 pt-4 lg:px-8 lg:pt-6">
+          <h2 className="font-display text-[22px] font-bold lg:text-[28px]">{title}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -35,7 +35,7 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
             <IconClose />
           </button>
         </div>
-        <div className="scroll-y px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">{children}</div>
+        <div className="scroll-y px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] lg:px-8 lg:pb-8">{children}</div>
       </div>
     </div>
   )

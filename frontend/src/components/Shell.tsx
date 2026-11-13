@@ -30,10 +30,10 @@ export function lastSearchPath() {
 export function ScreenHeader({ title, back }: { title: string; back?: React.ReactNode }) {
   const { open } = useSheet()
   return (
-    <header className="sticky top-0 z-10 flex min-h-[64px] items-center justify-between gap-2 bg-white px-5 pb-2 pt-3">
+    <header className="sticky top-0 z-10 flex min-h-[64px] items-center justify-between gap-2 bg-white px-5 pb-2 pt-3 lg:min-h-[96px] lg:px-10 lg:pb-3 lg:pt-6">
       <div className="flex min-w-0 items-center gap-1">
         {back}
-        <h1 className="truncate font-display text-[26px] font-bold leading-tight">{title}</h1>
+        <h1 className="truncate font-display text-[26px] font-bold leading-tight lg:text-[38px]">{title}</h1>
       </div>
       <button
         type="button"
@@ -47,13 +47,15 @@ export function ScreenHeader({ title, back }: { title: string; back?: React.Reac
   )
 }
 
+const navItems = (pathname: string) => [
+  { to: lastSearchPath(), label: 'Picks', icon: IconTrain, on: pathname === '/' || pathname === '/picks' },
+  { to: '/trips', label: 'My trips', icon: IconTicket, on: pathname.startsWith('/trip') },
+  { to: '/late', label: 'Late now', icon: IconClock, on: pathname === '/late' },
+]
+
 function Nav() {
   const { pathname } = useLocation()
-  const items = [
-    { to: lastSearchPath(), label: 'Picks', icon: IconTrain, on: pathname === '/' || pathname === '/picks' },
-    { to: '/trips', label: 'My trips', icon: IconTicket, on: pathname.startsWith('/trip') },
-    { to: '/late', label: 'Late now', icon: IconClock, on: pathname === '/late' },
-  ]
+  const items = navItems(pathname)
   return (
     <nav aria-label="Main" className="grid shrink-0 grid-cols-3 border-t border-line bg-white pb-[env(safe-area-inset-bottom)]">
       {items.map(({ to, label, icon: Icon, on }) => (
@@ -72,37 +74,36 @@ function Nav() {
   )
 }
 
-function Panel() {
+// Desktop: the bottom tab bar becomes a side bar, with the QR code so the audience can open it on a phone.
+function SideNav() {
+  const { pathname } = useLocation()
   const [qr, setQr] = useState('')
   useEffect(() => {
     QRCode.toString(window.location.origin, { type: 'svg', margin: 1, color: { dark: '#14161A', light: '#FFFFFF' } }).then(setQr)
   }, [])
   return (
-    <aside className="flex w-[420px] flex-col gap-7">
-      <div className="flex items-center gap-3">
-        <Kurt width={72} />
-        <span className="font-display text-[34px] font-bold">Spätkauf</span>
+    <aside className="flex w-[264px] shrink-0 flex-col gap-8 border-r border-line bg-surface px-5 py-7">
+      <div className="flex items-center gap-3 px-2">
+        <Kurt width={60} />
+        <span className="font-display text-[30px] font-bold">Spätkauf</span>
       </div>
-      <h2 className="font-display text-[40px] font-bold leading-[1.08]">
-        Buy the cheap ticket for the train that’s usually late. Ride the better one.
-      </h2>
-      <ol className="flex flex-col gap-3 text-[16px] leading-snug text-ink">
-        {[
-          'Search a route and see which trains arrive 20+ minutes late most often.',
-          'Book the cheap saver ticket on bahn.de. Kurt names the train you would ride instead.',
-          'Kurt watches your trip live and tells you when the ticket unlocks and when money is back.',
-        ].map((t, i) => (
-          <li key={i} className="flex gap-3">
-            <span className="mono flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ink text-[13px] font-bold text-white">
-              {i + 1}
-            </span>
-            <span className="pt-0.5">{t}</span>
-          </li>
+      <nav aria-label="Main" className="flex flex-col gap-1.5">
+        {navItems(pathname).map(({ to, label, icon: Icon, on }) => (
+          <NavLink
+            key={label}
+            to={to}
+            aria-current={on ? 'page' : undefined}
+            className={`relative flex min-h-[56px] items-center gap-3.5 rounded-2xl px-4 text-[18px] no-underline ${on ? 'bg-white font-bold text-ink shadow-[0_1px_2px_rgba(20,22,26,0.08)]' : 'font-medium text-muted hover:bg-white/60'}`}
+          >
+            {on && <span className="absolute inset-y-0 left-0 my-auto h-7 w-1 rounded-r bg-accent" />}
+            <Icon size={24} />
+            {label}
+          </NavLink>
         ))}
-      </ol>
-      <div className="flex items-center gap-5">
+      </nav>
+      <div className="mt-auto flex flex-col gap-3 px-2">
         <div
-          className="h-[132px] w-[132px] shrink-0 rounded-2xl border border-line bg-white p-2 [&>svg]:h-full [&>svg]:w-full"
+          className="h-[132px] w-[132px] rounded-2xl border border-line bg-white p-2 [&>svg]:h-full [&>svg]:w-full"
           role="img"
           aria-label="QR code that opens this site on a phone"
           dangerouslySetInnerHTML={{ __html: qr }}
@@ -110,31 +111,19 @@ function Panel() {
         <p className="text-[14px] leading-snug text-muted">
           Scan to open on your phone.
           <br />
-          <span className="mono text-ink">{window.location.host}</span>
+          <span className="mono break-all text-ink">{window.location.host}</span>
         </p>
+        {MOCK && <span className="tag w-fit rounded-md bg-tint px-2 py-1 text-accent-text">MOCK DATA</span>}
       </div>
-      {MOCK && <span className="tag w-fit rounded-md bg-tint px-2 py-1 text-accent-text">MOCK DATA</span>}
     </aside>
   )
 }
 
 export function Shell() {
-  const wide = useMedia('(min-width: 1280px)')
+  const desk = useMedia('(min-width: 1024px)')
   const { current, close } = useSheet()
-  const app = (
-    <div
-      className={
-        wide
-          ? 'relative box-content h-[min(844px,calc(100dvh-80px))] w-[390px] overflow-hidden rounded-[48px] border-[10px] border-ink bg-white shadow-[0_30px_80px_rgba(20,22,26,0.25)]'
-          : 'relative mx-auto h-dvh w-full max-w-[480px] overflow-hidden bg-white'
-      }
-    >
-      <div className="flex h-full flex-col">
-        <main className="scroll-y min-h-0 flex-1">
-          <Outlet />
-        </main>
-        <Nav />
-      </div>
+  const sheets = (
+    <>
       {current === 'sources' && (
         <Sheet title="Sources" onClose={close}>
           <SourcesSheet />
@@ -145,13 +134,29 @@ export function Shell() {
           <BacktestSheet />
         </Sheet>
       )}
-    </div>
+    </>
   )
-  if (!wide) return app
+  if (desk)
+    return (
+      <div className="relative flex h-dvh w-full overflow-hidden bg-white">
+        <SideNav />
+        <main className="scroll-y min-h-0 min-w-0 flex-1">
+          <div className="mx-auto w-full max-w-[1680px]">
+            <Outlet />
+          </div>
+        </main>
+        {sheets}
+      </div>
+    )
   return (
-    <div className="flex min-h-full items-center justify-center gap-24 px-10 py-10">
-      {app}
-      <Panel />
+    <div className="relative mx-auto h-dvh w-full max-w-[480px] overflow-hidden bg-white">
+      <div className="flex h-full flex-col">
+        <main className="scroll-y min-h-0 flex-1">
+          <Outlet />
+        </main>
+        <Nav />
+      </div>
+      {sheets}
     </div>
   )
 }
