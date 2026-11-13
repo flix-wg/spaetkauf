@@ -73,13 +73,15 @@ jobs:
         env:
           KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-          TARGET: ${{ format({0}@{1}, secrets.DEPLOY_USER || root, secrets.DEPLOY_HOST) }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DIR: ${{ inputs.target_dir }}
           COMPOSE: ${{ inputs.compose_file }}
           ENVFILE: ${{ inputs.env_file }}
           URL: ${{ inputs.health_url }}
         run: |
           set -euo pipefail
+          TARGET="${DEPLOY_USER:-root}@$DEPLOY_HOST"
           [ -n "$KNOWN_HOSTS" ] || { echo "::error::DEPLOY_KNOWN_HOSTS is not set"; exit 1; }
           install -d -m 700 ~/.ssh
           (umask 077; printf %sn "$KEY" > ~/.ssh/deploy_key; printf %sn "$KNOWN_HOSTS" > ~/.ssh/known_hosts)
