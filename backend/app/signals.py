@@ -35,6 +35,7 @@ LOOKBACK_DAYS = 21
 BANNER_DAYS = 7
 MAX_ITEMS = 5
 MAX_BANNERS = 3
+EXA_BUDGET = 150  # searches per UTC day, override with SPAETKAUF_EXA_BUDGET
 KINDS = {"strike", "works", "weather", "event", "other"}
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS signals_cache (
@@ -44,6 +45,7 @@ CREATE TABLE IF NOT EXISTS context_changes (
   id TEXT PRIMARY KEY, source TEXT NOT NULL, url TEXT NOT NULL,
   title TEXT, summary TEXT, changed_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS exa_budget (day TEXT PRIMARY KEY, used INTEGER NOT NULL);
 """
 _locks: dict[str, asyncio.Lock] = {}
 
@@ -51,6 +53,17 @@ _locks: dict[str, asyncio.Lock] = {}
 def ensure_schema(conn) -> None:
     with conn:
         conn.executescript(SCHEMA)
+
+
+def take_exa_budget(conn) -> bool:
+    cap = int(os.environ.get("SPAETKAUF_EXA_BUDGET") or EXA_BUDGET)
+    day = datetime.now(UTC).date().isoformat()
+    with conn:
+        conn.execute("INSERT OR IGNORE INTO exa_budget(day, used) VALUES (?, 0)", (day,))
+        cur = conn.execute(
+            "UPDATE exa_budget SET used = used + 1 WHERE day = ? AND used < ?", (day, cap)
+        )
+    return cur.rowcount == 1
 
 
 def is_db_host(url: str) -> bool:
@@ -193,7 +206,7 @@ async def get_signals(
             if row and time.time() - row["fetched_at"] < CACHE_TTL:
                 items, checked = json.loads(row["items"]), row["fetched_at"]
                 status = "ok" if items else "empty"
-            elif settings.exa_key and a and b:
+            elif settings.exa_key and a and b and take_exa_budget(conn):
                 try:
                     items = await _search(request, settings, a, b, date)
                 except (httpx.HTTPError, ValueError, AttributeError):

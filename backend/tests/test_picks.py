@@ -83,19 +83,20 @@ def test_ranking_kurts_pick_ride_instead_and_already_posted(make_client):
          itin(("ICE 2", "München Hbf", "09:00", "13:00")),
          itin(("ICE 3", "Hauptbahnhof", "09:30", "12:50"))],
         [itin(("FLX10", "München Hbf", "10:00", "14:00")),
-         itin(("TGV 9", "München Hbf", "09:10", "12:30"))],
+         itin(("TGV 9", "München Hbf", "09:10", "12:30")),
+         itin(("ICE 9554", "München Hbf", "09:20", "12:20"))],
     ])  # fmt: skip
     body = get(make_client(handler)).json()
     assert handler.calls.count("/api/v1/plan") == 2
     assert (body["from"], body["to"], body["tz"]) == ("Hamburg Hbf", "München Hbf", "Europe/Berlin")
     trains = [p["legs"][0]["train"] for p in body["picks"]]
-    assert trains == ["ICE 1", "ICE 2", "ICE 3", "TGV 9", "FLX10"]
+    assert trains == ["ICE 1", "ICE 2", "ICE 3", "TGV 9", "ICE 9554", "FLX10"]
     first, second, third = body["picks"][:3]
     assert first["already_posted"] and not first["is_kurts_pick"]
     assert second["is_kurts_pick"] and sum(p["is_kurts_pick"] for p in body["picks"]) == 1
     assert second["odds"] == {"p20": 0.5, "p60": 0.05, "late": 10, "n": 20,
                               "weekday": DAY.strftime("%A"), "basis": "history"}  # fmt: skip
-    # the TGV arrives earlier but needs a reservation; ICE 1 left before the booked train
+    # the TGV and ICE 9554 arrive earlier but need a reservation; ICE 1 left before the booked train
     assert second["ride_instead"]["trains"] == ["ICE 3"]
     assert second["ride_instead"]["delta_arr_min"] == -10
     assert third["ride_instead"] is None
@@ -106,7 +107,7 @@ def test_ranking_kurts_pick_ride_instead_and_already_posted(make_client):
         "so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&hd=" + DAY.isoformat() + "T09:00:00"
         in (second["bahn_url"])
     )
-    assert body["note"] == "2 of 5 connections have too little history for odds" \
+    assert body["note"] == "3 of 6 connections have too little history for odds" \
         " (no history for FlixTrain legs)."  # fmt: skip
 
 

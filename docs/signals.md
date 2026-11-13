@@ -48,3 +48,4 @@ Display-only context for a route and date. Signals never change the odds.
 - Requests carry the client name from `SPAETKAUF_CLIENT_NAME` and no personal data.
 - Articles are shown as a one-line summary with source name, date and link, never full text.
 - Monitored pages are public union press pages, checked politely every 2 hours.
+- Exa searches are capped per UTC day (`SPAETKAUF_EXA_BUDGET`, default 150); once spent, uncached routes answer `unavailable`.

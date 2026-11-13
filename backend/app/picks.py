@@ -3,6 +3,7 @@
 import hashlib
 import json
 import sqlite3
+import unicodedata
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Annotated
 from urllib.parse import quote
@@ -21,8 +22,14 @@ MAX_PAGES = 3
 LATE_MIN = 20
 RIDE_WINDOW = (timedelta(minutes=0), timedelta(minutes=120))
 RIDE_SLACK = timedelta(minutes=20)
-# Reservation-only trains cannot be ridden on a lifted binding; detected by train type only.
+# Reservation-only trains cannot be ridden on a lifted binding (D7): TGV, the 95xx Paris ICEs,
+# and legs to or from the foreign stops on those routes.
 RESERVATION_ONLY = {"TGV"}
+FOREIGN_STOPS = (
+    "paris", "strasbourg", "marseille", "lyon", "milano", "warszawa",
+    "poznan", "gdansk", "krakow", "wroclaw", "szczecin",
+)  # fmt: skip
+)
 
 
 def _t(ts: str) -> datetime:
@@ -100,8 +107,20 @@ def fill_names(legs: list[dict], src_name: str, dst_name: str) -> None:
             leg["to"] = nxt if station_tokens(nxt) else leg["to"]
 
 
+def _foreign(stop: str) -> bool:
+    flat = unicodedata.normalize("NFKD", stop.lower().replace("ł", "l"))
+    flat = "".join(c for c in flat if not unicodedata.combining(c))
+    return any(name in flat for name in FOREIGN_STOPS)
+
+
 def _reservation_only(pick: dict) -> bool:
-    return any((parse_train(leg["train"]) or ("",))[0] in RESERVATION_ONLY for leg in pick["legs"])
+    for leg in pick["legs"]:
+        kind, number = parse_train(leg["train"]) or ("", "")
+        if kind in RESERVATION_ONLY or number in {str(n) for n in range(9550, 9600)}:
+            return True
+        if _foreign(leg["from"]) or _foreign(leg["to"]):
+            return True
+    return False
 
 
 def ride_instead(booked: dict, others: list[dict]) -> dict | None:

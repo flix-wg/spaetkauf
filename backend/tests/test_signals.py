@@ -150,3 +150,14 @@ def test_webhook_without_configured_secret_is_401(tmp_path, monkeypatch):
 def test_exa_failure_is_unavailable(tmp_path, status):
     c = make_client(tmp_path, lambda request: httpx.Response(status))
     assert c.get("/api/signals", params=PARAMS).json()["status"] == "unavailable"
+
+
+def test_exa_daily_budget_caps_paid_calls(tmp_path, monkeypatch):
+    monkeypatch.setenv("SPAETKAUF_EXA_BUDGET", "2")
+    exa = Exa([])
+    c = make_client(tmp_path, exa)
+    answers = [
+        c.get("/api/signals", params={**PARAMS, "date": f"2026-11-{d}"}).json()["status"]
+        for d in (15, 16, 17)
+    ]
+    assert answers == ["empty", "empty", "unavailable"] and len(exa.bodies) == 2
