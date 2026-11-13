@@ -7,6 +7,7 @@ from decimal import Decimal
 
 from .claim import compute_claim
 from .db import connect
+from .picks import reservation_only_leg
 from .stations import rail_stops
 from .transitous import BudgetSpent, SourceUnavailable, Transitous
 
@@ -50,6 +51,15 @@ def options(plan: dict, booked_trip_ids: set[str], now: datetime) -> list[dict]:
         if not rides or any(leg["tripId"] in booked_trip_ids for leg in rides):
             continue
         if any(leg.get("cancelled") for leg in rides):
+            continue
+        if any(
+            reservation_only_leg(
+                leg.get("displayName") or leg.get("routeShortName"),
+                (leg.get("from") or {}).get("name"),
+                (leg.get("to") or {}).get("name"),
+            )
+            for leg in rides
+        ):
             continue
         dep, arr = rides[0]["startTime"], rides[-1]["endTime"]
         if _t(dep) <= now:

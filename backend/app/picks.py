@@ -113,14 +113,15 @@ def _foreign(stop: str) -> bool:
     return any(name in flat for name in FOREIGN_STOPS)
 
 
+def reservation_only_leg(train: str | None, *stops: str | None) -> bool:
+    kind, number = parse_train(train) or ("", "")
+    if kind in RESERVATION_ONLY or number in {str(n) for n in range(9550, 9600)}:
+        return True
+    return any(_foreign(stop) for stop in stops if stop)
+
+
 def _reservation_only(pick: dict) -> bool:
-    for leg in pick["legs"]:
-        kind, number = parse_train(leg["train"]) or ("", "")
-        if kind in RESERVATION_ONLY or number in {str(n) for n in range(9550, 9600)}:
-            return True
-        if _foreign(leg["from"]) or _foreign(leg["to"]):
-            return True
-    return False
+    return any(reservation_only_leg(x["train"], x["from"], x["to"]) for x in pick["legs"])
 
 
 def ride_instead(booked: dict, others: list[dict]) -> dict | None:
