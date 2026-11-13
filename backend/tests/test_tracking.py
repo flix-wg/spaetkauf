@@ -10,7 +10,7 @@ import pytest
 from conftest import fixture
 from pywebpush import WebPushException
 
-from app import push, replay
+from app import board, push, replay
 from app.alternatives import options
 from app.db import connect, init_db
 from app.tracker import poll, record, track_trips
@@ -218,3 +218,54 @@ def test_post_trip_rejects_bad_times(client):
         r = client.post("/api/trips", json={"pick": {**PICK, "dep": bad}})
         assert r.status_code == 422
     assert client.post("/api/trips", json={"pick": PICK}).status_code == 201
+
+
+def test_jump_past_60_sends_one_push(settings):
+    sent = []
+
+    async def notify(db, row, payload):
+        sent.append(payload["title"])
+
+    tid, _ = create_trip(settings.db_path, PICK)
+    for i, delay in enumerate([10, 70, 25]):
+        asyncio.run(record(settings.db_path, tid, _snap(delay), T0 + timedelta(minutes=i), notify))
+    assert sent == ["Cash back unlocked"]
+
+
+def test_rising_trains_are_auto_tracked_within_caps(client, settings, monkeypatch):
+    tr = client.app.state.transitous
+    rows = [
+        {"train": f"ICE {n}", "delay_min": d, "trip_id": f"t{n}", "from": "München Hbf"}
+        for n, d in [(1, 12), (2, 19), (3, 15), (4, 25), (5, 5)]
+    ]
+    late = datetime(2026, 11, 13, 23, 0, tzinfo=UTC)  # terminus 23:34Z is under an hour away
+    assert asyncio.run(board.track_rising(tr, rows, late)) == 0
+    early = datetime(2026, 11, 13, 21, 0, tzinfo=UTC)
+    assert asyncio.run(board.track_rising(tr, rows, early)) == 2
+    assert asyncio.run(board.track_rising(tr, rows, early)) == 0  # two per hour
+    conn = connect(settings.db_path)
+    picks = [json.loads(p) for (p,) in conn.execute("SELECT pick FROM trips WHERE auto = 1")]
+    conn.close()
+    assert sorted(p["legs"][0]["train"] for p in picks) == ["ICE 2", "ICE 3"]
+    assert picks[0]["legs"][0]["to"]["name"] == "Hamburg-Altona"
+
+    monkeypatch.setattr(board, "WATCH_PER_HOUR", 10)
+    monkeypatch.setattr(board, "MAX_OPEN_AUTO", 3)
+    assert asyncio.run(board.track_rising(tr, rows, early)) == 1  # open-trip cap
+
+
+def test_replay_prefers_a_recording_that_crosses_20(client, settings):
+    for delays in ([30, 40, 50, 65, 70, 80, 90, 95], [12, 15, 18, 22, 30, 41, 55, 58]):
+        tid, _ = create_trip(settings.db_path, PICK, auto=True)
+        conn = connect(settings.db_path)
+        with conn:
+            for i, d in enumerate(delays):
+                at = (T0 + timedelta(minutes=2 * i)).strftime("%Y-%m-%dT%H:%M:%SZ")
+                conn.execute(
+                    "INSERT INTO trip_snapshots(trip_id, at, delay_min) VALUES (?,?,?)",
+                    (tid, at, d),
+                )
+        conn.close()
+    got = client.get("/api/demo/recordings").json()
+    assert [(r["crosses_20"], r["max_delay_min"]) for r in got] == [(True, 58), (False, 95)]
+    assert replay.best_recording(settings.db_path)["id"] == tid

@@ -16,6 +16,7 @@ from .trips import FINISH_AFTER, derive_state, latest_snapshot, trip_view
 log = logging.getLogger("spaetkauf.tracker")
 WINDOW_BEFORE = timedelta(hours=3)
 BERLIN = ZoneInfo("Europe/Berlin")
+SEVERITY = ["20", "60", "120", "cancelled"]
 
 Notify = Callable[[object, dict, dict], Awaitable[object]]
 
@@ -202,8 +203,7 @@ async def record(
     fresh = new_alerts(db_path, trip_id, snap["delay_min"], bool(snap["cancelled"]), now)
     if fresh:
         view = trip_view(row, latest_snapshot(db_path, trip_id), now)
-        for kind in fresh:
-            await notify(db_path, row, message(row, view, kind))
+        await notify(db_path, row, message(row, view, max(fresh, key=SEVERITY.index)))
     return fresh
 
 

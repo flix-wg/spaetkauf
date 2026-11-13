@@ -21,6 +21,12 @@ HUBS = [
 LATE_MIN = 20
 STALE_AFTER = timedelta(minutes=15)
 AUTO_PER_HOUR = 3
+WATCH_PER_HOUR = 2
+WATCH_DELAY = range(8, 20)
+WATCH_MIN_LEFT = timedelta(minutes=60)
+WATCH_FETCHES = 4
+MAX_OPEN_AUTO = 12
+WATCH_TAG = '%"auto_reason": "watch"%'
 
 
 def _t(ts: str) -> datetime:
@@ -100,7 +106,74 @@ async def refresh_board(tr: Transitous) -> dict:
         )
     conn.close()
     track_worst(tr.settings.db_path, late)
+    await track_rising(tr, trains)
     return {"checked_at": now, "checked": len(trains), "late": late}
+
+
+def _auto_state(conn) -> tuple[set, int]:
+    """Trip ids already auto-tracked, and how many auto trips are still open."""
+    known = {
+        leg.get("trip_id")
+        for (p,) in conn.execute("SELECT pick FROM trips WHERE auto = 1").fetchall()
+        for leg in json.loads(p).get("legs", [])
+    }
+    open_auto = conn.execute(
+        "SELECT COUNT(*) FROM trips WHERE auto = 1 AND finished_at IS NULL"
+    ).fetchone()[0]
+    return known, open_auto
+
+
+async def track_rising(tr: Transitous, trains: list[dict], now: datetime | None = None) -> int:
+    """Auto-track trains 8-19 min late with an hour or more to their terminus: likely to cross +20."""
+    now = now or datetime.now(UTC)
+    hour = datetime.now(UTC).strftime("%Y-%m-%dT%H")
+    conn = connect(tr.settings.db_path)
+    made = conn.execute(
+        "SELECT COUNT(*) FROM trips WHERE auto = 1 AND created_at LIKE ? AND pick LIKE ?",
+        (hour + "%", WATCH_TAG),
+    ).fetchone()[0]
+    known, open_auto = _auto_state(conn)
+    conn.close()
+    picks = sorted(
+        (r for r in trains if r["delay_min"] in WATCH_DELAY and r["trip_id"]),
+        key=lambda r: -r["delay_min"],
+    )
+    created = 0
+    for r in [r for r in picks if r["trip_id"] not in known][:WATCH_FETCHES]:
+        if made + created >= WATCH_PER_HOUR or open_auto + created >= MAX_OPEN_AUTO:
+            break
+        try:
+            legs = (await tr.trip(r["trip_id"])).get("legs") or []
+        except SourceUnavailable:
+            continue
+        end = legs[-1].get("to") or {} if legs else {}
+        sched = end.get("scheduledArrival")
+        if (
+            not sched
+            or any(leg.get("cancelled") for leg in legs)
+            or _t(sched) - now < WATCH_MIN_LEFT
+        ):
+            continue
+        pick = {
+            "id": r["trip_id"],
+            "dep": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "arr": sched,
+            "changes": 0,
+            "auto_reason": "watch",
+            "legs": [
+                {
+                    "train": r["train"],
+                    "from": r["from"],
+                    "to": {"name": end.get("name"), "stopId": end.get("stopId")},
+                    "dep": None,
+                    "arr": sched,
+                    "trip_id": r["trip_id"],
+                }
+            ],
+        }
+        create_trip(tr.settings.db_path, pick, auto=True)
+        created += 1
+    return created
 
 
 def track_worst(db_path, late: list[dict]) -> int:
@@ -108,17 +181,14 @@ def track_worst(db_path, late: list[dict]) -> int:
     hour = datetime.now(UTC).strftime("%Y-%m-%dT%H")
     conn = connect(db_path)
     made = conn.execute(
-        "SELECT COUNT(*) FROM trips WHERE auto = 1 AND created_at LIKE ?", (hour + "%",)
+        "SELECT COUNT(*) FROM trips WHERE auto = 1 AND created_at LIKE ? AND pick NOT LIKE ?",
+        (hour + "%", WATCH_TAG),
     ).fetchone()[0]
-    known = {
-        leg.get("trip_id")
-        for (p,) in conn.execute("SELECT pick FROM trips WHERE auto = 1").fetchall()
-        for leg in json.loads(p).get("legs", [])
-    }
+    known, open_auto = _auto_state(conn)
     conn.close()
     created = 0
     for r in late:
-        if made + created >= AUTO_PER_HOUR:
+        if made + created >= AUTO_PER_HOUR or open_auto + created >= MAX_OPEN_AUTO:
             break
         if not r["trip_id"] or r["trip_id"] in known:
             continue

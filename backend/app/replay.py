@@ -24,22 +24,58 @@ LEAD_IN = 2.0
 FRAMES_BEFORE = 3
 
 
-def best_recording(db_path) -> dict | None:
+def recordings(db_path) -> list[dict]:
+    """Real recordings that qualify, best first; crosses_20 = first snapshot < 20, a later >= 20."""
     conn = connect(db_path)
-    row = conn.execute(
+    rows = conn.execute(
         """
-        SELECT t.*, COUNT(*) AS n, MAX(s.delay_min) AS worst, MIN(s.delay_min) AS best
+        SELECT t.*, COUNT(*) AS n, MAX(s.delay_min) AS worst,
+          (SELECT delay_min FROM trip_snapshots f WHERE f.trip_id = t.id
+           ORDER BY f.at, f.rowid LIMIT 1) AS opening
         FROM trips t JOIN trip_snapshots s ON s.trip_id = t.id
         WHERE t.is_replay = 0 AND (t.finished_at IS NOT NULL OR t.auto = 1)
         GROUP BY t.id
         HAVING n >= ? AND worst >= 20
-        ORDER BY worst >= 60 DESC, best < 20 DESC, t.finished_at IS NOT NULL DESC, n DESC
-        LIMIT 1
+        ORDER BY opening < 20 DESC, worst >= 60 DESC, t.finished_at IS NOT NULL DESC, n DESC
         """,
         (MIN_SNAPSHOTS,),
-    ).fetchone()
+    ).fetchall()
     conn.close()
-    return dict(row) if row else None
+    out = []
+    for r in rows:
+        r = dict(r)
+        r["crosses_20"] = r["opening"] is not None and r["opening"] < 20
+        out.append(r)
+    return out
+
+
+def best_recording(db_path) -> dict | None:
+    found = recordings(db_path)
+    return found[0] if found else None
+
+
+@router.get("/recordings")
+def list_recordings(request: Request):
+    out = []
+    for r in recordings(request.app.state.settings.db_path):
+        pick = json.loads(r["pick"])
+        legs = pick.get("legs") or [{}]
+        out.append(
+            {
+                "train": legs[0].get("train"),
+                "date": _day(pick, r["created_at"]),
+                "snapshots": r["n"],
+                "max_delay_min": r["worst"],
+                "crosses_20": r["crosses_20"],
+                "finished": r["finished_at"] is not None,
+            }
+        )
+    return out
+
+
+def _day(pick: dict, fallback: str) -> str:
+    ts = pick.get("arr") or fallback
+    return datetime.fromisoformat(ts).astimezone(BERLIN).date().isoformat()
 
 
 def schedule(snaps: list[dict]) -> list[tuple[float, dict]]:
@@ -113,10 +149,9 @@ async def start_replay(request: Request, body: ReplayBody | None = None):
     ]
     conn.close()
     pick = json.loads(rec["pick"])
-    day = datetime.fromisoformat(pick.get("arr") or snaps[0]["at"]).astimezone(BERLIN)
     body = body or ReplayBody()
     trip_id, secret = create_trip(
-        db_path, pick, body.price_eur, body.push, replay_of=day.date().isoformat()
+        db_path, pick, body.price_eur, body.push, replay_of=_day(pick, snaps[0]["at"])
     )
     if not hasattr(app.state, "replays"):
         app.state.replays = {}
@@ -128,4 +163,4 @@ async def start_replay(request: Request, body: ReplayBody | None = None):
     task = getattr(app.state, "replay_task", None)
     if task is None or task.done():
         app.state.replay_task = asyncio.create_task(drive(app))
-    return {"trip_id": trip_id, "secret": secret}
+    return {"trip_id": trip_id, "secret": secret, "crosses_20": rec["crosses_20"]}
