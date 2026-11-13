@@ -54,7 +54,7 @@ export function picksFor(date: string, from: string, to: string): Pick[] {
         leg('ICE 1585', from, 'Würzburg Hbf', '18:24', '21:41', 'l3'),
         leg('ICE 783', 'Würzburg Hbf', to, '21:52', '00:31', 'l4', 0, 1),
       ],
-      odds: { p20: 0.47, p60: 0.11, late: null, n: null, weekday: 'Friday', basis: 'estimate' },
+      odds: { p20: 0.47, p60: 0.11, late: 9, n: 31, weekday: 'Friday', basis: 'estimate' },
       already_posted: false, is_kurts_pick: false,
       ride_instead: { dep: at(date, '18:54'), arr: at(date, '00:45', 1), changes: 1, trains: ['ICE 1107', 'ICE 591'], delta_arr_min: 14 },
       bahn_url: bahn(2),

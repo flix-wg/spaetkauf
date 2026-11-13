@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { api, ApiError, type Pick } from '../api'
 import { BookSheet } from '../components/BookSheet'
 import { IconChevron } from '../components/Icons'
+import { Kurt } from '../components/Kurt'
 import { CompactPick, KurtsPick } from '../components/PickCard'
 import { ScreenHeader } from '../components/Shell'
 import { SignalsArea, strikeSignal } from '../components/Signals'
@@ -40,6 +41,7 @@ export function Picks() {
 
   const sig = signals.status === 'ok' ? signals.data : null
   const strike = strikeSignal(sig)
+  const hasKurts = picks.status === 'ok' && picks.data.picks.some((p) => p.is_kurts_pick)
   const back = `/?${new URLSearchParams({ fn: sp.get('fn') ?? '', tn: sp.get('tn') ?? '', date, time })}`
 
   return (
@@ -89,6 +91,18 @@ export function Picks() {
                 <KurtsPick key={p.id} pick={p} tz={picks.data.tz} strike={strike} onBook={setBooking} />
               ) : null,
             )}
+            {!hasKurts && (
+              <section className="flex items-start gap-3 rounded-[22px] bg-surface p-4" aria-label="No pick">
+                <Kurt width={56} className="mt-0.5 shrink-0" />
+                <span className="flex flex-col gap-1">
+                  <span className="font-display text-[18px] font-bold leading-tight">Kurt has no pick here</span>
+                  <span className="text-[13px] leading-snug text-muted">
+                    Kurt only picks a train that is 20+ late on at least 3 of 10 runs and has a better one to ride
+                    instead. None of these does. Their odds are below; another time of day may do better.
+                  </span>
+                </span>
+              </section>
+            )}
             <p className="px-1 text-[12px] leading-snug text-muted">
               A delay already posted when you buy does not count, so Kurt never picks a train for it. Odds are
               base rates from past runs.{' '}
@@ -98,7 +112,7 @@ export function Picks() {
             </p>
             {picks.data.picks.some((p) => !p.is_kurts_pick) && (
               <h2 className="mt-1 flex items-center gap-1 font-display text-[18px] font-bold">
-                More picks <IconChevron size={16} className="rotate-90 text-muted" />
+                {hasKurts ? 'More picks' : 'All trains'} <IconChevron size={16} className="rotate-90 text-muted" />
               </h2>
             )}
             {picks.data.picks

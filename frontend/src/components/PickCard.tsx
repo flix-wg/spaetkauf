@@ -6,12 +6,17 @@ import { IconChevron, IconExternal } from './Icons'
 
 export const hasOdds = (o: Odds | null): o is Odds & { p20: number } => !!o && o.basis !== 'none' && o.p20 !== null
 
-export function oddsLine(o: Odds | null) {
+// With a change, p20 is for the whole connection (a missed change counts) while late/n are the last train's own runs.
+export function oddsLine(p: Pick) {
+  const o = p.odds
   if (!hasOdds(o)) return 'Not enough history for odds'
   const days = weekdayPlural(o.weekday)
-  const counts = o.late !== null && o.n !== null ? `${o.late} of ${o.n} ${days}` : days
-  if (o.basis === 'estimate') return `Estimate with the change · last train late ${counts}`
-  return `Late ${counts}`
+  const counts = o.late !== null && o.n !== null ? `${o.late} of ${o.n} ${days}` : null
+  if (o.basis === 'estimate') {
+    const last = p.legs[p.legs.length - 1]?.train ?? 'The last train'
+    return `Whole trip, a missed change counts too.${counts ? ` ${last} alone was late ${counts}.` : ''}`
+  }
+  return `Late ${counts ?? days}`
 }
 
 function rideLine(p: Pick, tz: string) {
@@ -80,14 +85,14 @@ export function KurtsPick({ pick, tz, strike, onBook }: { pick: Pick; tz: string
           {has ? (
             <>
               <span className="mono text-[40px] font-bold leading-none">{pctNum(o.p20)}%</span>
-              <span className="text-[12px]">20+ min late</span>
+              <span className="text-[12px]">{o.basis === 'estimate' ? 'whole trip 20+ late' : '20+ min late'}</span>
             </>
           ) : (
             <span className="text-[13px] font-semibold">No odds yet</span>
           )}
         </div>
       </div>
-      <p className="-mt-1 text-[13px] font-semibold">{oddsLine(o)}</p>
+      <p className="-mt-1 text-[13px] font-semibold">{oddsLine(pick)}</p>
       {ride ? (
         <div className="flex flex-col gap-0.5 rounded-xl bg-white p-3">
           <span className="tag text-accent-text">IF IT’S LATE, YOU’D RIDE</span>
@@ -153,7 +158,7 @@ export function CompactPick({ pick, tz, strike, onBook }: { pick: Pick; tz: stri
       {open && (
         <div className="flex flex-col gap-3 border-t border-line px-3.5 pb-3.5 pt-3">
           <div className="text-[13px] leading-snug">
-            <p className="font-semibold">{oddsLine(o)}</p>
+            <p className="font-semibold">{oddsLine(pick)}</p>
             <p className="text-muted">
               {changesLabel(pick.changes)} · {duration(pick.duration_min)} · {pick.legs.map((l) => l.train).join(' + ')}
             </p>
