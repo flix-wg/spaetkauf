@@ -4,6 +4,7 @@ import asyncio
 import json
 import logging
 import os
+from urllib.parse import urlsplit
 
 from fastapi import APIRouter, HTTPException
 from pywebpush import WebPushException, webpush
@@ -13,6 +14,26 @@ from .db import connect
 log = logging.getLogger("spaetkauf.push")
 router = APIRouter(prefix="/api/push")
 DEFAULT_SUBJECT = "mailto:demo@spaetkauf.invalid"
+PUSH_HOSTS = ("fcm.googleapis.com", "updates.push.services.mozilla.com")
+PUSH_SUFFIXES = (".push.apple.com", ".notify.windows.com")
+
+
+def check_subscription(sub: dict | None) -> dict | None:
+    """Only https endpoints on the browser push services: the server POSTs to this URL."""
+    if sub is None:
+        return None
+    try:
+        url = urlsplit(str(sub.get("endpoint") or ""))
+        host, port = (url.hostname or "").lower(), url.port
+    except ValueError:
+        url, host, port = urlsplit(""), "", None
+    ok = host in PUSH_HOSTS or host.endswith(PUSH_SUFFIXES)
+    if url.scheme != "https" or not ok or port not in (None, 443) or "@" in url.netloc:
+        raise ValueError(
+            "push endpoint must be an https URL of a browser push service "
+            "(Chrome, Firefox, Safari or Edge)"
+        )
+    return sub
 
 
 @router.get("/key")
@@ -44,7 +65,8 @@ async def send(db_path, row: dict, payload: dict) -> bool:
         return False
     subject = os.environ.get("VAPID_SUBJECT") or DEFAULT_SUBJECT
     try:
-        await asyncio.to_thread(_post, json.loads(row["push"]), payload, private_key, subject)
+        subscription = check_subscription(json.loads(row["push"]))
+        await asyncio.to_thread(_post, subscription, payload, private_key, subject)
     except WebPushException as exc:
         status = getattr(exc.response, "status_code", None)
         if status in (404, 410):

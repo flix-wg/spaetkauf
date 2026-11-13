@@ -46,10 +46,13 @@ def test_claim_rules(price, delay, switched, due, amount):
 def test_trip_round_trip_and_secrets(client, settings):
     r = client.post(
         "/api/trips",
-        json={"pick": PICK, "price_eur": 34.99, "push": {"endpoint": "https://push.example/x"}},
+        json={"pick": PICK, "price_eur": 34.99, "push": {"endpoint": "https://fcm.googleapis.com/fcm/send/x"}},
     )
     assert r.status_code == 201
     tid, secret = r.json()["trip_id"], r.json()["secret"]
+    for bad in ("https://127.0.0.1:8443/x", "http://fcm.googleapis.com/x", "https://fcm.googleapis.com:8443/x"):
+        r = client.post("/api/trips", json={"pick": PICK, "push": {"endpoint": bad}})
+        assert r.status_code == 422 and "push service" in r.text
 
     assert client.get(f"/api/trips/{tid}", params={"secret": "wrong"}).status_code == 404
     assert client.get(f"/api/trips/{tid}").status_code == 404

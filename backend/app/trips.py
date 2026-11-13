@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field, field_validator
 from .alternatives import alternatives_view
 from .claim import WHERE, claim_amount, compute_claim
 from .db import connect
+from .push import check_subscription
 
 router = APIRouter(prefix="/api/trips")
 STALE_AFTER = timedelta(minutes=10)
@@ -193,11 +194,15 @@ class CreateTrip(BaseModel):
             raise ValueError("pick times must be ISO 8601 with a timezone")
         return pick
 
+    _check_push = field_validator("push")(lambda cls, v: check_subscription(v))
+
 
 class PatchTrip(BaseModel):
     price_eur: Decimal | None = Field(default=None, gt=0, le=3000, decimal_places=2)
     switched: bool | None = None
     push: dict | None = None
+
+    _check_push = field_validator("push")(lambda cls, v: check_subscription(v))
 
 
 def _name(stop) -> str:
