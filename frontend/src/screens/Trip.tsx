@@ -172,7 +172,7 @@ function TripView({
           <span className="mono font-bold">
             {dayLabel(b.arr)} {depKnown ? `${hhmm(b.dep)} → ${hhmm(b.arr)}` : `due ${hhmm(b.arr)}`}
           </span>
-          <span className="truncate text-[13px] text-muted">
+          <span className="text-[13px] leading-snug text-muted">
             {stopName(first.from) || '…'} → {dest} · {changesLabel(b.changes)}
           </span>
           <span className="text-[13px] text-muted">

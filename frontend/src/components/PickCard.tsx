@@ -134,7 +134,7 @@ export function CompactPick({ pick, tz, strike, onBook }: { pick: Pick; tz: stri
                 <span className="mono text-[14px] font-bold">{pctNum(o.p20)}%</span>
               </span>
             )}
-            <IconChevron size={18} className={`text-muted transition-transform ${open ? 'rotate-90' : ''}`} />
+            <IconChevron size={18} className={`text-muted transition-transform motion-reduce:transition-none ${open ? 'rotate-90' : ''}`} />
           </span>
         </span>
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-snug text-muted">

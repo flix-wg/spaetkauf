@@ -2,7 +2,7 @@
 import { chromium } from 'playwright'
 
 const out = process.argv[2] ?? 'shots'
-const base = 'http://localhost:5710'
+const base = process.env.BASE ?? 'http://localhost:5710'
 const trips = ['demo-live', 'demo-replay', 'demo-done', 'demo-claim', 'demo-stale'].map((id) => ({ id, secret: 'x' }))
 const P = '/picks?from=8002549&to=8000261&fn=Hamburg%20Hbf&tn=M%C3%BCnchen%20Hbf&date=2026-11-20&time=15%3A00'
 

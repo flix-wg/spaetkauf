@@ -3,12 +3,12 @@ import type { SignalItem, SignalsResponse } from '../api'
 import { dayLabel, hhmm } from '../format'
 import { IconAlert, IconExternal } from './Icons'
 
-// Exa tags almost everything "event"; only the specific kinds earn a coloured label.
-const KIND: Record<string, string> = { strike: 'Strike', works: 'Track works', weather: 'Weather' }
 const SHOW = 3
-
-export const strikeSignal = (s: SignalsResponse | null) =>
-  !!s && (s.banners.length > 0 || s.items.some((i) => i.kind === 'strike'))
+// The per-article kind is unreliable (track works come back as "strike"), so only a change on a
+// watched union page counts as a strike signal, and articles get no kind label.
+export const strikeSignal = (s: SignalsResponse | null) => !!s && s.banners.length > 0
+// Summaries that say the article does not concern long-distance trains go last.
+const weak = (r: string) => /\b(not|no|does not|doesn't)\b[^.;]{0,40}\b(long-distance|mention|strike|report|affect)/i.test(r)
 
 export function Banners({ s }: { s: SignalsResponse | null }) {
   if (!s || s.banners.length === 0) return null
@@ -42,10 +42,8 @@ const shortDate = (d: string) =>
   new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${d}T12:00:00Z`))
 
 function Item({ it }: { it: SignalItem }) {
-  const kind = KIND[it.kind]
   return (
     <li className="flex flex-col gap-1 px-3.5 py-3">
-      {kind && <span className="tag w-fit rounded bg-tint px-1.5 py-0.5 uppercase text-accent-text">{kind}</span>}
       <span className="text-[14px] leading-snug">{tidy(it.reason)}</span>
       <a
         href={it.url}
@@ -85,7 +83,8 @@ export function SignalsArea({ s, loading, date }: { s: SignalsResponse | null; l
       </p>
     )
   } else {
-    const shown = all ? s.items : s.items.slice(0, SHOW)
+    const items = [...s.items].sort((a, b) => Number(weak(a.reason)) - Number(weak(b.reason)))
+    const shown = all ? items : items.slice(0, SHOW)
     body = (
       <>
         <p className="text-[13px] leading-snug text-muted">

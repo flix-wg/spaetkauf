@@ -7,11 +7,10 @@ import { CompactPick, KurtsPick } from '../components/PickCard'
 import { ScreenHeader } from '../components/Shell'
 import { SignalsArea, strikeSignal } from '../components/Signals'
 import { Empty, ErrorState, Loading } from '../components/States'
-import { dayLabel } from '../format'
+import { dayLabel, shortStation } from '../format'
 import { useAsync } from '../hooks'
 import { useSheet } from '../sheets'
 
-const short = (n: string | null) => (n ?? '').replace(/ Hbf$/, '')
 
 export function Picks() {
   const [sp] = useSearchParams()
@@ -51,8 +50,9 @@ export function Picks() {
           to={back}
           className="flex min-h-[48px] items-center justify-between rounded-xl bg-surface px-3.5 text-[15px] font-semibold no-underline"
         >
-          <span className="truncate">
-            {short(sp.get('fn'))} → {short(sp.get('tn'))} · {date ? dayLabel(`${date}T12:00:00Z`) : ''}
+          <span className="min-w-0 py-2 leading-snug">
+            {shortStation(sp.get('fn'))} → {shortStation(sp.get('tn'))}{' '}
+            <span className="whitespace-nowrap">· {date ? dayLabel(`${date}T12:00:00Z`) : ''}</span>
           </span>
           <span className="shrink-0 pl-2 text-[13px] font-normal text-muted">change</span>
         </Link>
@@ -92,7 +92,7 @@ export function Picks() {
             <p className="px-1 text-[12px] leading-snug text-muted">
               A delay already posted when you buy does not count, so Kurt never picks a train for it. Odds are
               base rates from past runs.{' '}
-              <button type="button" onClick={() => open('backtest')} className="min-h-[24px] font-semibold text-accent-text underline">
+              <button type="button" onClick={() => open('backtest')} className="-my-3 inline-flex min-h-[44px] items-center font-semibold text-accent-text underline">
                 How good is Kurt?
               </button>
             </p>
@@ -109,7 +109,8 @@ export function Picks() {
             {picks.data.note && <p className="px-1 text-[12px] text-muted">{picks.data.note}</p>}
           </>
         )}
-        {picks.status !== 'error' && <SignalsArea s={sig} loading={signals.status === 'loading'} date={date} />}
+        {/* Below the picks only once they are in, so nothing above jumps. */}
+        {picks.status === 'ok' && <SignalsArea s={sig} loading={signals.status === 'loading'} date={date} />}
       </div>
       {booking && picks.status === 'ok' && <BookSheet pick={booking} tz={picks.data.tz} onClose={() => setBooking(null)} />}
     </>

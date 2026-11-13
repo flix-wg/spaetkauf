@@ -57,7 +57,7 @@ function StationField({
         role="combobox"
         aria-expanded={!!list}
         aria-controls={`${id}-list`}
-        className={`h-[52px] w-full rounded-xl border-[1.5px] bg-white px-4 text-[17px] font-semibold focus:border-ink ${error ? 'border-accent-text' : 'border-line'}`}
+        className={`h-[52px] w-full rounded-xl border-[1.5px] bg-white pl-4 pr-14 text-[17px] font-semibold focus:border-ink ${error ? 'border-accent-text' : 'border-line'}`}
       />
       {error && <p className="mt-1 text-[13px] text-accent-text" role="alert">{error}</p>}
       {focus && list && (
