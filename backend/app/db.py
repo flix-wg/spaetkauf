@@ -39,6 +39,12 @@ CREATE TABLE IF NOT EXISTS board (
   late TEXT NOT NULL DEFAULT '[]', last_error TEXT
 );
 """
+TRIP_COLUMNS = {
+    "finished_at": "TEXT",
+    "final_delay_min": "INTEGER",
+    "alts": "TEXT",
+    "alts_at": "TEXT",
+}
 
 
 def connect(path: Path) -> sqlite3.Connection:
@@ -54,4 +60,8 @@ def init_db(path: Path) -> None:
     with conn:
         conn.execute("PRAGMA journal_mode = WAL")
         conn.executescript(SCHEMA)
+        have = {r["name"] for r in conn.execute("PRAGMA table_info(trips)")}
+        for col, kind in TRIP_COLUMNS.items():
+            if col not in have:
+                conn.execute(f"ALTER TABLE trips ADD COLUMN {col} {kind}")
     conn.close()

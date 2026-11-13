@@ -25,8 +25,8 @@ Checkpoints (Helsinki time): core path on real data by Sat 14 Nov 10:00 · deplo
 ## 4. Tracking, board, replay, push
 
 - [x] 4.1 Implement trips (`POST`, `GET`, `PATCH`, `DELETE` with id and secret) and the SQLite schema including snapshots and sent alerts; verify with tests that a wrong secret is rejected and delete removes the subscription
-- [ ] 4.2 Implement the background loop and state derivation (design D8) including stale detection, drop-back and once-only alerts; verify with a test that feeds a delay series 12, 24, 15, 26, 61 and expects exactly one +20 and one +60 alert
-- [ ] 4.3 Implement live alternatives for an unlocked trip and the switch-or-stay values; verify with a test that switching to an earlier arrival reports zero compensation at stake
+- [x] 4.2 Implement the background loop and state derivation (design D8) including stale detection, drop-back and once-only alerts; verify with a test that feeds a delay series 12, 24, 15, 26, 61 and expects exactly one +20 and one +60 alert
+- [x] 4.3 Implement live alternatives for an unlocked trip and the switch-or-stay values; verify with a test that switching to an earlier arrival reports zero compensation at stake
 - [x] 4.4 Implement `GET /api/late-now` from hub station boards with dedupe by train, and hourly auto-tracking of the three most delayed trains; verify against the live API that the board returns the checked count and that an auto-tracked trip accumulates snapshots
 - [ ] 4.5 Implement Web Push (VAPID key endpoint, subscription storage, send on alert) and the replay endpoint (design D9, D10); verify on a phone or desktop browser that starting a replay delivers a notification containing "Replay" and the original date
 

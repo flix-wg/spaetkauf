@@ -5,7 +5,7 @@ import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 
-from . import __version__, board, stations, trips
+from . import __version__, board, picks, push, replay, signals, stations, trips
 from .config import REPO_ROOT, Settings
 from .db import init_db
 from .loop import run_loop
@@ -29,6 +29,8 @@ def create_app(
             with contextlib.suppress(asyncio.CancelledError):
                 await task
         await app.state.transitous.aclose()
+        if getattr(app.state, "odds", None) is not None:
+            app.state.odds.close()
 
     app = FastAPI(title="Spätkauf", version=__version__, lifespan=lifespan)
     app.state.settings = settings
@@ -59,6 +61,10 @@ def create_app(
     app.include_router(stations.router)
     app.include_router(trips.router)
     app.include_router(board.router)
+    app.include_router(push.router)
+    app.include_router(replay.router)
+    app.include_router(picks.router)
+    app.include_router(signals.router)
 
     if DIST.is_dir():
         root = DIST.resolve()

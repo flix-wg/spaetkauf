@@ -8,8 +8,9 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 from fastapi import APIRouter, Header, HTTPException, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
+from .alternatives import alternatives_view
 from .claim import WHERE, claim_amount, compute_claim
 from .db import connect
 
@@ -94,7 +95,8 @@ def load_trip(db_path, trip_id: str, secret: str | None) -> dict:
 def latest_snapshot(db_path, trip_id: str) -> dict | None:
     conn = connect(db_path)
     row = conn.execute(
-        "SELECT * FROM trip_snapshots WHERE trip_id = ? ORDER BY at DESC LIMIT 1", (trip_id,)
+        "SELECT * FROM trip_snapshots WHERE trip_id = ? ORDER BY at DESC, rowid DESC LIMIT 1",
+        (trip_id,),
     ).fetchone()
     conn.close()
     return dict(row) if row else None
@@ -108,7 +110,16 @@ def trip_view(row: dict, snap: dict | None, now: datetime | None = None) -> dict
     cancelled = bool(snap and snap["cancelled"])
     arr = _parse(pick.get("arr"))
     dep = _parse(pick.get("dep"))
-    finished = bool(arr and now > arr + timedelta(minutes=(delay or 0)) + FINISH_AFTER)
+    if row.get("finished_at"):
+        finished = True
+    elif row["is_replay"]:
+        finished = False
+    else:
+        finished = bool(arr and now > arr + timedelta(minutes=(delay or 0)) + FINISH_AFTER)
+    if row.get("finished_at"):
+        final_delay = row.get("final_delay_min")
+    else:
+        final_delay = delay if finished else None
     if snap:
         stale = now - _parse(snap["at"]) > STALE_AFTER and not finished
     else:
@@ -122,28 +133,57 @@ def trip_view(row: dict, snap: dict | None, now: datetime | None = None) -> dict
         thresholds.append(
             {"at": at, "label": label, "amount_eur": amount, "reached": (delay or 0) >= at}
         )
+    state = derive_state(delay, cancelled)
+    alts = []
+    if state != "on_time" and not finished and not row["switched"]:
+        alts = alternatives_view(row, snap, price, now)
+    raw = json.loads(snap["raw"]) if snap and snap.get("raw") else {}
     return {
         "booked": pick,
         "price_eur": float(price) if price is not None else None,
-        "state": derive_state(delay, cancelled),
+        "state": state,
         "delay_min": delay,
         "expected_arr": snap["expected_arr"] if snap else None,
         "updated_at": snap["at"] if snap else None,
         "stale": stale,
         "thresholds": thresholds,
-        "alternatives": [],
+        "alternatives": alts,
+        "stay": {
+            "amount_at_60_eur": thresholds[1]["amount_eur"],
+            "amount_at_120_eur": thresholds[2]["amount_eur"],
+        },
+        "connection_at_risk": bool(raw.get("connection_at_risk")),
         "is_replay": bool(row["is_replay"]),
         "replay_of": row["replay_of"],
         "finished": finished,
-        "final_delay_min": delay if finished else None,
+        "final_delay_min": final_delay,
         "switched": bool(row["switched"]),
     }
+
+
+def _aware(ts) -> bool:
+    try:
+        return datetime.fromisoformat(ts).tzinfo is not None
+    except (TypeError, ValueError):
+        return False
 
 
 class CreateTrip(BaseModel):
     pick: dict
     price_eur: Decimal | None = Field(default=None, gt=0, le=3000, decimal_places=2)
     push: dict | None = None
+
+    @field_validator("pick")
+    @classmethod
+    def _check_pick(cls, pick: dict) -> dict:
+        legs = pick.get("legs")
+        if not isinstance(legs, list) or not legs or not all(isinstance(x, dict) for x in legs):
+            raise ValueError("pick needs a non-empty list of legs")
+        stamps = [pick.get("dep"), pick.get("arr")]
+        stamps += [leg[k] for leg in legs for k in ("dep", "arr") if leg.get(k) is not None]
+        if not all(_aware(ts) for ts in stamps):
+            raise ValueError("pick times must be ISO 8601 with a timezone")
+        return pick
 
 
 class PatchTrip(BaseModel):

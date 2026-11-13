@@ -1,4 +1,4 @@
-"""One asyncio task that runs periodic jobs. Add the trip loop as another entry in `jobs`."""
+"""One asyncio task that runs periodic jobs."""
 
 import asyncio
 import logging
@@ -6,7 +6,9 @@ import time
 
 from fastapi import FastAPI
 
+from . import push
 from .board import refresh_board
+from .tracker import track_trips
 
 log = logging.getLogger("spaetkauf.loop")
 
@@ -14,7 +16,11 @@ log = logging.getLogger("spaetkauf.loop")
 def jobs(app: FastAPI) -> list[tuple[str, float, object]]:
     """(name, interval seconds, async callable)."""
     tr = app.state.transitous
-    return [("board", 300, lambda: refresh_board(tr))]
+    notify = getattr(app.state, "notify", push.send)
+    return [
+        ("board", 300, lambda: refresh_board(tr)),
+        ("trips", 120, lambda: track_trips(tr, notify)),
+    ]
 
 
 async def run_loop(app: FastAPI) -> None:
