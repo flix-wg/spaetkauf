@@ -56,7 +56,7 @@ export function picksFor(date: string, from: string, to: string): Pick[] {
       ],
       odds: { p20: 0.47, p60: 0.11, late: null, n: null, weekday: 'Friday', basis: 'estimate' },
       already_posted: false, is_kurts_pick: false,
-      ride_instead: { dep: at(date, '18:54'), arr: at(date, '00:12', 1), changes: 1, trains: ['ICE 1107', 'ICE 591'], delta_arr_min: -19 },
+      ride_instead: { dep: at(date, '18:54'), arr: at(date, '00:45', 1), changes: 1, trains: ['ICE 1107', 'ICE 591'], delta_arr_min: 14 },
       bahn_url: bahn(2),
     },
     {
@@ -79,11 +79,11 @@ export function picksFor(date: string, from: string, to: string): Pick[] {
     {
       id: 'p5', dep: at(date, '19:24'), arr: at(date, '01:12', 1), duration_min: 348, changes: 2,
       legs: [
-        leg('IC 2025', from, 'Hannover Hbf', '19:24', '20:51', 'l8'),
+        leg('FLX 1241', from, 'Hannover Hbf', '19:24', '20:51', 'l8'),
         leg('ICE 71', 'Hannover Hbf', 'Nürnberg Hbf', '21:04', '00:02', 'l9', 0, 1),
         leg('RJX 63', 'Nürnberg Hbf', to, '00:20', '01:12', 'l10', 1, 1),
       ],
-      odds: { p20: null, p60: null, late: null, n: null, weekday: 'Friday', basis: 'none' },
+      odds: null,
       already_posted: false, is_kurts_pick: false, ride_instead: null, bahn_url: bahn(5),
     },
   ]
@@ -181,13 +181,20 @@ export function lateNow(mode: string): LateNow {
   }
 }
 
+// Same shape and numbers as data/backtest.json (trimmed to the fields the UI reads).
 export const BACKTEST: Backtest = {
-  train_from: '2025-12-14', train_to: '2026-08-31', test_from: '2026-09-01', test_to: '2026-10-31',
-  base_rate: 0.19, runs: 4218377,
+  train_period: { from: '2025-12-14', to: '2026-08-31' },
+  test_period: { from: '2026-09-01', to: '2026-10-31' },
+  threshold_min: 20, runs: 414655, coverage: 0.8103, base_rate: 0.2635,
+  brier: 0.1649, brier_constant_base_rate: 0.1855, brier_skill: 0.1111,
   buckets: [
-    { lo: 0, hi: 10, n: 2310944, late: 0, rate: 0.07 }, { lo: 10, hi: 20, n: 903211, late: 0, rate: 0.15 },
-    { lo: 20, hi: 30, n: 522840, late: 0, rate: 0.26 }, { lo: 30, hi: 40, n: 281590, late: 0, rate: 0.34 },
-    { lo: 40, hi: 50, n: 126305, late: 0, rate: 0.46 }, { lo: 50, hi: 60, n: 49871, late: 0, rate: 0.55 },
-    { lo: 60, hi: 70, n: 17302, late: 0, rate: 0.61 }, { lo: 70, hi: 100, n: 6314, late: 0, rate: 0.72 },
-  ],
+    ['0-10%', 0.0774, 0.0764, 38010], ['10-20%', 0.1505, 0.1329, 137433], ['20-30%', 0.2471, 0.2362, 114505],
+    ['30-40%', 0.3458, 0.3532, 69199], ['40-50%', 0.4434, 0.4834, 37588], ['50-60%', 0.5416, 0.5971, 14088],
+    ['60-70%', 0.633, 0.681, 3423], ['70-80%', 0.7379, 0.7751, 409],
+  ].map(([bucket, predicted_mean, observed_rate, n]) => ({ bucket, predicted_mean, observed_rate, n }) as Backtest['buckets'][number]),
+  method: 'shrunk: (k + m * p_parent) / (n + m), m = 50',
+  shrinkage_m: 50,
+  note: 'Late = arrival 20+ min after plan or cancelled at that stop. Odds are base rates, not a forecast.',
+  source: 'piebro/deutsche-bahn-data (Hugging Face), CC BY 4.0',
+  built_at: '2026-11-13T22:37:24Z',
 }

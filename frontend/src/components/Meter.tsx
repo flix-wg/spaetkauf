@@ -18,11 +18,11 @@ export function Meter({ delay, thresholds }: { delay: number; thresholds: Thresh
         ))}
       </div>
       <div className="relative mx-3 mt-2 h-[40px]">
-        {thresholds.map((t) => (
+        {thresholds.map((t, i) => (
           <div
             key={t.at}
-            className="absolute flex -translate-x-1/2 flex-col items-center text-center"
-            style={{ left: POS(t.at) }}
+            className={`absolute flex flex-col whitespace-nowrap ${i === thresholds.length - 1 ? 'right-[-12px] items-end text-right' : '-translate-x-1/2 items-center text-center'}`}
+            style={i === thresholds.length - 1 ? undefined : { left: POS(t.at) }}
           >
             <span className={`font-mono text-[13px] font-bold ${t.reached ? '' : 'opacity-90'}`}>+{t.at}</span>
             <span className="text-[11px] leading-tight">{t.amount_eur !== null ? eur(t.amount_eur) : t.label}</span>

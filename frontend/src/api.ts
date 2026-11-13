@@ -1,4 +1,4 @@
-// Types follow design.md D12. Trip calls carry the trip secret as ?secret=.
+// Types follow design.md D12 and what the backend really returns. Trip calls carry the trip secret as ?secret=.
 
 export type Basis = 'history' | 'estimate' | 'none'
 export type TripState = 'on_time' | 'unlocked' | 'cash25' | 'cash50' | 'cancelled'
@@ -39,7 +39,7 @@ export interface Pick {
   duration_min: number
   changes: number
   legs: Leg[]
-  odds: Odds
+  odds: Odds | null
   already_posted: boolean
   is_kurts_pick: boolean
   ride_instead: RideInstead | null
@@ -57,7 +57,7 @@ export interface SignalItem {
   kind: string
   reason: string
   source: string
-  published: string
+  published: string | null
   url: string
 }
 export interface SignalsResponse {
@@ -78,7 +78,9 @@ export interface Alternative {
   changes: number
   trains: string[]
   catchable_min: number
-  delta_vs_expected_min: number
+  delta_vs_expected_min: number | null
+  forfeits_compensation?: boolean
+  compensation_eur?: number | null
 }
 export interface Trip {
   booked: Pick
@@ -95,6 +97,8 @@ export interface Trip {
   finished: boolean
   final_delay_min: number | null
   switched: boolean
+  stay?: { amount_at_60_eur: number | null; amount_at_120_eur: number | null }
+  connection_at_risk?: boolean
 }
 export interface Claim {
   due: boolean
@@ -113,7 +117,7 @@ export interface LateTrain {
   headsign: string
 }
 export interface LateNow {
-  checked_at: string
+  checked_at: string | null
   stale: boolean
   checked: number
   late: LateTrain[]
@@ -121,18 +125,26 @@ export interface LateNow {
 export interface Health {
   ok: boolean
   version: string
-  sources: { transitous: boolean; exa: boolean; context: boolean }
+  sources: { transitous: string; exa: string; context: string }
   plan_budget_left: number
 }
-// D12 only says "contents of data/backtest.json"; this is the shape the UI reads.
+// data/backtest.json, the fields the UI reads. Rates are fractions.
 export interface Backtest {
-  train_from: string
-  train_to: string
-  test_from: string
-  test_to: string
-  base_rate: number
+  train_period: { from: string; to: string }
+  test_period: { from: string; to: string }
+  threshold_min: number
   runs: number
-  buckets: { lo: number; hi: number; n: number; late: number; rate: number }[]
+  coverage: number
+  base_rate: number
+  brier: number
+  brier_constant_base_rate: number
+  brier_skill: number
+  buckets: { bucket: string; predicted_mean: number; observed_rate: number; n: number }[]
+  method: string
+  shrinkage_m: number
+  note: string
+  source: string
+  built_at: string
 }
 export interface TripRef {
   id: string
@@ -165,12 +177,20 @@ async function http<T>(method: string, path: string, body?: unknown): Promise<T>
     throw new ApiError(0, 'Could not reach the server.')
   }
   if (!res.ok) {
+    const detail = await res
+      .json()
+      .then((j) => (typeof j?.detail === 'string' ? j.detail : ''))
+      .catch(() => '')
     const msg =
       res.status === 429
-        ? 'Daily route limit reached. Try again tomorrow.'
+        ? 'Kurt has used up today’s route searches. Saved trips and Late now still work.'
         : res.status === 503
-          ? 'The route source is unavailable right now.'
-          : `Request failed (${res.status}).`
+          ? 'The live train source is not answering right now. Try again in a minute.'
+          : res.status === 404 && detail.startsWith('Unknown station')
+            ? `${detail}. Pick a station from the list.`
+            : detail
+              ? `${detail}.`
+              : `Request failed (${res.status}).`
     throw new ApiError(res.status, msg)
   }
   return res.status === 204 ? (undefined as T) : ((await res.json()) as T)

@@ -3,7 +3,7 @@ import { Flap } from '../components/Flap'
 import { IconClock } from '../components/Icons'
 import { ScreenHeader } from '../components/Shell'
 import { Empty, ErrorState, Loading } from '../components/States'
-import { hhmm, timeAgo } from '../format'
+import { hhmm, stopName, timeAgo } from '../format'
 import { useAsync } from '../hooks'
 
 export function Late() {
@@ -16,7 +16,12 @@ export function Late() {
       <div className="flex flex-col gap-3 px-4 pb-8">
         {s.status === 'loading' && <Loading label="Kurt is reading the boards…" />}
         {s.status === 'error' && <ErrorState error={s.error} retry={retry} />}
-        {d && (
+        {d && !d.checked_at && (
+          <Empty title="First board check is running" action={<button type="button" onClick={retry} className="btn-ghost">Refresh</button>}>
+            Kurt reads the arrival boards of 12 big stations every few minutes. The first list appears shortly.
+          </Empty>
+        )}
+        {d?.checked_at && (
           <>
             <section className={`${d.stale ? 'bg-surface' : 'bg-accent on-accent'} flex flex-col gap-1 rounded-[22px] p-4`}>
               <h2 className="font-display text-[24px] font-bold leading-tight">
@@ -38,8 +43,9 @@ export function Late() {
                 {list.map((t) => (
                   <li key={t.train + t.station} className="flex min-h-[64px] items-center justify-between gap-3 border-b border-line py-2.5">
                     <span className="flex min-w-0 flex-col">
-                      <span className="text-[15px] font-bold">
-                        {t.train} <span className="font-normal text-muted">to {t.headsign}</span>
+                      <span className="truncate text-[15px] font-bold">
+                        {t.train}
+                        {stopName(t.headsign) && <span className="font-normal text-muted"> to {stopName(t.headsign)}</span>}
                       </span>
                       <span className="mono truncate text-[12px] text-muted">
                         {t.station} · {hhmm(t.sched)} → {hhmm(t.expected)}

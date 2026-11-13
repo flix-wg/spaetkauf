@@ -5,29 +5,38 @@ export type Async<T> =
   | { status: 'error'; error: Error }
   | { status: 'ok'; data: T }
 
+// Once data is shown, polls and retries refresh quietly: no loading flash, and a failed refresh keeps the old data.
 export function useAsync<T>(fn: () => Promise<T>, deps: unknown[], pollMs?: number) {
   const [state, setState] = useState<Async<T>>({ status: 'loading' })
   const [tick, setTick] = useState(0)
   const fnRef = useRef(fn)
   fnRef.current = fn
+  const shown = useRef(false)
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => void (shown.current = false), deps)
 
   useEffect(() => {
     let live = true
-    const run = (first: boolean) => {
-      if (first) setState({ status: 'loading' })
+    const run = (quiet: boolean) => {
+      if (!quiet) setState({ status: 'loading' })
       fnRef.current().then(
-        (data) => live && setState({ status: 'ok', data }),
-        (error) => live && (first ? setState({ status: 'error', error }) : undefined),
+        (data) => {
+          if (!live) return
+          shown.current = true
+          setState({ status: 'ok', data })
+        },
+        (error) => live && !quiet && setState({ status: 'error', error }),
       )
     }
-    run(true)
-    const id = pollMs ? window.setInterval(() => run(false), pollMs) : undefined
+    run(shown.current)
+    const id = pollMs ? window.setInterval(() => run(true), pollMs) : undefined
     return () => {
       live = false
       if (id) window.clearInterval(id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...deps, tick])
+  }, [...deps, tick, pollMs])
 
   const retry = useCallback(() => setTick((t) => t + 1), [])
   return [state, retry] as const

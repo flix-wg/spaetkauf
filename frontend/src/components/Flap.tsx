@@ -11,7 +11,12 @@ export function Flap({
 }) {
   const [flipKey, setFlipKey] = useState(0)
   useEffect(() => setFlipKey((k) => k + 1), [text])
-  const dims = size === 'lg' ? 'w-[38px] h-[56px] text-[38px]' : 'w-[19px] h-[28px] text-[18px] rounded-[5px]'
+  const dims =
+    size === 'sm'
+      ? 'w-[19px] h-[28px] text-[18px] rounded-[5px]'
+      : text.length > 3
+        ? 'w-[32px] h-[50px] text-[32px]'
+        : 'w-[38px] h-[56px] text-[38px]'
   return (
     <span className="inline-flex gap-1" role="img" aria-label={label ?? text}>
       {[...text].map((ch, i) => (

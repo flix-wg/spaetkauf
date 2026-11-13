@@ -25,6 +25,16 @@ async function copyText(v: string) {
   }
 }
 
+// The API sends ISO times; DB's form wants German dates and Berlin clock times.
+const DE = new Intl.DateTimeFormat('de-DE', {
+  day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Berlin',
+})
+function pasteable(v: string) {
+  if (/^\d{4}-\d{2}-\d{2}T/.test(v)) return DE.format(new Date(v)).replace(',', '')
+  const d = v.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  return d ? `${d[3]}.${d[2]}.${d[1]}` : v
+}
+
 export function ClaimScreen() {
   const { id = '' } = useParams()
   const ref = findTrip(id)
@@ -94,7 +104,7 @@ export function ClaimScreen() {
 
             {c.due && (
               <ul className="flex flex-col" aria-label="Details to paste into the claim form">
-                {c.fields.map((f) => (
+                {c.fields.filter((f) => f.value).map((f) => ({ ...f, value: pasteable(f.value) })).map((f) => (
                   <li key={f.label} className="border-b border-line">
                     <button
                       type="button"

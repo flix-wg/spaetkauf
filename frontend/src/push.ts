@@ -13,7 +13,6 @@ export const pushSupported = () =>
 
 export async function enablePush(ref: TripRef): Promise<PushResult> {
   if (!pushSupported()) return 'unsupported'
-  if (Notification.permission === 'denied') return 'denied'
   try {
     const perm = await Notification.requestPermission()
     if (perm !== 'granted') return perm === 'denied' ? 'denied' : 'failed'

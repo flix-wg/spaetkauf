@@ -1,4 +1,4 @@
-import { api } from '../api'
+import { api, type Backtest } from '../api'
 import { dateOnly } from '../format'
 import { useAsync } from '../hooks'
 import { useSheet } from '../sheets'
@@ -15,7 +15,7 @@ export function SourcesSheet() {
   const { open } = useSheet()
   const [bt] = useAsync(() => api.backtest(), [])
   const range =
-    bt.status === 'ok' ? `${dateOnly(bt.data.train_from)} to ${dateOnly(bt.data.test_to)}` : null
+    bt.status === 'ok' ? `${dateOnly(bt.data.train_period.from)} to ${dateOnly(bt.data.test_period.to)}` : null
   return (
     <div className="flex flex-col gap-4 text-[14px] leading-snug">
       <p className="rounded-xl bg-surface p-3 font-semibold">
@@ -45,53 +45,88 @@ export function SourcesSheet() {
   )
 }
 
+const pts = (f: number) => Math.round(f * 100)
+
+// Buckets where the outcome beat the promise by 3+ points, as one honest sentence.
+function understates(b: Backtest['buckets']) {
+  const off = b.filter((k) => k.n >= 1000 && pts(k.observed_rate) - pts(k.predicted_mean) >= 3)
+  if (!off.length) return null
+  const gaps = off.map((k) => pts(k.observed_rate) - pts(k.predicted_mean))
+  const lo = off[0].bucket.split('-')[0]
+  const hi = off[off.length - 1].bucket.split('-')[1].replace('%', ' %')
+  const g = Math.min(...gaps) === Math.max(...gaps) ? `${gaps[0]}` : `${Math.min(...gaps)}–${Math.max(...gaps)}`
+  return `Between ${lo} and ${hi} Kurt understates: those trains were late ${g} points more often than he said.`
+}
+
 export function BacktestSheet() {
   const [state, retry] = useAsync(() => api.backtest(), [])
   if (state.status === 'loading') return <Loading label="Loading the backtest…" />
   if (state.status === 'error') return <ErrorState error={state.error} retry={retry} />
   const b = state.data
-  const base = Math.round(b.base_rate <= 1 ? b.base_rate * 100 : b.base_rate)
+  const buckets = b.buckets.filter((k) => k.n > 0)
+  const gap = understates(buckets)
   return (
     <div className="flex flex-col gap-4 text-[14px] leading-snug">
       <p>
-        Kurt’s odds were computed from <b>{dateOnly(b.train_from)}</b> to <b>{dateOnly(b.train_to)}</b>, then compared
-        with what really happened from <b>{dateOnly(b.test_from)}</b> to <b>{dateOnly(b.test_to)}</b>.
+        Kurt learned from <b>{dateOnly(b.train_period.from)}</b> to <b>{dateOnly(b.train_period.to)}</b>, then
+        his odds were checked against what really happened from <b>{dateOnly(b.test_period.from)}</b> to{' '}
+        <b>{dateOnly(b.test_period.to)}</b>.
       </p>
-      <div className="flex items-baseline justify-between rounded-xl bg-tint px-4 py-3">
-        <span>Overall: trains 20+ min late</span>
-        <span className="mono text-[26px] font-bold">{base} %</span>
+      <dl className="grid grid-cols-3 gap-2 text-center">
+        {[
+          [`${pts(b.base_rate)} %`, `of test runs ${b.threshold_min}+ min late`],
+          [`${pts(b.brier_skill)} %`, `less error than always saying ${pts(b.base_rate)} %`],
+          [`${pts(b.coverage)} %`, 'of arrivals had enough history'],
+        ].map(([v, l]) => (
+          <div key={l} className="flex flex-col gap-0.5 rounded-xl bg-surface px-2 py-2.5">
+            <dt className="order-2 text-[11px] leading-tight text-muted">{l}</dt>
+            <dd className="mono text-[20px] font-bold">{v}</dd>
+          </div>
+        ))}
+      </dl>
+      <div className="flex flex-col gap-1">
+        <h3 className="font-display text-[16px] font-bold">Said vs. happened</h3>
+        <p className="flex items-center gap-3 text-[12px] text-muted">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-3 w-0.5 bg-ink" aria-hidden="true" /> Kurt said
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-4 rounded-full bg-accent" aria-hidden="true" /> really late
+          </span>
+        </p>
       </div>
-      <ul className="flex flex-col gap-3" aria-label="Odds bucket against outcome">
-        {b.buckets
-          .filter((k) => k.n > 0)
-          .map((k) => {
-            const real = Math.round(k.rate <= 1 ? k.rate * 100 : k.rate)
-            return (
-              <li key={k.lo} className="flex flex-col gap-1">
-                <div className="flex justify-between">
-                  <span className="mono font-semibold">
-                    Kurt said {k.lo}–{k.hi} %
+      <ul className="-mt-1 flex flex-col gap-3" aria-label="Promised odds against real outcome">
+        {buckets.map((k) => {
+          const said = pts(k.predicted_mean)
+          const real = pts(k.observed_rate)
+          const d = real - said
+          return (
+            <li key={k.bucket} className="flex flex-col gap-1">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="mono text-[13px] font-semibold">{k.bucket.replace('-', '–').replace('%', ' %')}</span>
+                <span className="mono text-[13px]">
+                  said {said} · <b>really {real}</b>
+                  <span className={`ml-1.5 inline-block w-8 text-right ${Math.abs(d) >= 3 ? 'font-bold text-accent-text' : 'text-muted'}`}>
+                    {d > 0 ? `+${d}` : d < 0 ? `−${-d}` : '±0'}
                   </span>
-                  <span className="mono font-bold">late {real} %</span>
-                </div>
-                <div className="relative h-3 rounded-full bg-surface">
-                  <div className="absolute inset-y-0 left-0 rounded-full bg-accent" style={{ width: `${real}%` }} />
-                  <span
-                    className="absolute -top-1 h-5 w-0.5 bg-ink"
-                    style={{ left: `${(k.lo + k.hi) / 2}%` }}
-                    aria-hidden="true"
-                  />
-                </div>
-                <span className="text-[12px] text-muted">{k.n.toLocaleString('en-GB')} runs</span>
-              </li>
-            )
-          })}
+                </span>
+              </div>
+              <div className="relative h-2.5 rounded-full bg-surface" role="img" aria-label={`Kurt said ${said} %, really late ${real} %`}>
+                <div className="absolute inset-y-0 left-0 rounded-full bg-accent" style={{ width: `${real}%` }} />
+                <span className="absolute -top-1 h-[18px] w-0.5 bg-ink" style={{ left: `${said}%` }} aria-hidden="true" />
+              </div>
+              <span className="text-[11px] text-muted">{k.n.toLocaleString('en-GB')} runs</span>
+            </li>
+          )
+        })}
       </ul>
-      <p className="text-[12px] text-muted">Orange bar: how often trains were really 20+ min late. Black tick: middle of the bucket Kurt promised.</p>
+      {gap && <p className="rounded-xl bg-tint p-3 font-semibold">{gap}</p>}
       <p className="text-muted">
-        {b.runs.toLocaleString('en-GB')} runs in the test period. Connections with changes are estimates that assume
-        the legs run independently.
+        {b.runs.toLocaleString('en-GB')} runs scored. Odds are shrunk base rates from past runs of the same train at
+        the same stop and weekday, not a forecast. Connections with changes are estimates that assume the legs run
+        independently.
       </p>
+      <p className="text-[12px] text-muted">Data: {b.source}.</p>
     </div>
   )
 }

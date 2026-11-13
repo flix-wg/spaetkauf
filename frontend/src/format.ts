@@ -54,4 +54,14 @@ export const todayISO = () =>
 
 export const nowHHMM = () => hhmm(new Date().toISOString())
 
-export const shortStation = (n: string) => n.replace(/ Hbf$/, '').replace(/\(Main\)Hbf$/, '')
+// Feeds sometimes use local stop names ("S+U Berlin Hauptbahnhof", "S Südkreuz Bhf (Berlin)") or just "Hauptbahnhof".
+export function stopName(n: string | null | undefined) {
+  const t = (n ?? '').trim()
+  if (/^(hauptbahnhof|hbf|bahnhof|bf)$/i.test(t)) return ''
+  const m = t.match(/^S(?:\+U)? (.+?) Bhf \((.+)\)$/)
+  if (m) return `${m[2]} ${m[1]}`
+  return t.replace(/^S(\+U)? (?=\S+ Hauptbahnhof$)/, '').replace(/ ?\(Main\) Hauptbahnhof$/, '(Main)Hbf').replace(/ Hauptbahnhof$/, ' Hbf')
+}
+
+export const shortStation = (n: string | null | undefined) =>
+  stopName(n).replace(/ Hbf$/, '').replace(/\(Main\)Hbf$/, '')

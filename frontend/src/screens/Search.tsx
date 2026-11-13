@@ -162,7 +162,7 @@ export function Search() {
                 setFrom(to)
                 setTo(from)
               }}
-              className="absolute right-3 top-[calc(50%-18px)] flex h-11 w-11 items-center justify-center rounded-full border border-line bg-white text-muted hover:bg-surface"
+              className="absolute right-3 top-[58px] flex h-11 w-11 items-center justify-center rounded-full border border-line bg-white text-muted hover:bg-surface"
             >
               <IconSwap size={20} className="rotate-90" />
             </button>

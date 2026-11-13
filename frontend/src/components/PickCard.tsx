@@ -4,18 +4,27 @@ import { changesLabel, duration, hhmm, pct, pctNum, weekdayPlural } from '../for
 import { Kurt, Snails } from './Kurt'
 import { IconChevron, IconExternal } from './Icons'
 
-export function oddsLine(o: Odds) {
-  if (o.basis === 'none' || o.p20 === null) return 'Not enough history'
-  if (o.basis === 'estimate') return 'Estimate, includes missed change'
-  if (o.late !== null && o.n !== null) return `Late ${o.late} of ${o.n} ${weekdayPlural(o.weekday)}`
-  return `${weekdayPlural(o.weekday)}`
+export const hasOdds = (o: Odds | null): o is Odds & { p20: number } => !!o && o.basis !== 'none' && o.p20 !== null
+
+export function oddsLine(o: Odds | null) {
+  if (!hasOdds(o)) return 'Not enough history for odds'
+  const days = weekdayPlural(o.weekday)
+  const counts = o.late !== null && o.n !== null ? `${o.late} of ${o.n} ${days}` : days
+  if (o.basis === 'estimate') return `Estimate with the change · last train late ${counts}`
+  return `Late ${counts}`
 }
 
 function rideLine(p: Pick, tz: string) {
   const r = p.ride_instead
   if (!r) return null
   const d = r.delta_arr_min
-  const rel = d === 0 ? 'Same arrival as the booked train' : `${Math.abs(d)} min ${d < 0 ? 'earlier' : 'later'} than the booked train is due`
+  // d > 0 is still a win: the booked train only unlocks once it runs 20+ late.
+  const rel =
+    d === 0
+      ? 'Arrives with your booked train’s timetable, ahead of it once it’s 20+ late.'
+      : d < 0
+        ? `Arrives ${-d} min before your booked train is due.`
+        : `Arrives ${d} min after your booked arrival, still ahead of your train once it’s 20+ late.`
   return {
     times: `${hhmm(r.dep, tz)} → ${hhmm(r.arr, tz)}`,
     what: `${r.trains.join(' + ')}${r.changes === 0 ? ' direct' : `, ${changesLabel(r.changes)}`}`,
@@ -47,14 +56,14 @@ export function Actions({
 export function KurtsPick({ pick, tz, strike, onBook }: { pick: Pick; tz: string; strike: boolean; onBook: (p: Pick) => void }) {
   const ride = rideLine(pick, tz)
   const o = pick.odds
-  const has = o.p20 !== null && o.basis !== 'none'
+  const has = hasOdds(o)
   return (
     <section className="on-accent relative flex flex-col gap-3 rounded-[22px] bg-accent p-4" aria-label="Kurt's pick">
       <div className="flex items-center justify-between">
         <span className="tag inline-flex items-center gap-1.5 rounded-md bg-ink px-2 py-1 text-white">
           <Kurt width={16} shell="#FD4F00" body="#FFFFFF" /> KURT’S PICK
         </span>
-        {strike && <span className="tag rounded-md bg-white px-2 py-1 text-accent-text">STRIKE ANNOUNCED</span>}
+        {strike && <span className="tag rounded-md bg-white px-2 py-1 text-accent-text">STRIKE WATCH</span>}
       </div>
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
@@ -70,7 +79,7 @@ export function KurtsPick({ pick, tz, strike, onBook }: { pick: Pick; tz: string
         <div className="flex shrink-0 flex-col items-end">
           {has ? (
             <>
-              <span className="mono text-[40px] font-bold leading-none">{pctNum(o.p20!)}%</span>
+              <span className="mono text-[40px] font-bold leading-none">{pctNum(o.p20)}%</span>
               <span className="text-[12px]">20+ min late</span>
             </>
           ) : (
@@ -82,10 +91,9 @@ export function KurtsPick({ pick, tz, strike, onBook }: { pick: Pick; tz: string
       {ride ? (
         <div className="flex flex-col gap-0.5 rounded-xl bg-white p-3">
           <span className="tag text-accent-text">IF IT’S LATE, YOU’D RIDE</span>
-          <span className="mono text-[18px] font-bold">
-            {ride.times} <span className="font-sans text-[13px] font-semibold">· {ride.what}</span>
-          </span>
-          <span className="text-[12px] text-muted">{ride.rel}</span>
+          <span className="mono text-[20px] font-bold leading-tight">{ride.times}</span>
+          <span className="text-[13px] font-semibold">{ride.what}</span>
+          <span className="mt-0.5 text-[12px] leading-snug text-muted">{ride.rel}</span>
         </div>
       ) : (
         <p className="rounded-xl bg-white p-3 text-[13px] text-muted">
@@ -116,7 +124,7 @@ export function CompactPick({ pick, tz, strike, onBook }: { pick: Pick; tz: stri
             {hhmm(pick.dep, tz)} → {hhmm(pick.arr, tz)}
           </span>
           <span className="flex shrink-0 items-center gap-2">
-            {!dead && o.p20 !== null && o.basis !== 'none' && (
+            {!dead && hasOdds(o) && (
               <span
                 className="flex items-center gap-1.5 rounded-full bg-tint py-1 pl-2 pr-2.5"
                 role="img"
@@ -133,13 +141,13 @@ export function CompactPick({ pick, tz, strike, onBook }: { pick: Pick; tz: stri
           <span>
             {dead
               ? 'Already posted: does not count'
-              : o.p20 === null || o.basis === 'none'
+              : !hasOdds(o)
                 ? `Not enough history · ${changesLabel(pick.changes)}`
                 : ride
                   ? `You’d ride ${ride.times}`
                   : `${changesLabel(pick.changes)} · ${pick.legs.map((l) => l.train).join(' + ')}`}
           </span>
-          {strike && !dead && <span className="tag rounded bg-tint px-1.5 py-0.5 text-accent-text">STRIKE ANNOUNCED</span>}
+          {strike && !dead && <span className="tag rounded bg-tint px-1.5 py-0.5 text-accent-text">STRIKE WATCH</span>}
         </span>
       </button>
       {open && (
@@ -153,10 +161,9 @@ export function CompactPick({ pick, tz, strike, onBook }: { pick: Pick; tz: stri
           {ride && (
             <div className="rounded-xl bg-surface p-3">
               <span className="tag text-accent-text">IF IT’S LATE, YOU’D RIDE</span>
-              <p className="mono text-[15px] font-bold">
-                {ride.times} <span className="font-sans text-[13px] font-semibold">· {ride.what}</span>
-              </p>
-              <p className="text-[12px] text-muted">{ride.rel}</p>
+              <p className="mono text-[16px] font-bold">{ride.times}</p>
+              <p className="text-[13px] font-semibold">{ride.what}</p>
+              <p className="mt-0.5 text-[12px] leading-snug text-muted">{ride.rel}</p>
             </div>
           )}
           <Actions pick={pick} onBook={onBook} tone="plain" />

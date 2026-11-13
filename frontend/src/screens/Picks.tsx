@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom'
-import { api, type Pick } from '../api'
+import { api, ApiError, type Pick } from '../api'
 import { BookSheet } from '../components/BookSheet'
 import { IconChevron } from '../components/Icons'
 import { CompactPick, KurtsPick } from '../components/PickCard'
 import { ScreenHeader } from '../components/Shell'
-import { Banners, SignalsArea } from '../components/Signals'
+import { SignalsArea, strikeSignal } from '../components/Signals'
 import { Empty, ErrorState, Loading } from '../components/States'
 import { dayLabel } from '../format'
 import { useAsync } from '../hooks'
@@ -24,7 +24,10 @@ export function Picks() {
   const [booking, setBooking] = useState<Pick | null>(null)
 
   const [picks, retry] = useAsync(() => api.picks({ from, to, date, time }), [from, to, date, time])
-  const [signals] = useAsync(() => api.signals({ from, to, date }), [from, to, date])
+  // Signals search by city name; ids would make a useless news query.
+  const fn = sp.get('fn') || from
+  const tn = sp.get('tn') || to
+  const [signals] = useAsync(() => api.signals({ from: fn, to: tn, date }), [fn, tn, date])
 
   useEffect(() => {
     try {
@@ -37,7 +40,7 @@ export function Picks() {
   if (!from || !to) return <Navigate to="/" replace />
 
   const sig = signals.status === 'ok' ? signals.data : null
-  const strike = !!sig?.items.some((i) => i.kind.toLowerCase().includes('strike'))
+  const strike = strikeSignal(sig)
   const back = `/?${new URLSearchParams({ fn: sp.get('fn') ?? '', tn: sp.get('tn') ?? '', date, time })}`
 
   return (
@@ -53,9 +56,24 @@ export function Picks() {
           </span>
           <span className="shrink-0 pl-2 text-[13px] font-normal text-muted">change</span>
         </Link>
-        <Banners s={sig} />
         {picks.status === 'loading' && <Loading label="Kurt is looking up late trains…" />}
-        {picks.status === 'error' && <ErrorState error={picks.error} retry={retry} />}
+        {picks.status === 'error' &&
+          (picks.error instanceof ApiError && picks.error.status === 429 ? (
+            <Empty
+              title="Kurt is out of searches today"
+              action={
+                <div className="flex flex-col gap-2">
+                  <Link to="/late" className="btn-primary">See what’s late now</Link>
+                  <Link to="/trips" className="btn-ghost">My trips</Link>
+                </div>
+              }
+            >
+              The free route service allows a fixed number of searches per day and today’s are used up. Saved
+              trips keep updating.
+            </Empty>
+          ) : (
+            <ErrorState error={picks.error} retry={retry} />
+          ))}
         {picks.status === 'ok' && picks.data.picks.length === 0 && (
           <Empty
             title="No long-distance trains found"
@@ -91,7 +109,7 @@ export function Picks() {
             {picks.data.note && <p className="px-1 text-[12px] text-muted">{picks.data.note}</p>}
           </>
         )}
-        {picks.status !== 'error' && <SignalsArea s={sig} loading={signals.status === 'loading'} />}
+        {picks.status !== 'error' && <SignalsArea s={sig} loading={signals.status === 'loading'} date={date} />}
       </div>
       {booking && picks.status === 'ok' && <BookSheet pick={booking} tz={picks.data.tz} onClose={() => setBooking(null)} />}
     </>

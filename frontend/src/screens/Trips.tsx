@@ -5,7 +5,7 @@ import { Flap } from '../components/Flap'
 import { IconChevron } from '../components/Icons'
 import { ScreenHeader } from '../components/Shell'
 import { Empty } from '../components/States'
-import { changesLabel, dayLabel, hhmm, longDate, shortStation } from '../format'
+import { changesLabel, dayLabel, hhmm, shortStation } from '../format'
 import { useAsync } from '../hooks'
 import { addTrip, loadTrips, removeTrip } from '../store'
 
@@ -36,14 +36,15 @@ function Row({ r }: { r: TripRef }) {
         {b ? (
           <>
             <span className="mono whitespace-nowrap text-[15px] font-bold">
-              {hhmm(b.dep)} → {hhmm(b.arr)} <span className="font-sans text-[12px] font-semibold text-muted">{dayLabel(b.dep)}</span>
+              {b.legs[0].dep ? `${hhmm(b.dep)} → ${hhmm(b.arr)}` : `due ${hhmm(b.arr)}`}{' '}
+              <span className="font-sans text-[12px] font-semibold text-muted">{dayLabel(b.arr)}</span>
             </span>
             <span className="truncate text-[12px] text-muted">
-              {shortStation(b.legs[0].from)} → {shortStation(b.legs[b.legs.length - 1].to)} · {changesLabel(b.changes)}
+              {shortStation(b.legs[0].from) || '…'} → {shortStation(b.legs[b.legs.length - 1].to)} · {changesLabel(b.changes)}
             </span>
             {t!.is_replay && (
               <span className="tag w-fit rounded bg-ink px-1.5 py-0.5 text-white">
-                REPLAY OF {t!.replay_of ? longDate(`${t!.replay_of}T12:00:00Z`).toUpperCase() : ''}
+                REPLAY{t!.replay_of ? ` · ${dayLabel(`${t!.replay_of}T12:00:00Z`).toUpperCase()}` : ''}
               </span>
             )}
           </>

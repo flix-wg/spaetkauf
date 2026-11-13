@@ -42,7 +42,7 @@ export async function mockCall<T>(method: string, path: string, _body?: unknown)
   const out = (v: unknown) => v as T
   if (flag('fail') === '1' && p !== '/api/health') throw new ApiError(0, 'Could not reach the server.')
 
-  if (p === '/api/health') return out({ ok: true, version: 'mock', sources: { transitous: true, exa: true, context: true }, plan_budget_left: 641 })
+  if (p === '/api/health') return out({ ok: true, version: 'mock', sources: { transitous: 'ok', exa: 'configured', context: 'configured' }, plan_budget_left: 641 })
   if (p === '/api/stations') {
     const s = (q.get('q') ?? '').toLowerCase()
     return out(s ? STATIONS.filter((x) => x.name.toLowerCase().includes(s)).slice(0, 6) : [])
@@ -54,6 +54,7 @@ export async function mockCall<T>(method: string, path: string, _body?: unknown)
     const date = q.get('date') || DATE
     const fn = name(from, from)
     const tn = name(to, to)
+    if (flag('picks') === 'budget') throw new ApiError(429, 'Kurt has used up today’s route searches.')
     if (flag('picks') === 'none') return out({ from: fn, to: tn, date, tz: 'Europe/Berlin', picks: [], note: '' })
     return out({
       from: fn, to: tn, date, tz: 'Europe/Berlin', picks: picksFor(date, fn, tn),
@@ -69,9 +70,10 @@ export async function mockCall<T>(method: string, path: string, _body?: unknown)
     return out({
       status: 'ok', checked_at, banners,
       items: [
-        { kind: 'strike', reason: 'EVG warning strike on several regional operators; long-distance knock-on effects possible.', source: 'tagesschau.de', published: '2026-11-18', url: 'https://www.tagesschau.de/' },
-        { kind: 'track works', reason: 'Line Hannover to Göttingen reduced to one track between 21:00 and 05:00.', source: 'NDR', published: '2026-11-17', url: 'https://www.ndr.de/' },
-        { kind: 'weather', reason: 'Storm warning for northern Germany on Friday afternoon.', source: 'DWD', published: '2026-11-19', url: 'https://www.dwd.de/' },
+        { kind: 'event', reason: 'Construction work closes the line between Hamburg Hbf and Harburg for four weeks; some long-distance trains are diverted.', source: 'ndr.de', published: '2026-10-26', url: 'https://www.ndr.de/' },
+        { kind: 'event', reason: 'The high-speed line between Nürnberg and Ingolstadt is closed for renovation until 12 December; ICEs run via Augsburg.', source: 'augsburger-allgemeine.de', published: '2026-11-07', url: 'https://www.augsburger-allgemeine.de/' },
+        { kind: 'weather', reason: 'Storm warning for northern Germany on Friday afternoon.', source: 'dwd.de', published: '2026-11-19', url: 'https://www.dwd.de/' },
+        { kind: 'event', reason: 'S-Bahn and regional services in Munich reduced in November for Stammstrecke works; long-distance trains not mentioned.', source: 'diebayern.de', published: '2026-11-01', url: 'https://www.diebayern.de/' },
       ],
     })
   }

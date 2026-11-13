@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// Dev proxy target; SPK_API lets a second backend run next to the default one.
+const api = process.env.SPK_API ?? 'http://localhost:8710'
+
 export default defineConfig({
   plugins: [
     react(),
@@ -32,10 +35,10 @@ export default defineConfig({
     }),
   ],
   server: {
-    port: 5710,
+    port: Number(process.env.SPK_PORT ?? 5710),
     proxy: {
-      '/api': 'http://localhost:8710',
-      '/hooks': 'http://localhost:8710',
+      '/api': api,
+      '/hooks': api,
     },
   },
 })

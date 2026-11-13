@@ -9,7 +9,7 @@ import { InlinePrice } from '../components/PriceForm'
 import { ScreenHeader } from '../components/Shell'
 import { Banners } from '../components/Signals'
 import { Empty, ErrorState, Loading } from '../components/States'
-import { changesLabel, dayLabel, eur, hhmm, longDate, timeAgo } from '../format'
+import { changesLabel, dayLabel, eur, hhmm, longDate, stopName, timeAgo } from '../format'
 import { useAsync } from '../hooks'
 import { enablePush, pushSupported } from '../push'
 import { findTrip, removeTrip } from '../store'
@@ -22,16 +22,22 @@ const LABEL: Record<TripState, string> = {
   cancelled: 'CANCELLED · TICKET UNLOCKED',
 }
 
+// Same moments as the push alerts, shown in the app while this screen is open.
 function alertFor(prev: TripState, t: Trip): string | null {
   if (prev === t.state) return null
   const d = t.delay_min !== null ? `+${t.delay_min}` : ''
-  switch (t.state) {
-    case 'unlocked': return `Ticket unlocked: ${d} min at the destination.`
-    case 'cash25': return `${d} min: 25 % of your ticket is back.`
-    case 'cash50': return `${d} min: 50 % of your ticket is back.`
-    case 'cancelled': return 'Your train was cancelled. The ticket is unlocked.'
-    case 'on_time': return 'The forecast dropped: back under 20 minutes.'
+  const money = (at: number) => {
+    const a = t.thresholds.find((x) => x.at === at)?.amount_eur
+    return a != null ? ` (${eur(a)})` : ''
   }
+  const msg = {
+    unlocked: `It’s late. You win: ${d} min expected. Ticket unlocked, ride any train.`,
+    cash25: `${d} min: 25 % of your ticket comes back${money(60)}.`,
+    cash50: `${d} min: half your ticket comes back${money(120)}.`,
+    cancelled: 'Your train is cancelled. Ticket unlocked: ride any train, or get a full refund.',
+    on_time: 'The expected delay dropped back under 20 minutes.',
+  }[t.state]
+  return t.is_replay ? `Replay · ${msg}` : msg
 }
 
 export function TripScreen() {
@@ -58,7 +64,9 @@ const BackLink = () => (
 
 function TripBody({ ref_ }: { ref_: TripRef }) {
   const nav = useNavigate()
-  const [state, retry] = useAsync(() => api.trip(ref_), [ref_.id], 20000)
+  // A replay runs in about a minute, so poll it fast; live trips every 20 s (D10).
+  const [fast, setFast] = useState(false)
+  const [state, retry] = useAsync(() => api.trip(ref_), [ref_.id], fast ? 2500 : 20000)
   const prev = useRef<TripState | null>(null)
   const [alert, setAlert] = useState<string | null>(null)
   const [gone, setGone] = useState(false)
@@ -74,6 +82,7 @@ function TripBody({ ref_ }: { ref_: TripRef }) {
     if (state.status !== 'ok') return
     if (prev.current && state.data.delay_min !== null) setAlert(alertFor(prev.current, state.data) ?? alert)
     prev.current = state.data.state
+    setFast(state.data.is_replay && !state.data.finished)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state])
 
@@ -120,6 +129,9 @@ function TripView({
   const b = t.booked
   const first = b.legs[0]
   const last = b.legs[b.legs.length - 1]
+  const dest = stopName(last.to) || 'your stop'
+  // Auto-recorded trips (replays) know only the arrival, not the boarding time.
+  const depKnown = !!first.dep
   const waiting = t.delay_min === null
   const delay = t.delay_min ?? 0
   const done = t.finished
@@ -127,9 +139,10 @@ function TripView({
   const wonUnlocked = t.state !== 'on_time'
   const doneOk = done && finalDelay < 20 && t.state !== 'cancelled'
   const card = doneOk ? 'bg-ok-tint' : wonUnlocked ? 'bg-accent on-accent' : 'bg-surface'
-  const stay60 = t.thresholds.find((x) => x.at === 60)
+  const cancelled = t.state === 'cancelled'
   const showClaim = !doneOk && (done || delay >= 60)
-  const showSwitch = !done && wonUnlocked
+  const showSwitch = !done && wonUnlocked && !t.switched
+  const notYet = waiting && Date.now() < new Date(b.dep).getTime() - 3 * 3600_000
 
   return (
     <>
@@ -157,10 +170,10 @@ function TripView({
       <div className="flex items-center justify-between rounded-2xl bg-surface px-3.5 py-3">
         <span className="flex min-w-0 flex-col">
           <span className="mono font-bold">
-            {dayLabel(b.dep)} {hhmm(b.dep)} → {hhmm(b.arr)}
+            {dayLabel(b.arr)} {depKnown ? `${hhmm(b.dep)} → ${hhmm(b.arr)}` : `due ${hhmm(b.arr)}`}
           </span>
           <span className="truncate text-[13px] text-muted">
-            {first.from} → {last.to} · {changesLabel(b.changes)}
+            {stopName(first.from) || '…'} → {dest} · {changesLabel(b.changes)}
           </span>
           <span className="text-[13px] text-muted">
             {b.legs.map((l) => l.train).join(' + ')} · {t.price_eur !== null ? `ticket ${eur(t.price_eur)}` : 'no price entered'}
@@ -172,7 +185,7 @@ function TripView({
         <div className="flex items-center justify-between gap-2">
           <span className="flex min-w-0 flex-col gap-0.5">
             <span className="tag">{doneOk ? 'ARRIVED · ON TIME' : done ? `ARRIVED · ${LABEL[t.state]}` : waiting ? 'WAITING FOR LIVE DATA' : LABEL[t.state]}</span>
-            <span className="text-[13px]">{done ? `Final delay at ${last.to}` : `Expected delay at ${last.to}`}</span>
+            <span className="text-[13px]">{done ? `Final delay at ${dest}` : `Expected delay at ${dest}`}</span>
           </span>
           {waiting ? (
             <span className="font-display text-[20px] font-bold">–</span>
@@ -183,11 +196,19 @@ function TripView({
           )}
         </div>
         {waiting ? (
-          <p className="text-[14px] leading-snug">Kurt has no live reading yet. This screen updates by itself.</p>
+          <p className="text-[14px] leading-snug">
+            {t.is_replay
+              ? 'The recording starts in a moment.'
+              : notYet
+              ? `Kurt starts watching at ${hhmm(new Date(new Date(b.dep).getTime() - 3 * 3600_000).toISOString())}, three hours before departure. This screen updates by itself.`
+              : 'No live reading for this train yet. This screen updates by itself.'}
+          </p>
+        ) : cancelled ? (
+          <p className="text-[14px] font-semibold leading-snug">Ride any train to {dest}, or ask DB for a full refund.</p>
         ) : doneOk ? null : (
           <Meter delay={done ? finalDelay : delay} thresholds={t.thresholds} />
         )}
-        {t.stale && !done ? (
+        {t.stale && !done && !waiting ? (
           <p className="rounded-lg bg-white/70 px-3 py-2 text-[13px] font-semibold" role="alert">
             Live data is stale. Last update {t.updated_at ? hhmm(t.updated_at) : 'unknown'}. Check the DB app before you board another train.
           </p>
@@ -207,9 +228,13 @@ function TripView({
         )}
       </section>
 
-      {showSwitch && (
-        <SwitchOrStay t={t} stayAmount={stay60?.amount_eur ?? null} ref_={ref_} reload={reload} />
+      {t.connection_at_risk && !done && (
+        <p className="rounded-xl border-2 border-ink p-3 text-[14px] font-semibold leading-snug" role="alert">
+          Your change is at risk: the first train is expected after the second one leaves.
+        </p>
       )}
+
+      {showSwitch && <SwitchOrStay t={t} ref_={ref_} reload={reload} />}
 
       {t.switched && (
         <p className="rounded-xl bg-surface p-3 text-[13px]">
@@ -239,7 +264,7 @@ function TripView({
         </div>
       )}
 
-      {!done && <BannerLoader t={t} />}
+      {!done && !t.is_replay && <BannerLoader t={t} />}
       {!done && <PushButton ref_={ref_} />}
       <DeleteButton onDelete={onDelete} />
     </>
@@ -248,21 +273,50 @@ function TripView({
 
 function BannerLoader({ t }: { t: Trip }) {
   const l = t.booked.legs
-  const date = t.booked.dep.slice(0, 10)
-  const [s] = useAsync(() => api.signals({ from: l[0].from, to: l[l.length - 1].to, date }), [t.booked.id])
+  const date = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date(t.booked.dep))
+  const [s] = useAsync(
+    () => api.signals({ from: stopName(l[0].from), to: stopName(l[l.length - 1].to), date }),
+    [t.booked.id],
+  )
   return <Banners s={s.status === 'ok' ? s.data : null} />
 }
 
-function SwitchOrStay({ t, stayAmount, ref_, reload }: { t: Trip; stayAmount: number | null; ref_: TripRef; reload: () => void }) {
+function SwitchOrStay({ t, ref_, reload }: { t: Trip; ref_: TripRef; reload: () => void }) {
   const [busy, setBusy] = useState(false)
   const alts = t.alternatives
+  const cancelled = t.state === 'cancelled'
+  const amount = (at: 60 | 120) =>
+    (at === 60 ? t.stay?.amount_at_60_eur : t.stay?.amount_at_120_eur) ??
+    t.thresholds.find((x) => x.at === at)?.amount_eur ??
+    null
+  const a60 = amount(60)
+  const a120 = amount(120)
+  const d = t.delay_min ?? 0
+  const train = t.booked.legs[0].train
+  const stay =
+    d >= 120
+      ? [`Stay on the ${train}: half back is yours`, `${a120 !== null ? eur(a120) : '50 %'} back at +120`]
+      : d >= 60
+        ? [
+            `Stay on the ${train}: 25 % back is yours`,
+            `${a60 !== null ? eur(a60) : '25 %'} now, ${a120 !== null ? eur(a120) : '50 %'} if it cracks +120`,
+          ]
+        : [`Stay on the ${train}, race to +60`, `${a60 !== null ? eur(a60) : '25 %'} back if it cracks +60`]
   return (
     <section className="flex flex-col gap-2.5 rounded-[22px] border-2 border-ink p-3.5" aria-label="Switch or stay">
       <h2 className="font-display text-[20px] font-bold">Switch or stay?</h2>
       <p className="text-[13px] leading-snug text-muted">
-        Switching to an earlier arrival forfeits the delay compensation. Staying keeps the race to +60 open. Tap a train if you switched.
+        {cancelled
+          ? 'Your ticket now works on these trains. Tap the one you take.'
+          : 'Switching to an earlier arrival gives up the cash back unless you still arrive 60+ late. Tap a train if you switched.'}
       </p>
-      {alts.length === 0 && <p className="text-[13px]">No other train you can still catch. Kurt checks again as the delay moves.</p>}
+      {alts.length === 0 && (
+        <p className="text-[13px] leading-snug">
+          {t.is_replay
+            ? 'A replay does not look up other trains. On a live trip, the ones you can still catch appear here.'
+            : 'No other train you can still catch right now. Kurt checks again as the delay moves.'}
+        </p>
+      )}
       {alts.map((a, i) => (
         <button
           key={a.dep + a.trains.join()}
@@ -276,27 +330,35 @@ function SwitchOrStay({ t, stayAmount, ref_, reload }: { t: Trip; stayAmount: nu
           }}
           className="relative flex min-h-[64px] flex-col items-start gap-0.5 rounded-xl border-2 border-ink px-3.5 py-2.5 text-left"
         >
-          {i === 0 && a.delta_vs_expected_min < 0 && (
+          {i === 0 && (a.delta_vs_expected_min ?? 0) < 0 && (
             <span className="tag absolute -top-2.5 right-3 rounded bg-ink px-1.5 py-0.5 text-white">KURT’S TIP</span>
           )}
           <span className="text-[15px] font-bold">
             Switch: {hhmm(a.dep)} {a.trains.join(' + ')} → {hhmm(a.arr)}
           </span>
-          <span className="text-[12px] text-muted">
-            {Math.abs(a.delta_vs_expected_min)} min {a.delta_vs_expected_min <= 0 ? 'earlier' : 'later'} than your train is now expected ·
-            leaves in {a.catchable_min} min · {changesLabel(a.changes)}
+          <span className="text-[12px] leading-snug text-muted">
+            {vsExpected(a.delta_vs_expected_min)}leaves in {a.catchable_min} min · {changesLabel(a.changes)}
           </span>
+          {a.forfeits_compensation === false && a.compensation_eur ? (
+            <span className="text-[12px] font-semibold">Still {eur(a.compensation_eur)} back: you arrive 60+ late anyway.</span>
+          ) : null}
         </button>
       ))}
-      <div className="flex flex-col gap-0.5 rounded-xl bg-tint px-3.5 py-2.5">
-        <span className="text-[15px] font-bold">Stay: ride the {hhmm(t.booked.dep)}, race to +60</span>
-        <span className="text-[12px] text-muted">
-          {stayAmount !== null ? `${eur(stayAmount)} back if it cracks +60` : '25 % back if it cracks +60'}
-        </span>
-      </div>
+      {!cancelled && (
+        <div className="flex flex-col gap-0.5 rounded-xl bg-tint px-3.5 py-2.5">
+          <span className="text-[15px] font-bold">{stay[0]}</span>
+          <span className="text-[12px] text-muted">{stay[1]}</span>
+        </div>
+      )}
       <p className="text-[12px] text-muted">Based on live data. Check the DB app before you board another train.</p>
     </section>
   )
+}
+
+function vsExpected(d: number | null) {
+  if (d === null) return ''
+  if (d === 0) return 'arrives with your train · '
+  return `${Math.abs(d)} min ${d < 0 ? 'before' : 'after'} your train is now expected · `
 }
 
 function PushButton({ ref_ }: { ref_: TripRef }) {
