@@ -66,81 +66,85 @@ export function ClaimScreen() {
   return (
     <>
       <ScreenHeader title="Claim helper" back={back} />
-      <div className="flex flex-col gap-3 px-4 pb-8">
+      <div className={`flex flex-col gap-3 px-4 pb-8 lg:px-10 lg:pb-12 ${c ? 'lg:grid lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:items-start lg:gap-x-10' : ''}`}>
         {state.status === 'loading' && <Loading label="Kurt is doing the sums…" />}
         {state.status === 'error' && <ErrorState error={state.error} retry={retry} />}
         {c && (
           <>
-            <section
-              className={`${noPayout ? 'bg-surface' : 'bg-accent on-accent'} flex items-center gap-3 rounded-[22px] p-4`}
-              aria-label="Compensation"
-            >
-              <div className="flex min-w-0 flex-1 flex-col">
-                <span className="tag">{noPayout ? 'NO PAYOUT DUE' : needsPrice ? `${c.pct} % OWED` : 'CASH BACK'}</span>
-                {c.amount_eur !== null && !noPayout ? (
-                  <span className="mono text-[42px] font-bold leading-[1.1]">{eur(c.amount_eur)}</span>
-                ) : needsPrice ? (
-                  <span className="mono text-[42px] font-bold leading-[1.1]">{c.pct} %</span>
-                ) : (
-                  <span className="font-display text-[24px] font-bold leading-tight">Nothing to claim</span>
-                )}
-                <span className="text-[13px] leading-snug">{c.reason}</span>
-              </div>
-              <Kurt width={72} shell="#FFFFFF" className="shrink-0" />
-            </section>
+            <div className="contents lg:flex lg:flex-col lg:gap-3">
+              <section
+                className={`${noPayout ? 'bg-surface' : 'bg-accent on-accent'} flex items-center gap-3 rounded-[22px] p-4 lg:rounded-[28px] lg:p-7`}
+                aria-label="Compensation"
+              >
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="tag lg:!text-[15px]">{noPayout ? 'NO PAYOUT DUE' : needsPrice ? `${c.pct} % OWED` : 'CASH BACK'}</span>
+                  {c.amount_eur !== null && !noPayout ? (
+                    <span className="mono text-[42px] font-bold leading-[1.1] lg:text-[64px]">{eur(c.amount_eur)}</span>
+                  ) : needsPrice ? (
+                    <span className="mono text-[42px] font-bold leading-[1.1] lg:text-[64px]">{c.pct} %</span>
+                  ) : (
+                    <span className="font-display text-[24px] font-bold leading-tight">Nothing to claim</span>
+                  )}
+                  <span className="text-[13px] leading-snug lg:text-[16px]">{c.reason}</span>
+                </div>
+                <Kurt width={72} shell="#FFFFFF" className="shrink-0" />
+              </section>
 
-            {needsPrice && (
-              <div className="rounded-2xl border border-line p-3">
-                <p className="mb-2 text-[13px] text-muted">Enter the price you paid and Kurt works out the amount.</p>
-                <InlinePrice
-                  cta="Calculate"
-                  onSave={async (n) => {
-                    await api.patchTrip(ref!, { price_eur: n })
-                    retry()
-                  }}
-                />
-              </div>
-            )}
-
-            {c.due && (
-              <ul className="flex flex-col" aria-label="Details to paste into the claim form">
-                {c.fields.filter((f) => f.value).map((f) => ({ ...f, value: pasteable(f.value) })).map((f) => (
-                  <li key={f.label} className="border-b border-line">
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        await copyText(f.value)
-                        setCopied(f.label)
-                        window.clearTimeout(timer.current)
-                        timer.current = window.setTimeout(() => setCopied(''), 1800)
-                      }}
-                      className="flex min-h-[58px] w-full items-center justify-between gap-3 py-2 text-left"
-                    >
-                      <span className="flex min-w-0 flex-col">
-                        <span className="text-[12px] text-muted">{f.label}</span>
-                        <span className="text-[15px] font-semibold leading-snug">{f.value}</span>
-                      </span>
-                      <span
-                        className={`flex min-h-[44px] min-w-[76px] shrink-0 items-center justify-center gap-1 rounded-[10px] border-[1.5px] border-ink px-2 text-[13px] font-semibold ${copied === f.label ? 'bg-ink text-white' : 'bg-white'}`}
-                      >
-                        {copied === f.label ? <><IconCheck size={16} /> Copied</> : <><IconCopy size={16} /> Copy</>}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className="sr-only" role="status" aria-live="polite">{copied ? `${copied} copied` : ''}</p>
-
-            <div className="flex flex-col gap-2 rounded-2xl bg-surface p-3.5">
-              <h2 className="font-display text-[16px] font-bold">Where to file</h2>
-              <p className="text-[13px] leading-snug">{c.where}</p>
-              {c.due && (
-                <a href="https://www.bahn.de/service/fahrgastrechte" target="_blank" rel="noopener noreferrer" className="btn-primary mt-1">
-                  Open DB’s refund page <IconExternal size={18} />
-                </a>
+              {needsPrice && (
+                <div className="rounded-2xl border border-line p-3">
+                  <p className="mb-2 text-[13px] text-muted">Enter the price you paid and Kurt works out the amount.</p>
+                  <InlinePrice
+                    cta="Calculate"
+                    onSave={async (n) => {
+                      await api.patchTrip(ref!, { price_eur: n })
+                      retry()
+                    }}
+                  />
+                </div>
               )}
-              <p className="text-[12px] text-muted">You paste, you add your bank details yourself, you send. Spätkauf never files for you.</p>
+            </div>
+
+            <div className="contents lg:flex lg:flex-col lg:gap-3">
+              {c.due && (
+                <ul className="flex flex-col" aria-label="Details to paste into the claim form">
+                  {c.fields.filter((f) => f.value).map((f) => ({ ...f, value: pasteable(f.value) })).map((f) => (
+                    <li key={f.label} className="border-b border-line">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await copyText(f.value)
+                          setCopied(f.label)
+                          window.clearTimeout(timer.current)
+                          timer.current = window.setTimeout(() => setCopied(''), 1800)
+                        }}
+                        className="flex min-h-[58px] w-full items-center justify-between gap-3 py-2 text-left"
+                      >
+                        <span className="flex min-w-0 flex-col">
+                          <span className="text-[12px] text-muted">{f.label}</span>
+                          <span className="text-[15px] font-semibold leading-snug">{f.value}</span>
+                        </span>
+                        <span
+                          className={`flex min-h-[44px] min-w-[76px] shrink-0 items-center justify-center gap-1 rounded-[10px] border-[1.5px] border-ink px-2 text-[13px] font-semibold ${copied === f.label ? 'bg-ink text-white' : 'bg-white'}`}
+                        >
+                          {copied === f.label ? <><IconCheck size={16} /> Copied</> : <><IconCopy size={16} /> Copy</>}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="sr-only" role="status" aria-live="polite">{copied ? `${copied} copied` : ''}</p>
+
+              <div className="flex flex-col gap-2 rounded-2xl bg-surface p-3.5">
+                <h2 className="font-display text-[16px] font-bold lg:text-[20px]">Where to file</h2>
+                <p className="text-[13px] leading-snug lg:text-[15px]">{c.where}</p>
+                {c.due && (
+                  <a href="https://www.bahn.de/service/fahrgastrechte" target="_blank" rel="noopener noreferrer" className="btn-primary mt-1">
+                    Open DB’s refund page <IconExternal size={18} />
+                  </a>
+                )}
+                <p className="text-[12px] text-muted">You paste, you add your bank details yourself, you send. Spätkauf never files for you.</p>
+              </div>
             </div>
           </>
         )}

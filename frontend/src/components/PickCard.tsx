@@ -47,7 +47,7 @@ export function Actions({
   tone: 'accent' | 'plain'
 }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 lg:grid lg:grid-cols-2">
       <a href={pick.bahn_url} target="_blank" rel="noopener noreferrer" className="btn-primary on-ink">
         Open on bahn.de <IconExternal size={18} />
       </a>
@@ -63,50 +63,50 @@ export function KurtsPick({ pick, tz, strike, onBook }: { pick: Pick; tz: string
   const o = pick.odds
   const has = hasOdds(o)
   return (
-    <section className="on-accent relative flex flex-col gap-3 rounded-[22px] bg-accent p-4" aria-label="Kurt's pick">
+    <section className="on-accent relative flex flex-col gap-3 rounded-[22px] bg-accent p-4 lg:gap-4 lg:rounded-[28px] lg:p-6" aria-label="Kurt's pick">
       <div className="flex items-center justify-between">
-        <span className="tag inline-flex items-center gap-1.5 rounded-md bg-ink px-2 py-1 text-white">
+        <span className="tag inline-flex items-center gap-1.5 rounded-md bg-ink px-2 py-1 text-white lg:!text-[13px]">
           <Kurt width={16} shell="#FD4F00" body="#FFFFFF" /> KURT’S PICK
         </span>
         {strike && <span className="tag rounded-md bg-white px-2 py-1 text-accent-text">STRIKE WATCH</span>}
       </div>
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="tag">BOOK</span>
-          <span className="mono text-[24px] font-bold leading-tight">
+          <span className="tag lg:!text-[13px]">BOOK</span>
+          <span className="mono text-[24px] font-bold leading-tight lg:text-[32px]">
             {hhmm(pick.dep, tz)} → {hhmm(pick.arr, tz)}
           </span>
-          <span className="text-[13px] leading-snug">
+          <span className="text-[13px] leading-snug lg:text-[16px]">
             {changesLabel(pick.changes)} · {duration(pick.duration_min)}
           </span>
-          <span className="text-[13px] leading-snug">{pick.legs.map((l) => l.train).join(' + ')}</span>
+          <span className="text-[13px] leading-snug lg:text-[16px]">{pick.legs.map((l) => l.train).join(' + ')}</span>
         </div>
         <div className="flex shrink-0 flex-col items-end">
           {has ? (
             <>
-              <span className="mono text-[40px] font-bold leading-none">{pctNum(o.p20)}%</span>
-              <span className="text-[12px]">{o.basis === 'estimate' ? 'whole trip 20+ late' : '20+ min late'}</span>
+              <span className="mono text-[40px] font-bold leading-none lg:text-[68px]">{pctNum(o.p20)}%</span>
+              <span className="text-[12px] lg:text-[15px] lg:font-semibold">{o.basis === 'estimate' ? 'whole trip 20+ late' : '20+ min late'}</span>
             </>
           ) : (
             <span className="text-[13px] font-semibold">No odds yet</span>
           )}
         </div>
       </div>
-      <p className="-mt-1 text-[13px] font-semibold">{oddsLine(pick)}</p>
+      <p className="-mt-1 text-[13px] font-semibold lg:text-[16px] lg:leading-snug">{oddsLine(pick)}</p>
       {ride ? (
-        <div className="flex flex-col gap-0.5 rounded-xl bg-white p-3">
-          <span className="tag text-accent-text">IF IT’S LATE, YOU’D RIDE</span>
-          <span className="mono text-[20px] font-bold leading-tight">{ride.times}</span>
-          <span className="text-[13px] font-semibold">{ride.what}</span>
-          <span className="mt-0.5 text-[12px] leading-snug text-muted">{ride.rel}</span>
+        <div className="flex flex-col gap-0.5 rounded-xl bg-white p-3 lg:gap-1 lg:rounded-2xl lg:p-4">
+          <span className="tag text-accent-text lg:!text-[13px]">IF IT’S LATE, YOU’D RIDE</span>
+          <span className="mono text-[20px] font-bold leading-tight lg:text-[28px]">{ride.times}</span>
+          <span className="text-[13px] font-semibold lg:text-[16px]">{ride.what}</span>
+          <span className="mt-0.5 text-[12px] leading-snug text-muted lg:text-[14px]">{ride.rel}</span>
         </div>
       ) : (
-        <p className="rounded-xl bg-white p-3 text-[13px] text-muted">
+        <p className="rounded-xl bg-white p-3 text-[13px] text-muted lg:text-[15px]">
           No other train in the window. Kurt shows the next option on the live screen.
         </p>
       )}
       <Actions pick={pick} onBook={onBook} tone="accent" />
-      <p className="text-center text-[12px] leading-snug">Price and buying happen on bahn.de. Kurt never sees either.</p>
+      <p className="text-center text-[12px] leading-snug lg:text-[13px]">Price and buying happen on bahn.de. Kurt never sees either.</p>
     </section>
   )
 }
@@ -122,10 +122,10 @@ export function CompactPick({ pick, tz, strike, onBook }: { pick: Pick; tz: stri
         type="button"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="flex min-h-[64px] w-full flex-col gap-1 px-3.5 py-3 text-left"
+        className="flex min-h-[64px] w-full flex-col gap-1 px-3.5 py-3 text-left lg:min-h-[78px] lg:px-5 lg:py-3.5"
       >
         <span className="flex w-full items-center justify-between gap-2">
-          <span className={`mono whitespace-nowrap text-[17px] font-bold ${dead ? 'text-muted line-through' : ''}`}>
+          <span className={`mono whitespace-nowrap text-[17px] font-bold lg:text-[22px] ${dead ? 'text-muted line-through' : ''}`}>
             {hhmm(pick.dep, tz)} → {hhmm(pick.arr, tz)}
           </span>
           <span className="flex shrink-0 items-center gap-2">
@@ -136,13 +136,13 @@ export function CompactPick({ pick, tz, strike, onBook }: { pick: Pick; tz: stri
                 aria-label={`${pct(o.p20)} chance of 20+ min late`}
               >
                 <Snails p20={o.p20} />
-                <span className="mono text-[14px] font-bold">{pctNum(o.p20)}%</span>
+                <span className="mono text-[14px] font-bold lg:text-[19px]">{pctNum(o.p20)}%</span>
               </span>
             )}
             <IconChevron size={18} className={`text-muted transition-transform motion-reduce:transition-none ${open ? 'rotate-90' : ''}`} />
           </span>
         </span>
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-snug text-muted">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-snug text-muted lg:text-[15px]">
           <span>
             {dead
               ? 'Already posted: does not count'
@@ -156,8 +156,8 @@ export function CompactPick({ pick, tz, strike, onBook }: { pick: Pick; tz: stri
         </span>
       </button>
       {open && (
-        <div className="flex flex-col gap-3 border-t border-line px-3.5 pb-3.5 pt-3">
-          <div className="text-[13px] leading-snug">
+        <div className="flex flex-col gap-3 border-t border-line px-3.5 pb-3.5 pt-3 lg:px-5 lg:pb-5">
+          <div className="text-[13px] leading-snug lg:text-[15px]">
             <p className="font-semibold">{oddsLine(pick)}</p>
             <p className="text-muted">
               {changesLabel(pick.changes)} · {duration(pick.duration_min)} · {pick.legs.map((l) => l.train).join(' + ')}
@@ -166,9 +166,9 @@ export function CompactPick({ pick, tz, strike, onBook }: { pick: Pick; tz: stri
           {ride && (
             <div className="rounded-xl bg-surface p-3">
               <span className="tag text-accent-text">IF IT’S LATE, YOU’D RIDE</span>
-              <p className="mono text-[16px] font-bold">{ride.times}</p>
-              <p className="text-[13px] font-semibold">{ride.what}</p>
-              <p className="mt-0.5 text-[12px] leading-snug text-muted">{ride.rel}</p>
+              <p className="mono text-[16px] font-bold lg:text-[20px]">{ride.times}</p>
+              <p className="text-[13px] font-semibold lg:text-[15px]">{ride.what}</p>
+              <p className="mt-0.5 text-[12px] leading-snug text-muted lg:text-[14px]">{ride.rel}</p>
             </div>
           )}
           <Actions pick={pick} onBook={onBook} tone="plain" />

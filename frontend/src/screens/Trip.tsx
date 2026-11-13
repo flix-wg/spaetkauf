@@ -100,7 +100,7 @@ function TripBody({ ref_ }: { ref_: TripRef }) {
   return (
     <>
       <ScreenHeader title="Your trip" back={<BackLink />} />
-      <div className="flex flex-col gap-3 px-4 pb-8">
+      <div className="flex flex-col gap-3 px-4 pb-8 lg:px-10 lg:pb-12">
         {state.status === 'loading' && <Loading label="Kurt is checking your train…" />}
         {state.status === 'error' && <ErrorState error={state.error} retry={retry} />}
         {state.status === 'ok' && (
@@ -149,146 +149,157 @@ function TripView({
   const tz = atStop ? 'UTC' : undefined
   const stop = t.at_stop ? stopName(t.at_stop.name) : ''
 
-  return (
-    <>
-      {t.is_replay && (
-        <div className="flex flex-col gap-0.5 rounded-xl bg-ink px-3 py-2.5 text-white" role="note">
-          <span className="text-[14px] font-bold">
-            Replay of {t.replay_of ? longDate(`${t.replay_of}T12:00:00Z`) : 'a recorded trip'}
-            {atStop ? ' · past run' : ' · recorded live'}
-          </span>
-          <span className="text-[12px] leading-snug opacity-80">
-            {atStop
-              ? 'A real run from DB’s delay data, played back fast. Each step is the delay measured at that stop, not a forecast for the destination.'
-              : `Recorded live by Kurt, played back fast. Each step is what the forecast for ${dest} said at that moment.`}
-          </span>
-          {atStop && <span className="text-[11px] opacity-60">Delay history: piebro/deutsche-bahn-data (CC BY 4.0).</span>}
-        </div>
-      )}
-      {alert && (
-        <div role="status" aria-live="polite" className="flex items-start justify-between gap-2 rounded-xl border-2 border-ink bg-white p-3">
-          <span className="flex gap-2 text-[14px] font-semibold leading-snug">
-            <IconBell size={20} className="mt-0.5 shrink-0" /> {alert}
-          </span>
-          <button type="button" onClick={dismiss} aria-label="Dismiss" className="-m-2 flex h-11 w-11 shrink-0 items-center justify-center">
-            <IconClose size={18} />
-          </button>
-        </div>
-      )}
-
-      <div className="flex items-center justify-between rounded-2xl bg-surface px-3.5 py-3">
-        <span className="flex min-w-0 flex-col">
-          <span className="mono font-bold">
-            {dayLabel(b.arr, tz)} {depKnown ? `${hhmm(b.dep, tz)} → ${hhmm(b.arr, tz)}` : `due ${hhmm(b.arr, tz)}`}
-          </span>
-          <span className="text-[13px] leading-snug text-muted">
-            {stopName(first.from) || '…'} → {dest} · {changesLabel(b.changes)}
-          </span>
-          <span className="text-[13px] text-muted">
-            {b.legs.map((l) => l.train).join(' + ')} · {t.price_eur !== null ? `ticket ${eur(t.price_eur)}` : 'no price entered'}
-          </span>
+  // Phone: one column, alert above the trip. Desktop: trip and live delay on the left; alert, switch or stay
+  // and the rest on the right. The alert is rendered in both spots, each hidden at the other width.
+  const alertBox = (show: string) =>
+    alert && (
+      <div role="status" aria-live="polite" className={`${show} items-start justify-between gap-2 rounded-xl border-2 border-ink bg-white p-3 lg:rounded-2xl lg:border-[3px] lg:p-4`}>
+        <span className="flex gap-2 text-[14px] font-semibold leading-snug lg:gap-3 lg:text-[19px]">
+          <IconBell size={20} className="mt-0.5 shrink-0 lg:h-6 lg:w-6" /> {alert}
         </span>
+        <button type="button" onClick={dismiss} aria-label="Dismiss" className="-m-2 flex h-11 w-11 shrink-0 items-center justify-center">
+          <IconClose size={18} />
+        </button>
       </div>
+    )
 
-      <section className={`${card} flex flex-col gap-3 rounded-[22px] p-4`} aria-label="Live delay">
-        <div className="flex items-center justify-between gap-2">
-          <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="tag">{doneOk ? 'ARRIVED · ON TIME' : done ? `ARRIVED · ${LABEL[t.state]}` : waiting ? (t.is_replay ? 'REPLAY STARTING' : 'WAITING FOR LIVE DATA') : LABEL[t.state]}</span>
-            <span className="text-[13px]">
-              {done
-                ? `Final delay at ${dest}`
-                : atStop
-                  ? stop ? `Delay measured at ${stop}` : 'Delay measured at the last stop'
-                  : `Expected delay at ${dest}`}
+  return (
+    <div className="contents lg:grid lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:items-start lg:gap-x-10">
+      <div className="contents lg:flex lg:flex-col lg:gap-4">
+        {t.is_replay && (
+          <div className="flex flex-col gap-0.5 rounded-xl bg-ink px-3 py-2.5 text-white lg:gap-1 lg:rounded-2xl lg:px-5 lg:py-4" role="note">
+            <span className="text-[14px] font-bold lg:text-[18px]">
+              Replay of {t.replay_of ? longDate(`${t.replay_of}T12:00:00Z`) : 'a recorded trip'}
+              {atStop ? ' · past run' : ' · recorded live'}
+            </span>
+            <span className="text-[12px] leading-snug opacity-80 lg:text-[15px]">
+              {atStop
+                ? 'A real run from DB’s delay data, played back fast. Each step is the delay measured at that stop, not a forecast for the destination.'
+                : `Recorded live by Kurt, played back fast. Each step is what the forecast for ${dest} said at that moment.`}
+            </span>
+            {atStop && <span className="text-[11px] opacity-60 lg:text-[13px]">Delay history: piebro/deutsche-bahn-data (CC BY 4.0).</span>}
+          </div>
+        )}
+        {alertBox('flex lg:hidden')}
+
+        <div className="flex items-center justify-between rounded-2xl bg-surface px-3.5 py-3 lg:px-5 lg:py-4">
+          <span className="flex min-w-0 flex-col lg:gap-0.5">
+            <span className="mono font-bold lg:text-[22px]">
+              {dayLabel(b.arr, tz)} {depKnown ? `${hhmm(b.dep, tz)} → ${hhmm(b.arr, tz)}` : `due ${hhmm(b.arr, tz)}`}
+            </span>
+            <span className="text-[13px] leading-snug text-muted lg:text-[16px]">
+              {stopName(first.from) || '…'} → {dest} · {changesLabel(b.changes)}
+            </span>
+            <span className="text-[13px] text-muted lg:text-[16px]">
+              {b.legs.map((l) => l.train).join(' + ')} · {t.price_eur !== null ? `ticket ${eur(t.price_eur)}` : 'no price entered'}
             </span>
           </span>
+        </div>
+
+        <section className={`${card} flex flex-col gap-3 rounded-[22px] p-4 lg:gap-5 lg:rounded-[28px] lg:p-7`} aria-label="Live delay">
+          <div className="flex items-center justify-between gap-2">
+            <span className="flex min-w-0 flex-col gap-0.5 lg:gap-1.5">
+              <span className="tag lg:!text-[16px]">{doneOk ? 'ARRIVED · ON TIME' : done ? `ARRIVED · ${LABEL[t.state]}` : waiting ? (t.is_replay ? 'REPLAY STARTING' : 'WAITING FOR LIVE DATA') : LABEL[t.state]}</span>
+              <span className="text-[13px] lg:text-[18px] lg:leading-snug">
+                {done
+                  ? `Final delay at ${dest}`
+                  : atStop
+                    ? stop ? `Delay measured at ${stop}` : 'Delay measured at the last stop'
+                    : `Expected delay at ${dest}`}
+              </span>
+            </span>
+            {waiting ? (
+              <span className="font-display text-[20px] font-bold lg:text-[44px]">–</span>
+            ) : t.state === 'cancelled' ? (
+              <span className="font-display text-[22px] font-bold lg:text-[40px]">Cancelled</span>
+            ) : (
+              <Flap text={`+${done ? finalDelay : delay}`} label={`plus ${done ? finalDelay : delay} minutes`} />
+            )}
+          </div>
           {waiting ? (
-            <span className="font-display text-[20px] font-bold">–</span>
-          ) : t.state === 'cancelled' ? (
-            <span className="font-display text-[22px] font-bold">Cancelled</span>
-          ) : (
-            <Flap text={`+${done ? finalDelay : delay}`} label={`plus ${done ? finalDelay : delay} minutes`} />
-          )}
-        </div>
-        {waiting ? (
-          <p className="text-[14px] leading-snug">
-            {t.is_replay
-              ? 'The recording starts in a moment.'
-              : notYet
-              ? `Kurt starts watching at ${hhmm(new Date(new Date(b.dep).getTime() - 3 * 3600_000).toISOString())}, three hours before departure. This screen updates by itself.`
-              : 'No live reading for this train yet. This screen updates by itself.'}
-          </p>
-        ) : cancelled ? (
-          <p className="text-[14px] font-semibold leading-snug">Ride any train to {dest}, or ask DB for a full refund.</p>
-        ) : doneOk ? null : (
-          <Meter delay={done ? finalDelay : delay} thresholds={t.thresholds} />
-        )}
-        {t.stale && !done && !waiting ? (
-          <p className="rounded-lg bg-white/70 px-3 py-2 text-[13px] font-semibold" role="alert">
-            Live data is stale. Last update {t.updated_at ? hhmm(t.updated_at) : 'unknown'}. Check the DB app before you board another train.
-          </p>
-        ) : atStop ? (
-          t.at_stop && (
-            <p className="text-[12px]">
-              {done ? 'Arrived' : 'Reached'} {stop} {hhmm(t.at_stop.actual_arr, 'UTC')}, timetable {hhmm(t.at_stop.planned_arr, 'UTC')}
+            <p className="text-[14px] leading-snug lg:text-[17px]">
+              {t.is_replay
+                ? 'The recording starts in a moment.'
+                : notYet
+                ? `Kurt starts watching at ${hhmm(new Date(new Date(b.dep).getTime() - 3 * 3600_000).toISOString())}, three hours before departure. This screen updates by itself.`
+                : 'No live reading for this train yet. This screen updates by itself.'}
             </p>
-          )
-        ) : (
-          <p className="text-[12px]">
-            {t.updated_at ? `Updated ${timeAgo(t.updated_at)}` : ''}
-            {t.expected_arr && !done ? ` · now expected ${hhmm(t.expected_arr)}` : ''}
+          ) : cancelled ? (
+            <p className="text-[14px] font-semibold leading-snug lg:text-[18px]">Ride any train to {dest}, or ask DB for a full refund.</p>
+          ) : doneOk ? null : (
+            <Meter delay={done ? finalDelay : delay} thresholds={t.thresholds} />
+          )}
+          {t.stale && !done && !waiting ? (
+            <p className="rounded-lg bg-white/70 px-3 py-2 text-[13px] font-semibold lg:text-[16px]" role="alert">
+              Live data is stale. Last update {t.updated_at ? hhmm(t.updated_at) : 'unknown'}. Check the DB app before you board another train.
+            </p>
+          ) : atStop ? (
+            t.at_stop && (
+              <p className="text-[12px] lg:text-[16px]">
+                {done ? 'Arrived' : 'Reached'} {stop} {hhmm(t.at_stop.actual_arr, 'UTC')}, timetable {hhmm(t.at_stop.planned_arr, 'UTC')}
+              </p>
+            )
+          ) : (
+            <p className="text-[12px] lg:text-[16px]">
+              {t.updated_at ? `Updated ${timeAgo(t.updated_at)}` : ''}
+              {t.expected_arr && !done ? ` · now expected ${hhmm(t.expected_arr)}` : ''}
+            </p>
+          )}
+          {doneOk && (
+            <p className="flex items-center gap-2 text-[15px] font-bold leading-snug lg:text-[20px]">
+              <Kurt width={44} shell="#E9F5EC" className="shrink-0" /> Nothing lost. You rode the cheap ticket.
+            </p>
+          )}
+          {done && !doneOk && finalDelay < 60 && (
+            <p className="text-[14px] font-semibold leading-snug lg:text-[18px]">The ticket unlocked, but under 60 minutes late pays nothing back.</p>
+          )}
+        </section>
+      </div>
+
+      <div className="contents lg:flex lg:flex-col lg:gap-4">
+        {alertBox('hidden lg:flex')}
+
+        {t.connection_at_risk && !done && (
+          <p className="rounded-xl border-2 border-ink p-3 text-[14px] font-semibold leading-snug lg:text-[17px]" role="alert">
+            Your change is at risk: the first train is expected after the second one leaves.
           </p>
         )}
-        {doneOk && (
-          <p className="flex items-center gap-2 text-[15px] font-bold leading-snug">
-            <Kurt width={44} shell="#E9F5EC" className="shrink-0" /> Nothing lost. You rode the cheap ticket.
+
+        {showSwitch && <SwitchOrStay t={t} ref_={ref_} reload={reload} />}
+
+        {t.switched && (
+          <p className="rounded-xl bg-surface p-3 text-[13px] lg:text-[15px]">
+            You marked this trip as switched. Compensation only applies if you still arrive 60+ minutes late.
           </p>
         )}
-        {done && !doneOk && finalDelay < 60 && (
-          <p className="text-[14px] font-semibold leading-snug">The ticket unlocked, but under 60 minutes late pays nothing back.</p>
+
+        {t.price_eur === null && !done && (
+          <div className="rounded-2xl border border-line p-3 lg:p-4">
+            <p className="mb-2 text-[13px] text-muted lg:text-[15px]">Add the price to see cash amounts on the meter.</p>
+            <InlinePrice cta="Save" onSave={async (n) => { await api.patchTrip(ref_, { price_eur: n }); reload() }} />
+          </div>
         )}
-      </section>
 
-      {t.connection_at_risk && !done && (
-        <p className="rounded-xl border-2 border-ink p-3 text-[14px] font-semibold leading-snug" role="alert">
-          Your change is at risk: the first train is expected after the second one leaves.
-        </p>
-      )}
+        {showClaim && (
+          <Link to={`/trip/${encodeURIComponent(ref_.id)}/claim`} className="btn-primary">
+            {done ? 'Claim helper' : 'Prepare your claim'}
+          </Link>
+        )}
 
-      {showSwitch && <SwitchOrStay t={t} ref_={ref_} reload={reload} />}
+        {wonUnlocked && !done && !t.is_replay && (
+          <div className="flex items-end gap-2">
+            <Kurt width={44} className="shrink-0" />
+            <span className="rounded-2xl rounded-bl border-2 border-ink px-3 py-2.5 text-[14px] font-semibold leading-snug lg:text-[17px]">
+              Show your ticket as usual. The delay is your pass.
+            </span>
+          </div>
+        )}
 
-      {t.switched && (
-        <p className="rounded-xl bg-surface p-3 text-[13px]">
-          You marked this trip as switched. Compensation only applies if you still arrive 60+ minutes late.
-        </p>
-      )}
-
-      {t.price_eur === null && !done && (
-        <div className="rounded-2xl border border-line p-3">
-          <p className="mb-2 text-[13px] text-muted">Add the price to see cash amounts on the meter.</p>
-          <InlinePrice cta="Save" onSave={async (n) => { await api.patchTrip(ref_, { price_eur: n }); reload() }} />
-        </div>
-      )}
-
-      {showClaim && (
-        <Link to={`/trip/${encodeURIComponent(ref_.id)}/claim`} className="btn-primary">
-          {done ? 'Claim helper' : 'Prepare your claim'}
-        </Link>
-      )}
-
-      {wonUnlocked && !done && !t.is_replay && (
-        <div className="flex items-end gap-2">
-          <Kurt width={44} className="shrink-0" />
-          <span className="rounded-2xl rounded-bl border-2 border-ink px-3 py-2.5 text-[14px] font-semibold leading-snug">
-            Show your ticket as usual. The delay is your pass.
-          </span>
-        </div>
-      )}
-
-      {!done && !t.is_replay && <BannerLoader t={t} />}
-      {!done && <PushButton ref_={ref_} />}
-      <DeleteButton onDelete={onDelete} />
-    </>
+        {!done && !t.is_replay && <BannerLoader t={t} />}
+        {!done && <PushButton ref_={ref_} />}
+        <DeleteButton onDelete={onDelete} />
+      </div>
+    </div>
   )
 }
 
@@ -324,15 +335,15 @@ function SwitchOrStay({ t, ref_, reload }: { t: Trip; ref_: TripRef; reload: () 
           ]
         : [`Stay on the ${train}, race to +60`, `${a60 !== null ? eur(a60) : '25 %'} back if it cracks +60`]
   return (
-    <section className="flex flex-col gap-2.5 rounded-[22px] border-2 border-ink p-3.5" aria-label="Switch or stay">
-      <h2 className="font-display text-[20px] font-bold">Switch or stay?</h2>
-      <p className="text-[13px] leading-snug text-muted">
+    <section className="flex flex-col gap-2.5 rounded-[22px] border-2 border-ink p-3.5 lg:gap-3.5 lg:rounded-[28px] lg:border-[3px] lg:p-6" aria-label="Switch or stay">
+      <h2 className="font-display text-[20px] font-bold lg:text-[30px]">Switch or stay?</h2>
+      <p className="text-[13px] leading-snug text-muted lg:text-[16px]">
         {cancelled
           ? 'Your ticket now works on these trains. Tap the one you take.'
           : 'Switching to an earlier arrival gives up the cash back unless you still arrive 60+ late. Tap a train if you switched.'}
       </p>
       {alts.length === 0 && (
-        <p className="text-[13px] leading-snug">
+        <p className="text-[13px] leading-snug lg:text-[16px]">
           {t.is_replay
             ? 'A replay does not look up other trains. On a live trip, the ones you can still catch appear here.'
             : 'No other train you can still catch right now. Kurt checks again as the delay moves.'}
@@ -349,29 +360,29 @@ function SwitchOrStay({ t, ref_, reload }: { t: Trip; ref_: TripRef; reload: () 
             setBusy(false)
             reload()
           }}
-          className="relative flex min-h-[64px] flex-col items-start gap-0.5 rounded-xl border-2 border-ink px-3.5 py-2.5 text-left"
+          className="relative flex min-h-[64px] flex-col items-start gap-0.5 rounded-xl border-2 border-ink px-3.5 py-2.5 text-left lg:px-5 lg:py-3.5"
         >
           {i === 0 && (a.delta_vs_expected_min ?? 0) < 0 && (
             <span className="tag absolute -top-2.5 right-3 rounded bg-ink px-1.5 py-0.5 text-white">KURT’S TIP</span>
           )}
-          <span className="text-[15px] font-bold">
+          <span className="text-[15px] font-bold lg:text-[19px]">
             Switch: {hhmm(a.dep)} {a.trains.join(' + ')} → {hhmm(a.arr)}
           </span>
-          <span className="text-[12px] leading-snug text-muted">
+          <span className="text-[12px] leading-snug text-muted lg:text-[15px]">
             {vsExpected(a.delta_vs_expected_min)}leaves in {a.catchable_min} min · {changesLabel(a.changes)}
           </span>
           {a.forfeits_compensation === false && a.compensation_eur ? (
-            <span className="text-[12px] font-semibold">Still {eur(a.compensation_eur)} back: you arrive 60+ late anyway.</span>
+            <span className="text-[12px] font-semibold lg:text-[15px]">Still {eur(a.compensation_eur)} back: you arrive 60+ late anyway.</span>
           ) : null}
         </button>
       ))}
       {!cancelled && (
-        <div className="flex flex-col gap-0.5 rounded-xl bg-tint px-3.5 py-2.5">
-          <span className="text-[15px] font-bold">{stay[0]}</span>
-          <span className="text-[12px] text-muted">{stay[1]}</span>
+        <div className="flex flex-col gap-0.5 rounded-xl bg-tint px-3.5 py-2.5 lg:gap-1 lg:rounded-2xl lg:px-5 lg:py-4">
+          <span className="text-[15px] font-bold lg:text-[22px] lg:leading-tight">{stay[0]}</span>
+          <span className="text-[12px] text-muted lg:text-[18px] lg:font-semibold lg:text-ink">{stay[1]}</span>
         </div>
       )}
-      <p className="text-[12px] text-muted">Based on live data. Check the DB app before you board another train.</p>
+      <p className="text-[12px] text-muted lg:text-[14px]">Based on live data. Check the DB app before you board another train.</p>
     </section>
   )
 }
