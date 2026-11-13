@@ -13,7 +13,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from . import push
 from .config import REPO_ROOT
@@ -54,7 +54,7 @@ def _live(db_path) -> list[dict]:
     rows = conn.execute(
         """
         SELECT t.* FROM trips t JOIN trip_snapshots s ON s.trip_id = t.id
-        WHERE t.is_replay = 0 AND (t.finished_at IS NOT NULL OR t.auto = 1)
+        WHERE t.is_replay = 0 AND t.auto = 1
           AND s.delay_min IS NOT NULL
         GROUP BY t.id HAVING COUNT(*) >= ? AND MAX(s.delay_min) >= 20
         """,
@@ -235,6 +235,7 @@ def list_recordings(request: Request):
 class ReplayBody(BaseModel):
     push: dict | None = None
     price_eur: Decimal | None = Field(default=None, gt=0, le=3000, decimal_places=2)
+    _check_push = field_validator("push")(lambda cls, v: push.check_subscription(v))
     recording: str | None = None
 
 

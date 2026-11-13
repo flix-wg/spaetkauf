@@ -129,7 +129,8 @@ def test_switch_to_earlier_arrival_has_no_compensation_at_stake(settings):
     booked = booked_it["legs"][0]["tripId"]
     later = json.loads(json.dumps(booked_it).replace(booked, "other").replace("T11:42", "T12:42"))
     sooner = json.loads(json.dumps(booked_it).replace(booked, "fast").replace("T11:42", "T10:59"))
-    plan = {"itineraries": [booked_it, later, sooner]}
+    tgv = json.loads(json.dumps(booked_it).replace(booked, "tgv").replace("ICE 703", "TGV 9570"))
+    plan = {"itineraries": [booked_it, later, sooner, tgv]}
     found = options(plan, {booked}, datetime(2026, 11, 14, 0, 0, tzinfo=UTC))
     assert [o["arr"] for o in found] == ["2026-11-14T10:59:00Z", "2026-11-14T12:42:00Z"]
     assert found[0] == {**found[0], "changes": 0, "trains": ["ICE 703"]}
@@ -177,7 +178,7 @@ def test_push_key_and_gone_subscription(client, settings, monkeypatch):
     assert client.get("/api/push/key").json() == {"public_key": "pub"}
 
     monkeypatch.setenv("VAPID_PRIVATE_KEY", "priv")
-    tid, _ = create_trip(settings.db_path, PICK, push={"endpoint": "https://push.example/x"})
+    tid, _ = create_trip(settings.db_path, PICK, push={"endpoint": "https://fcm.googleapis.com/fcm/send/x"})
 
     def gone(*args):
         raise WebPushException("gone", response=SimpleNamespace(status_code=410, text=""))
@@ -262,6 +263,18 @@ def test_replay_prefers_a_recording_that_crosses_20(client, settings, monkeypatc
                     (tid, at, d),
                 )
         conn.close()
+    private, _ = create_trip(settings.db_path, PICK)  # a user's own booked trip is not public
+    conn = connect(settings.db_path)
+    with conn:
+        for i in range(8):
+            at = (T0 + timedelta(minutes=i)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            conn.execute(
+                "INSERT INTO trip_snapshots(trip_id, at, delay_min) VALUES (?,?,?)",
+                (private, at, 25 + i),
+            )
+        conn.execute("UPDATE trips SET finished_at = ? WHERE id = ?", (T0.isoformat(), private))
+    conn.close()
+    assert client.post("/api/demo/replay", json={"recording": f"live:{private}"}).status_code == 404
     got = client.get("/api/demo/recordings").json()
     assert [(r["crosses_20"], r["max_delay_min"]) for r in got] == [(True, 58), (False, 95)]
     assert got[0]["id"] == f"live:{tid}" and got[0]["source"] == "live"
