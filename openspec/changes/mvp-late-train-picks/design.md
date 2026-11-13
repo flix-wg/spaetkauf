@@ -103,7 +103,7 @@ GET  /api/push/key                    -> {public_key}
 POST /api/demo/replay                 -> {trip_id, secret}   (404 while no recording exists)
 POST /hooks/context                   -> 204 | 401
 ```
-Trips are addressed by id plus a random secret kept in the browser's local storage; that is the whole "account".
+Trips are addressed by id plus a random secret kept in the browser's local storage; that is the whole "account". Every trip route, including PATCH, DELETE and /claim, needs the secret as ?secret= or an X-Trip-Secret header; a wrong secret and an unknown id both return 404.
 
 ### D13. Frontend
 Routes: `/` search, `/picks`, `/trips`, `/trip/:id`, `/trip/:id/claim`, `/late`, sheet `sources`, sheet `backtest`. Tokens: accent `#FD4F00`, accent text `#C93D00`, ink `#14161A`, muted `#5B616B`, line `#E4E4E0`, surface `#F5F5F3`, tint `#FFF1EA`, ok tint `#E9F5EC`. Type: Space Grotesk (headings), Inter (body), JetBrains Mono (numbers), self-hosted. Components carried over from the boards in `design/`: Kurt the snail (inline SVG), snail rating, flap tiles for delay numbers, threshold meter (+20, +60, +120), book-to-ride pair card, copy rows. The safe-mode boards (`SafePicks`, `SafeLive`, `SafeClaim`) are the visual reference; ticket sharing (`SafeShare`) is replaced by "I booked this". Motion is limited to flap-tile flips and the meter, and respects reduced-motion.
