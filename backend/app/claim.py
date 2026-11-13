@@ -1,0 +1,56 @@
+"""Compensation maths (claim-helper spec) and GET /api/trips/{id}/claim."""
+
+from decimal import ROUND_CEILING, Decimal
+
+STEP = Decimal("0.05")
+MINIMUM = Decimal("4.00")
+WHERE = (
+    "File it yourself with DB: online at bahn.de (Fahrgastrechte), in the DB Navigator app "
+    "or at a DB travel centre. This app never submits a claim."
+)
+
+
+def claim_pct(delay_min: int | None) -> int:
+    if delay_min is None or delay_min < 60:
+        return 0
+    return 50 if delay_min >= 120 else 25
+
+
+def claim_amount(price: Decimal, pct: int) -> Decimal:
+    raw = price * pct / 100
+    return (raw / STEP).to_integral_value(rounding=ROUND_CEILING) * STEP
+
+
+def compute_claim(price: Decimal | None, delay_min: int | None, switched: bool) -> dict:
+    """Return {due, pct, amount_eur, reason}."""
+    pct = claim_pct(delay_min)
+    if delay_min is None:
+        return {"due": False, "pct": 0, "amount_eur": None, "reason": "No delay recorded yet."}
+    if pct == 0:
+        why = (
+            "You switched trains and arrived under 60 minutes late, so nothing is owed."
+            if switched
+            else f"Under 60 minutes late ({delay_min} min): no compensation is due."
+        )
+        return {"due": False, "pct": 0, "amount_eur": None, "reason": why}
+    if price is None:
+        return {
+            "due": True,
+            "pct": pct,
+            "amount_eur": None,
+            "reason": f"{pct} % of the ticket price is owed. Enter the price to see the amount.",
+        }
+    amount = claim_amount(price, pct)
+    if amount < MINIMUM:
+        return {
+            "due": False,
+            "pct": pct,
+            "amount_eur": None,
+            "reason": f"{pct} % would be {amount:.2f} EUR; DB pays nothing under 4.00 EUR.",
+        }
+    return {
+        "due": True,
+        "pct": pct,
+        "amount_eur": float(amount),
+        "reason": f"{delay_min} min late: {pct} % of {price:.2f} EUR, rounded up to 5 cents.",
+    }

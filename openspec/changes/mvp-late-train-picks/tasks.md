@@ -5,7 +5,7 @@ Checkpoints (Helsinki time): core path on real data by Sat 14 Nov 10:00 · deplo
 ## 1. Foundation
 
 - [ ] 1.1 Add MIT `LICENSE`, `.gitignore` (with `.env`, `data/raw/`, `node_modules`, `.venv`), `.env.example` listing every variable without values, and a short `README.md`; verify `git status` shows no secret or data file as trackable
-- [ ] 1.2 Scaffold `backend/` (uv project, FastAPI, pytest, ruff) with `GET /api/health`; verify `uv run pytest` passes and the endpoint answers locally
+- [x] 1.2 Scaffold `backend/` (uv project, FastAPI, pytest, ruff) with `GET /api/health`; verify `uv run pytest` passes and the endpoint answers locally
 - [ ] 1.3 Scaffold `frontend/` (Vite, React, TypeScript, Tailwind, vite-plugin-pwa, @fontsource fonts) with the colour and type tokens from design D13; verify `npm run build` succeeds and the backend serves the built app at `/`
 - [ ] 1.4 Copy the reference boards into `design/` with a one-paragraph note on which board maps to which screen; verify the files open
 
@@ -18,16 +18,16 @@ Checkpoints (Helsinki time): core path on real data by Sat 14 Nov 10:00 · deplo
 
 ## 3. Picks
 
-- [ ] 3.1 Implement the Transitous client with cache, daily `/plan` budget, timeout and client name (design D3) and `GET /api/stations`; verify with a test using recorded responses that a repeated call is served from cache and the budget blocks call 701
+- [x] 3.1 Implement the Transitous client with cache, daily `/plan` budget, timeout and client name (design D3) and `GET /api/stations`; verify with a test using recorded responses that a repeated call is served from cache and the budget blocks call 701
 - [ ] 3.2 Implement odds lookup and connection odds (design D5, D6) with tests for: direct train, one change, thin history, cancelled runs
 - [ ] 3.3 Implement `GET /api/picks` with ranking, Kurt's pick, ride-instead (design D7), `already_posted` and the bahn.de link; verify against the live API that Hamburg Hbf to München Hbf returns picks with odds, and with tests for the no-alternative and already-posted cases
 
 ## 4. Tracking, board, replay, push
 
-- [ ] 4.1 Implement trips (`POST`, `GET`, `PATCH`, `DELETE` with id and secret) and the SQLite schema including snapshots and sent alerts; verify with tests that a wrong secret is rejected and delete removes the subscription
+- [x] 4.1 Implement trips (`POST`, `GET`, `PATCH`, `DELETE` with id and secret) and the SQLite schema including snapshots and sent alerts; verify with tests that a wrong secret is rejected and delete removes the subscription
 - [ ] 4.2 Implement the background loop and state derivation (design D8) including stale detection, drop-back and once-only alerts; verify with a test that feeds a delay series 12, 24, 15, 26, 61 and expects exactly one +20 and one +60 alert
 - [ ] 4.3 Implement live alternatives for an unlocked trip and the switch-or-stay values; verify with a test that switching to an earlier arrival reports zero compensation at stake
-- [ ] 4.4 Implement `GET /api/late-now` from hub station boards with dedupe by train, and hourly auto-tracking of the three most delayed trains; verify against the live API that the board returns the checked count and that an auto-tracked trip accumulates snapshots
+- [x] 4.4 Implement `GET /api/late-now` from hub station boards with dedupe by train, and hourly auto-tracking of the three most delayed trains; verify against the live API that the board returns the checked count and that an auto-tracked trip accumulates snapshots
 - [ ] 4.5 Implement Web Push (VAPID key endpoint, subscription storage, send on alert) and the replay endpoint (design D9, D10); verify on a phone or desktop browser that starting a replay delivers a notification containing "Replay" and the original date
 
 ## 5. Signals
@@ -47,7 +47,7 @@ Checkpoints (Helsinki time): core path on real data by Sat 14 Nov 10:00 · deplo
 
 ## 7. Claim
 
-- [ ] 7.1 Implement `GET /api/trips/{id}/claim` with the rounding and minimum rules and the switched case; verify with tests for 34.99 at 71 min, 12.90 at 65 min, 120+ min, no price, and switched
+- [x] 7.1 Implement `GET /api/trips/{id}/claim` with the rounding and minimum rules and the switched case; verify with tests for 34.99 at 71 min, 12.90 at 65 min, 120+ min, no price, and switched
 
 ## 8. Deploy
 
