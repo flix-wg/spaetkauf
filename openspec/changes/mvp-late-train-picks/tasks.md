@@ -4,7 +4,7 @@ Checkpoints (Helsinki time): core path on real data by Sat 14 Nov 10:00 · deplo
 
 ## 1. Foundation
 
-- [ ] 1.1 Add MIT `LICENSE`, `.gitignore` (with `.env`, `data/raw/`, `node_modules`, `.venv`), `.env.example` listing every variable without values, and a short `README.md`; verify `git status` shows no secret or data file as trackable
+- [x] 1.1 Add MIT `LICENSE`, `.gitignore` (with `.env`, `data/raw/`, `node_modules`, `.venv`), `.env.example` listing every variable without values, and a short `README.md`; verify `git status` shows no secret or data file as trackable
 - [x] 1.2 Scaffold `backend/` (uv project, FastAPI, pytest, ruff) with `GET /api/health`; verify `uv run pytest` passes and the endpoint answers locally
 - [x] 1.3 Scaffold `frontend/` (Vite, React, TypeScript, Tailwind, vite-plugin-pwa, @fontsource fonts) with the colour and type tokens from design D13; verify `npm run build` succeeds and the backend serves the built app at `/`
 - [x] 1.4 Copy the reference boards into `design/` with a one-paragraph note on which board maps to which screen; verify the files open
@@ -19,8 +19,8 @@ Checkpoints (Helsinki time): core path on real data by Sat 14 Nov 10:00 · deplo
 ## 3. Picks
 
 - [x] 3.1 Implement the Transitous client with cache, daily `/plan` budget, timeout and client name (design D3) and `GET /api/stations`; verify with a test using recorded responses that a repeated call is served from cache and the budget blocks call 701
-- [ ] 3.2 Implement odds lookup and connection odds (design D5, D6) with tests for: direct train, one change, thin history, cancelled runs
-- [ ] 3.3 Implement `GET /api/picks` with ranking, Kurt's pick, ride-instead (design D7), `already_posted` and the bahn.de link; verify against the live API that Hamburg Hbf to München Hbf returns picks with odds, and with tests for the no-alternative and already-posted cases
+- [x] 3.2 Implement odds lookup and connection odds (design D5, D6) with tests for: direct train, one change, thin history, cancelled runs
+- [x] 3.3 Implement `GET /api/picks` with ranking, Kurt's pick, ride-instead (design D7), `already_posted` and the bahn.de link; verify against the live API that Hamburg Hbf to München Hbf returns picks with odds, and with tests for the no-alternative and already-posted cases
 
 ## 4. Tracking, board, replay, push
 
@@ -32,9 +32,9 @@ Checkpoints (Helsinki time): core path on real data by Sat 14 Nov 10:00 · deplo
 
 ## 5. Signals
 
-- [ ] 5.1 Implement the Exa search behind `GET /api/signals` using the request shape from Exa's current docs, with a 6 h cache and the unavailable state; verify with a real key on one route and date, and with a test for the missing-key path
-- [ ] 5.2 Filter out DB-owned hosts from fetching (links only) and cap at five items; verify with a test
-- [ ] 5.3 Implement `POST /hooks/context` with signature check and a one-off script that creates the page monitor for the watched pages, per `docs.context.dev`; verify a correctly signed sample is stored and a forged one gets 401
+- [x] 5.1 Implement the Exa search behind `GET /api/signals` using the request shape from Exa's current docs, with a 6 h cache and the unavailable state; verify with a real key on one route and date, and with a test for the missing-key path
+- [x] 5.2 Filter out DB-owned hosts from fetching (links only) and cap at five items; verify with a test
+- [x] 5.3 Implement `POST /hooks/context` with signature check and a one-off script that creates the page monitor for the watched pages, per `docs.context.dev`; verify a correctly signed sample is stored and a forged one gets 401
 
 ## 6. App screens
 
@@ -43,7 +43,7 @@ Checkpoints (Helsinki time): core path on real data by Sat 14 Nov 10:00 · deplo
 - [x] 6.3 Build my trips and the live trip screen (flap tiles, threshold meter, switch or stay, stale and finished states, replay label, in-app alert, notification opt-in); verify with a replay trip
 - [x] 6.4 Build the late-now screen with the headline count and refresh time; verify against the real backend
 - [x] 6.5 Build the claim screen with amount, reason and copy rows; verify the 34.99 at 71 minutes case shows 8.75
-- [ ] 6.6 Polish pass against the boards in `design/`: spacing, type scale, contrast, tap targets, reduced motion, installed-app icon and name; verify with screenshots of all five screens at 390 px
+- [x] 6.6 Polish pass against the boards in `design/`: spacing, type scale, contrast, tap targets, reduced motion, installed-app icon and name; verify with screenshots of all five screens at 390 px
 
 ## 7. Claim
 
@@ -51,7 +51,7 @@ Checkpoints (Helsinki time): core path on real data by Sat 14 Nov 10:00 · deplo
 
 ## 8. Deploy
 
-- [ ] 8.1 Write `deploy/Dockerfile`, `docker-compose.yml` and `Caddyfile`; verify `docker compose up` on the dev box serves the app and `/api/health` over the proxy
+- [x] 8.1 Write `deploy/Dockerfile`, `docker-compose.yml` and `Caddyfile`; verify `docker compose up` on the dev box serves the app and `/api/health` over the proxy
 - [ ] 8.2 Provision the Verda CPU VM after checking price and credit balance, deploy, set `.env`; verify from a phone on mobile data that the HTTPS address loads and a search works
 - [ ] 8.3 Write the restart and reset steps in `README.md`; verify by restarting the stack and finding booked trips intact
 
