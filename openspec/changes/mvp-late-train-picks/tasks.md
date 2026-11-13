@@ -6,8 +6,8 @@ Checkpoints (Helsinki time): core path on real data by Sat 14 Nov 10:00 · deplo
 
 - [ ] 1.1 Add MIT `LICENSE`, `.gitignore` (with `.env`, `data/raw/`, `node_modules`, `.venv`), `.env.example` listing every variable without values, and a short `README.md`; verify `git status` shows no secret or data file as trackable
 - [x] 1.2 Scaffold `backend/` (uv project, FastAPI, pytest, ruff) with `GET /api/health`; verify `uv run pytest` passes and the endpoint answers locally
-- [ ] 1.3 Scaffold `frontend/` (Vite, React, TypeScript, Tailwind, vite-plugin-pwa, @fontsource fonts) with the colour and type tokens from design D13; verify `npm run build` succeeds and the backend serves the built app at `/`
-- [ ] 1.4 Copy the reference boards into `design/` with a one-paragraph note on which board maps to which screen; verify the files open
+- [x] 1.3 Scaffold `frontend/` (Vite, React, TypeScript, Tailwind, vite-plugin-pwa, @fontsource fonts) with the colour and type tokens from design D13; verify `npm run build` succeeds and the backend serves the built app at `/`
+- [x] 1.4 Copy the reference boards into `design/` with a one-paragraph note on which board maps to which screen; verify the files open
 
 ## 2. Odds data
 
@@ -38,11 +38,11 @@ Checkpoints (Helsinki time): core path on real data by Sat 14 Nov 10:00 · deplo
 
 ## 6. App screens
 
-- [ ] 6.1 Build the shell: bottom navigation, sources sheet, backtest sheet, loading, empty and error components, laptop frame with pitch line and QR code; verify at 390 px and 1280 px in a browser
-- [ ] 6.2 Build search and picks (pick card with book-to-ride pair, snail rating, counts line, signals area, banner, "Open on bahn.de", "I booked this" with optional price); verify the full path against the real backend
-- [ ] 6.3 Build my trips and the live trip screen (flap tiles, threshold meter, switch or stay, stale and finished states, replay label, in-app alert, notification opt-in); verify with a replay trip
-- [ ] 6.4 Build the late-now screen with the headline count and refresh time; verify against the real backend
-- [ ] 6.5 Build the claim screen with amount, reason and copy rows; verify the 34.99 at 71 minutes case shows 8.75
+- [x] 6.1 Build the shell: bottom navigation, sources sheet, backtest sheet, loading, empty and error components, laptop frame with pitch line and QR code; verify at 390 px and 1280 px in a browser
+- [x] 6.2 Build search and picks (pick card with book-to-ride pair, snail rating, counts line, signals area, banner, "Open on bahn.de", "I booked this" with optional price); verify the full path against the real backend
+- [x] 6.3 Build my trips and the live trip screen (flap tiles, threshold meter, switch or stay, stale and finished states, replay label, in-app alert, notification opt-in); verify with a replay trip
+- [x] 6.4 Build the late-now screen with the headline count and refresh time; verify against the real backend
+- [x] 6.5 Build the claim screen with amount, reason and copy rows; verify the 34.99 at 71 minutes case shows 8.75
 - [ ] 6.6 Polish pass against the boards in `design/`: spacing, type scale, contrast, tap targets, reduced motion, installed-app icon and name; verify with screenshots of all five screens at 390 px
 
 ## 7. Claim

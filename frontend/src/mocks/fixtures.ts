@@ -1,0 +1,193 @@
+import type { Alternative, Backtest, Claim, LateNow, Pick, Station, Trip } from '../api'
+
+const TZ = 'Europe/Berlin'
+
+function offsetMs(utc: number) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
+  }).formatToParts(new Date(utc))
+  const g = (t: string) => Number(parts.find((p) => p.type === t)!.value)
+  return Date.UTC(g('year'), g('month') - 1, g('day'), g('hour'), g('minute')) - utc
+}
+
+// "17:24" on a Berlin calendar day (plus optional day shift) as an ISO UTC string
+export function at(date: string, hm: string, plusDays = 0, plusMin = 0) {
+  const [y, m, d] = date.split('-').map(Number)
+  const [h, mi] = hm.split(':').map(Number)
+  const guess = Date.UTC(y, m - 1, d + plusDays, h, mi + plusMin)
+  return new Date(guess - offsetMs(guess)).toISOString()
+}
+
+export const STATIONS: Station[] = [
+  ['8002549', 'Hamburg Hbf', 53.553, 10.006], ['8000261', 'München Hbf', 48.140, 11.558],
+  ['8011160', 'Berlin Hbf', 52.525, 13.369], ['8000207', 'Köln Hbf', 50.943, 6.959],
+  ['8000105', 'Frankfurt(Main)Hbf', 50.107, 8.663], ['8000152', 'Hannover Hbf', 52.376, 9.741],
+  ['8000096', 'Stuttgart Hbf', 48.784, 9.182], ['8000284', 'Nürnberg Hbf', 49.446, 11.083],
+  ['8010205', 'Leipzig Hbf', 51.345, 12.381], ['8000191', 'Karlsruhe Hbf', 48.993, 8.401],
+  ['8000244', 'Mannheim Hbf', 49.479, 8.469], ['8000085', 'Düsseldorf Hbf', 51.220, 6.794],
+  ['8000013', 'Augsburg Hbf', 48.365, 10.886], ['8000050', 'Bremen Hbf', 53.083, 8.813],
+  ['8010085', 'Dresden Hbf', 51.040, 13.732], ['8000036', 'Dortmund Hbf', 51.518, 7.459],
+  ['8000128', 'Göttingen', 51.536, 9.926], ['8003200', 'Kassel-Wilhelmshöhe', 51.313, 9.447],
+].map(([id, name, lat, lon]) => ({ id, name, lat, lon }) as Station)
+
+export function picksFor(date: string, from: string, to: string): Pick[] {
+  const bahn = (n: number) =>
+    `https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=${encodeURIComponent(from)}&zo=${encodeURIComponent(to)}&hd=${date}&n=${n}`
+  const leg = (train: string, f: string, t: string, dep: string, arr: string, id: string, dd = 0, ad = 0) => ({
+    train, from: f, to: t, dep: at(date, dep, dd), arr: at(date, arr, ad), trip_id: id,
+  })
+  return [
+    {
+      id: 'p1', dep: at(date, '17:24'), arr: at(date, '23:28'), duration_min: 364, changes: 1,
+      legs: [
+        leg('ICE 1583', from, 'Kassel-Wilhelmshöhe', '17:24', '20:12', 'l1'),
+        leg('ICE 879', 'Kassel-Wilhelmshöhe', to, '20:25', '23:28', 'l2'),
+      ],
+      odds: { p20: 0.63, p60: 0.17, late: 19, n: 30, weekday: 'Friday', basis: 'history' },
+      already_posted: false, is_kurts_pick: true,
+      ride_instead: { dep: at(date, '17:54'), arr: at(date, '23:05'), changes: 0, trains: ['ICE 1105'], delta_arr_min: -23 },
+      bahn_url: bahn(1),
+    },
+    {
+      id: 'p2', dep: at(date, '18:24'), arr: at(date, '00:31', 1), duration_min: 367, changes: 1,
+      legs: [
+        leg('ICE 1585', from, 'Würzburg Hbf', '18:24', '21:41', 'l3'),
+        leg('ICE 783', 'Würzburg Hbf', to, '21:52', '00:31', 'l4', 0, 1),
+      ],
+      odds: { p20: 0.47, p60: 0.11, late: null, n: null, weekday: 'Friday', basis: 'estimate' },
+      already_posted: false, is_kurts_pick: false,
+      ride_instead: { dep: at(date, '18:54'), arr: at(date, '00:12', 1), changes: 1, trains: ['ICE 1107', 'ICE 591'], delta_arr_min: -19 },
+      bahn_url: bahn(2),
+    },
+    {
+      id: 'p3', dep: at(date, '13:24'), arr: at(date, '19:28'), duration_min: 364, changes: 0,
+      legs: [leg('ICE 1103', from, to, '13:24', '19:28', 'l5')],
+      odds: { p20: 0.31, p60: 0.06, late: 9, n: 29, weekday: 'Friday', basis: 'history' },
+      already_posted: false, is_kurts_pick: false,
+      ride_instead: { dep: at(date, '13:54'), arr: at(date, '19:23'), changes: 0, trains: ['ICE 1105'], delta_arr_min: -5 },
+      bahn_url: bahn(3),
+    },
+    {
+      id: 'p4', dep: at(date, '15:24'), arr: at(date, '21:41'), duration_min: 377, changes: 1,
+      legs: [
+        leg('ICE 1581', from, 'Frankfurt(Main)Hbf', '15:24', '19:02', 'l6'),
+        leg('ICE 595', 'Frankfurt(Main)Hbf', to, '19:30', '21:41', 'l7'),
+      ],
+      odds: { p20: 0.52, p60: 0.14, late: 16, n: 31, weekday: 'Friday', basis: 'history' },
+      already_posted: true, is_kurts_pick: false, ride_instead: null, bahn_url: bahn(4),
+    },
+    {
+      id: 'p5', dep: at(date, '19:24'), arr: at(date, '01:12', 1), duration_min: 348, changes: 2,
+      legs: [
+        leg('IC 2025', from, 'Hannover Hbf', '19:24', '20:51', 'l8'),
+        leg('ICE 71', 'Hannover Hbf', 'Nürnberg Hbf', '21:04', '00:02', 'l9', 0, 1),
+        leg('RJX 63', 'Nürnberg Hbf', to, '00:20', '01:12', 'l10', 1, 1),
+      ],
+      odds: { p20: null, p60: null, late: null, n: null, weekday: 'Friday', basis: 'none' },
+      already_posted: false, is_kurts_pick: false, ride_instead: null, bahn_url: bahn(5),
+    },
+  ]
+}
+
+export function tripAt(date: string, o: Partial<Trip> & { delay: number }): Trip {
+  const booked = picksFor(date, 'Hamburg Hbf', 'München Hbf')[0]
+  const price = o.price_eur === undefined ? 34.99 : o.price_eur
+  const delay = o.delay
+  const state = o.state ?? (delay >= 120 ? 'cash50' : delay >= 60 ? 'cash25' : delay >= 20 ? 'unlocked' : 'on_time')
+  const unlocked = delay >= 20
+  const expected = new Date(new Date(booked.arr).getTime() + delay * 60000).toISOString()
+  const alts: Alternative[] = unlocked && !o.finished
+    ? [
+        { dep: at(date, '17:54'), arr: at(date, '23:05'), changes: 0, trains: ['ICE 1105'], catchable_min: 38, delta_vs_expected_min: -(delay + 23) },
+        { dep: at(date, '18:54'), arr: at(date, '23:49'), changes: 1, trains: ['ICE 1107', 'ICE 591'], catchable_min: 98, delta_vs_expected_min: -(delay - 21) },
+      ]
+    : []
+  const { delay: _d, ...rest } = o
+  void _d
+  return {
+    booked,
+    price_eur: price,
+    state,
+    delay_min: delay,
+    expected_arr: expected,
+    updated_at: new Date().toISOString(),
+    stale: false,
+    thresholds: [
+      { at: 20, label: 'Ticket unlocked', amount_eur: null, reached: delay >= 20 },
+      { at: 60, label: '25 % back', amount_eur: price === null ? null : Math.ceil(price * 0.25 * 20) / 20, reached: delay >= 60 },
+      { at: 120, label: '50 % back', amount_eur: price === null ? null : Math.ceil(price * 0.5 * 20) / 20, reached: delay >= 120 },
+    ],
+    alternatives: alts,
+    is_replay: false,
+    replay_of: null,
+    finished: false,
+    final_delay_min: null,
+    switched: false,
+    ...rest,
+  }
+}
+
+export function claimFor(delay: number, price: number | null): Claim {
+  const pct = delay >= 120 ? 50 : delay >= 60 ? 25 : 0
+  const amount = price === null || !pct ? null : Math.ceil(price * (pct / 100) * 20) / 20
+  const due = pct > 0 && (price === null || (amount !== null && amount >= 4))
+  return {
+    due,
+    pct,
+    amount_eur: due ? amount : null,
+    reason: due && price === null
+      ? `${delay} minutes late: ${pct} % of the ticket price is owed. Enter the price to see the amount.`
+      : due
+      ? `Arrived ${delay} minutes late at München Hbf: ${pct} % of €${price!.toFixed(2)}, rounded up to the next 5 cents.`
+      : pct === 0
+        ? 'Under 60 minutes late: no compensation is due.'
+        : 'No payout is due because the amount is under €4.',
+    fields: [
+      { label: 'Trip', value: 'Hamburg Hbf → München Hbf, Fri 20 Nov 2026' },
+      { label: 'Booked trains', value: 'ICE 1583, ICE 879' },
+      { label: 'Scheduled arrival', value: '23:28' },
+      { label: 'Actual arrival', value: `${String(Math.floor((23 * 60 + 28 + delay) / 60) % 24).padStart(2, '0')}:${String((28 + delay) % 60).padStart(2, '0')}` },
+      { label: 'Delay', value: `${delay} min` },
+    ],
+    where: 'File it yourself in the DB Navigator app (Fahrgastrechte) or on bahn.de. Spätkauf never submits a claim and never asks for bank details. Claims are possible for one year after the travel date.',
+  }
+}
+
+export function lateNow(mode: string): LateNow {
+  const now = Date.now()
+  const rows: [string, string, string, string, number][] = [
+    ['ICE 514', 'Hamburg Hbf', '16:12', 'Basel SBB', 37], ['ICE 1601', 'Köln Hbf', '16:31', 'Berlin Ostbahnhof', 34],
+    ['IC 2212', 'Hannover Hbf', '16:05', 'Köln Hbf', 31], ['ICE 693', 'Frankfurt(Main)Hbf', '16:22', 'Hamburg-Altona', 29],
+    ['ICE 71', 'Nürnberg Hbf', '16:40', 'Hamburg-Altona', 28], ['ICE 1005', 'München Hbf', '16:55', 'Hamburg-Altona', 27],
+    ['ICE 783', 'Mannheim Hbf', '16:18', 'München Hbf', 26], ['IC 2023', 'Leipzig Hbf', '16:27', 'Karlsruhe Hbf', 25],
+    ['ICE 1109', 'Stuttgart Hbf', '16:49', 'Berlin Gesundbrunnen', 24], ['ICE 595', 'Karlsruhe Hbf', '16:36', 'Hamburg-Altona', 23],
+    ['ICE 1583', 'Dortmund Hbf', '16:15', 'München Hbf', 22], ['EC 8', 'Berlin Hbf', '16:44', 'Budapest-Keleti', 22],
+    ['ICE 879', 'Kassel-Wilhelmshöhe', '16:58', 'München Hbf', 21], ['ICE 1721', 'Hamburg Hbf', '16:20', 'Wien Hbf', 20],
+  ]
+  const day = new Intl.DateTimeFormat('sv-SE', { timeZone: TZ }).format(new Date(now))
+  const list = mode === 'empty' ? [] : rows
+  return {
+    checked_at: new Date(now - (mode === 'stale' ? 47 * 60000 : 3 * 60000)).toISOString(),
+    stale: mode === 'stale',
+    checked: 96,
+    late: list.map(([train, station, sched, headsign, d]) => {
+      const [h, m] = sched.split(':').map(Number)
+      return {
+        train, station, headsign, delay_min: d,
+        sched: at(day, sched),
+        expected: at(day, '00:00', 0, h * 60 + m + d),
+      }
+    }),
+  }
+}
+
+export const BACKTEST: Backtest = {
+  train_from: '2025-12-14', train_to: '2026-08-31', test_from: '2026-09-01', test_to: '2026-10-31',
+  base_rate: 0.19, runs: 4218377,
+  buckets: [
+    { lo: 0, hi: 10, n: 2310944, late: 0, rate: 0.07 }, { lo: 10, hi: 20, n: 903211, late: 0, rate: 0.15 },
+    { lo: 20, hi: 30, n: 522840, late: 0, rate: 0.26 }, { lo: 30, hi: 40, n: 281590, late: 0, rate: 0.34 },
+    { lo: 40, hi: 50, n: 126305, late: 0, rate: 0.46 }, { lo: 50, hi: 60, n: 49871, late: 0, rate: 0.55 },
+    { lo: 60, hi: 70, n: 17302, late: 0, rate: 0.61 }, { lo: 70, hi: 100, n: 6314, late: 0, rate: 0.72 },
+  ],
+}

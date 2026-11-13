@@ -1,0 +1,103 @@
+import { ApiError, type Created } from '../api'
+import { BACKTEST, STATIONS, claimFor, lateNow, picksFor, tripAt } from './fixtures'
+
+const flag = (k: string) => {
+  try {
+    return localStorage.getItem(`mock.${k}`) ?? ''
+  } catch {
+    return ''
+  }
+}
+const DATE = '2026-11-20'
+const started = new Map<string, number>()
+let seq = 0
+
+function replayTrip(id: string) {
+  const t0 = started.get(id) ?? Date.now()
+  const s = (Date.now() - t0) / 1000
+  const delay = s < 20 ? 12 : s < 40 ? 24 : s < 60 ? 27 : 63
+  return tripAt(DATE, { delay, is_replay: true, replay_of: '2026-10-23' })
+}
+
+function trip(id: string) {
+  if (id.startsWith('replay-')) return replayTrip(id)
+  switch (id) {
+    case 'demo-replay': return tripAt(DATE, { delay: 27, is_replay: true, replay_of: '2026-10-23' })
+    case 'demo-done': return tripAt(DATE, { delay: 8, finished: true, final_delay_min: 8, state: 'on_time' })
+    case 'demo-claim': return tripAt(DATE, { delay: 71, finished: true, final_delay_min: 71 })
+    case 'demo-stale': return { ...tripAt(DATE, { delay: 27 }), stale: true, updated_at: new Date(Date.now() - 18 * 60000).toISOString() }
+    case 'demo-wait': return { ...tripAt(DATE, { delay: 0 }), delay_min: null, expected_arr: null, updated_at: null }
+    case 'demo-noprice': return tripAt(DATE, { delay: 71, finished: true, final_delay_min: 71, price_eur: null })
+    case 'demo-ontime': return tripAt(DATE, { delay: 4 })
+    case 'demo-cancel': return tripAt(DATE, { delay: 0, state: 'cancelled' })
+    default: return tripAt(DATE, { delay: 27 })
+  }
+}
+
+export async function mockCall<T>(method: string, path: string, _body?: unknown): Promise<T> {
+  await new Promise((r) => setTimeout(r, 160))
+  const u = new URL(path, 'http://x')
+  const p = u.pathname
+  const q = u.searchParams
+  const out = (v: unknown) => v as T
+  if (flag('fail') === '1' && p !== '/api/health') throw new ApiError(0, 'Could not reach the server.')
+
+  if (p === '/api/health') return out({ ok: true, version: 'mock', sources: { transitous: true, exa: true, context: true }, plan_budget_left: 641 })
+  if (p === '/api/stations') {
+    const s = (q.get('q') ?? '').toLowerCase()
+    return out(s ? STATIONS.filter((x) => x.name.toLowerCase().includes(s)).slice(0, 6) : [])
+  }
+  if (p === '/api/picks') {
+    const from = q.get('from') ?? 'Hamburg Hbf'
+    const to = q.get('to') ?? 'München Hbf'
+    const name = (id: string, d: string) => STATIONS.find((s) => s.id === id)?.name ?? d
+    const date = q.get('date') || DATE
+    const fn = name(from, from)
+    const tn = name(to, to)
+    if (flag('picks') === 'none') return out({ from: fn, to: tn, date, tz: 'Europe/Berlin', picks: [], note: '' })
+    return out({
+      from: fn, to: tn, date, tz: 'Europe/Berlin', picks: picksFor(date, fn, tn),
+      note: 'A delay already posted when you buy does not count.',
+    })
+  }
+  if (p === '/api/signals') {
+    const mode = flag('signals') || 'ok'
+    const checked_at = new Date(Date.now() - 4 * 60000).toISOString()
+    const banners = flag('banner') === '0' ? [] : [{ source: 'GDL press page', url: 'https://www.gdl.de/', changed_at: new Date(Date.now() - 2 * 3600000).toISOString() }]
+    if (mode === 'unavailable') return out({ status: 'unavailable', checked_at, items: [], banners: [] })
+    if (mode === 'empty') return out({ status: 'empty', checked_at, items: [], banners })
+    return out({
+      status: 'ok', checked_at, banners,
+      items: [
+        { kind: 'strike', reason: 'EVG warning strike on several regional operators; long-distance knock-on effects possible.', source: 'tagesschau.de', published: '2026-11-18', url: 'https://www.tagesschau.de/' },
+        { kind: 'track works', reason: 'Line Hannover to Göttingen reduced to one track between 21:00 and 05:00.', source: 'NDR', published: '2026-11-17', url: 'https://www.ndr.de/' },
+        { kind: 'weather', reason: 'Storm warning for northern Germany on Friday afternoon.', source: 'DWD', published: '2026-11-19', url: 'https://www.dwd.de/' },
+      ],
+    })
+  }
+  if (p === '/api/trips' && method === 'POST') {
+    const id = `new-${++seq}`
+    started.set(id, Date.now())
+    return out({ trip_id: id, secret: 'mock' } satisfies Created)
+  }
+  const m = p.match(/^\/api\/trips\/([^/]+)(\/claim)?$/)
+  if (m) {
+    const id = decodeURIComponent(m[1])
+    if (m[2]) {
+      const t = trip(id)
+      return out(claimFor(t.final_delay_min ?? t.delay_min ?? 0, t.price_eur))
+    }
+    if (method === 'GET') return out(trip(id))
+    return out(undefined)
+  }
+  if (p === '/api/late-now') return out(lateNow(flag('late')))
+  if (p === '/api/backtest') return out(BACKTEST)
+  if (p === '/api/push/key') return out({ public_key: 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U' })
+  if (p === '/api/demo/replay') {
+    if (flag('replay') === 'off') throw new ApiError(404, 'No recording yet.')
+    const id = `replay-${++seq}`
+    started.set(id, Date.now())
+    return out({ trip_id: id, secret: 'mock' } satisfies Created)
+  }
+  throw new ApiError(404, 'Not found.')
+}

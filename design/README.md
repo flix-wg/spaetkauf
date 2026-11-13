@@ -1,0 +1,3 @@
+# Design boards
+
+Reference mockups from the concept phase, one HTML board per screen. Mapping to the app in `frontend/`: `SafePicks` is the picks screen (Kurt's pick card, book-to-ride pair, snail rating, compact picks); `SafeLive` is the live trip screen (flap-tile delay, switch or stay); `SafeClaim` is the claim screen (amount and copy rows); `SafariTrips` and `SafariBet` inform the threshold meter (+20, +60, +120) and the my-trips list; `SafariPing` informs notification wording; `Main` is the overall look (Kurt, accent, type). `SafeShare` (ticket sharing) and `SafeData` are not built; "I booked this" replaces sharing. The boards show Safari-extension chrome and Google Fonts links that the app does not use.

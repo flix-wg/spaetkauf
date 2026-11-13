@@ -1,0 +1,51 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { api, type Pick } from '../api'
+import { hhmm } from '../format'
+import { addTrip } from '../store'
+import { Sheet } from './Sheet'
+import { PriceInput, parsePrice } from './PriceForm'
+
+export function BookSheet({ pick, tz, onClose }: { pick: Pick; tz: string; onClose: () => void }) {
+  const [price, setPrice] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  const nav = useNavigate()
+  const parsed = parsePrice(price)
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault()
+    if (price.trim() && parsed === null) return setErr('That price does not look right. Try 34.99 or leave it empty.')
+    setBusy(true)
+    setErr('')
+    try {
+      const c = await api.createTrip(pick, parsed ?? undefined)
+      addTrip(c)
+      nav(`/trip/${encodeURIComponent(c.trip_id)}`)
+    } catch (x) {
+      setErr((x as Error).message || 'Could not save the trip.')
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Sheet title="Booked it?" onClose={onClose}>
+      <form onSubmit={submit} className="flex flex-col gap-4">
+        <p className="text-[14px] leading-snug text-muted">
+          Kurt will watch the <span className="mono font-bold text-ink">{hhmm(pick.dep, tz)} → {hhmm(pick.arr, tz)}</span>{' '}
+          ({pick.legs.map((l) => l.train).join(' + ')}) and tell you if it is late. The trip stays on this device.
+        </p>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="price" className="text-[14px] font-semibold">
+            Price you paid <span className="font-normal text-muted">(optional, shows cash amounts)</span>
+          </label>
+          <PriceInput id="price" value={price} onChange={setPrice} />
+        </div>
+        {err && <p className="text-[13px] text-accent-text" role="alert">{err}</p>}
+        <button type="submit" disabled={busy} className="btn-primary">
+          {busy ? 'Saving…' : 'Watch this trip'}
+        </button>
+      </form>
+    </Sheet>
+  )
+}

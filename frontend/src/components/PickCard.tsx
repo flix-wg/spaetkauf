@@ -1,0 +1,167 @@
+import { useState } from 'react'
+import type { Odds, Pick } from '../api'
+import { changesLabel, duration, hhmm, pct, pctNum, weekdayPlural } from '../format'
+import { Kurt, Snails } from './Kurt'
+import { IconChevron, IconExternal } from './Icons'
+
+export function oddsLine(o: Odds) {
+  if (o.basis === 'none' || o.p20 === null) return 'Not enough history'
+  if (o.basis === 'estimate') return 'Estimate, includes missed change'
+  if (o.late !== null && o.n !== null) return `Late ${o.late} of ${o.n} ${weekdayPlural(o.weekday)}`
+  return `${weekdayPlural(o.weekday)}`
+}
+
+function rideLine(p: Pick, tz: string) {
+  const r = p.ride_instead
+  if (!r) return null
+  const d = r.delta_arr_min
+  const rel = d === 0 ? 'Same arrival as the booked train' : `${Math.abs(d)} min ${d < 0 ? 'earlier' : 'later'} than the booked train is due`
+  return {
+    times: `${hhmm(r.dep, tz)} → ${hhmm(r.arr, tz)}`,
+    what: `${r.trains.join(' + ')}${r.changes === 0 ? ' direct' : `, ${changesLabel(r.changes)}`}`,
+    rel,
+  }
+}
+
+export function Actions({
+  pick,
+  onBook,
+  tone,
+}: {
+  pick: Pick
+  onBook: (p: Pick) => void
+  tone: 'accent' | 'plain'
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <a href={pick.bahn_url} target="_blank" rel="noopener noreferrer" className="btn-primary on-ink">
+        Open on bahn.de <IconExternal size={18} />
+      </a>
+      <button type="button" onClick={() => onBook(pick)} className={tone === 'accent' ? 'btn-light' : 'btn-ghost'}>
+        I booked this
+      </button>
+    </div>
+  )
+}
+
+export function KurtsPick({ pick, tz, strike, onBook }: { pick: Pick; tz: string; strike: boolean; onBook: (p: Pick) => void }) {
+  const ride = rideLine(pick, tz)
+  const o = pick.odds
+  const has = o.p20 !== null && o.basis !== 'none'
+  return (
+    <section className="on-accent relative flex flex-col gap-3 rounded-[22px] bg-accent p-4" aria-label="Kurt's pick">
+      <div className="flex items-center justify-between">
+        <span className="tag inline-flex items-center gap-1.5 rounded-md bg-ink px-2 py-1 text-white">
+          <Kurt width={16} shell="#FD4F00" body="#FFFFFF" /> KURT’S PICK
+        </span>
+        {strike && <span className="tag rounded-md bg-white px-2 py-1 text-accent-text">STRIKE ANNOUNCED</span>}
+      </div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="tag">BOOK</span>
+          <span className="mono text-[24px] font-bold leading-tight">
+            {hhmm(pick.dep, tz)} → {hhmm(pick.arr, tz)}
+          </span>
+          <span className="text-[13px] leading-snug">
+            {changesLabel(pick.changes)} · {duration(pick.duration_min)}
+          </span>
+          <span className="text-[13px] leading-snug">{pick.legs.map((l) => l.train).join(' + ')}</span>
+        </div>
+        <div className="flex shrink-0 flex-col items-end">
+          {has ? (
+            <>
+              <span className="mono text-[40px] font-bold leading-none">{pctNum(o.p20!)}%</span>
+              <span className="text-[12px]">20+ min late</span>
+            </>
+          ) : (
+            <span className="text-[13px] font-semibold">No odds yet</span>
+          )}
+        </div>
+      </div>
+      <p className="-mt-1 text-[13px] font-semibold">{oddsLine(o)}</p>
+      {ride ? (
+        <div className="flex flex-col gap-0.5 rounded-xl bg-white p-3">
+          <span className="tag text-accent-text">IF IT’S LATE, YOU’D RIDE</span>
+          <span className="mono text-[18px] font-bold">
+            {ride.times} <span className="font-sans text-[13px] font-semibold">· {ride.what}</span>
+          </span>
+          <span className="text-[12px] text-muted">{ride.rel}</span>
+        </div>
+      ) : (
+        <p className="rounded-xl bg-white p-3 text-[13px] text-muted">
+          No other train in the window. Kurt shows the next option on the live screen.
+        </p>
+      )}
+      <Actions pick={pick} onBook={onBook} tone="accent" />
+      <p className="text-center text-[12px] leading-snug">Price and buying happen on bahn.de. Kurt never sees either.</p>
+    </section>
+  )
+}
+
+export function CompactPick({ pick, tz, strike, onBook }: { pick: Pick; tz: string; strike: boolean; onBook: (p: Pick) => void }) {
+  const [open, setOpen] = useState(false)
+  const ride = rideLine(pick, tz)
+  const o = pick.odds
+  const dead = pick.already_posted
+  return (
+    <article className={`rounded-2xl border ${open ? 'border-ink' : 'border-line'} bg-white`}>
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+        className="flex min-h-[64px] w-full flex-col gap-1 px-3.5 py-3 text-left"
+      >
+        <span className="flex w-full items-center justify-between gap-2">
+          <span className={`mono whitespace-nowrap text-[17px] font-bold ${dead ? 'text-muted line-through' : ''}`}>
+            {hhmm(pick.dep, tz)} → {hhmm(pick.arr, tz)}
+          </span>
+          <span className="flex shrink-0 items-center gap-2">
+            {!dead && o.p20 !== null && o.basis !== 'none' && (
+              <span
+                className="flex items-center gap-1.5 rounded-full bg-tint py-1 pl-2 pr-2.5"
+                role="img"
+                aria-label={`${pct(o.p20)} chance of 20+ min late`}
+              >
+                <Snails p20={o.p20} />
+                <span className="mono text-[14px] font-bold">{pctNum(o.p20)}%</span>
+              </span>
+            )}
+            <IconChevron size={18} className={`text-muted transition-transform ${open ? 'rotate-90' : ''}`} />
+          </span>
+        </span>
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-snug text-muted">
+          <span>
+            {dead
+              ? 'Already posted: does not count'
+              : o.p20 === null || o.basis === 'none'
+                ? `Not enough history · ${changesLabel(pick.changes)}`
+                : ride
+                  ? `You’d ride ${ride.times}`
+                  : `${changesLabel(pick.changes)} · ${pick.legs.map((l) => l.train).join(' + ')}`}
+          </span>
+          {strike && !dead && <span className="tag rounded bg-tint px-1.5 py-0.5 text-accent-text">STRIKE ANNOUNCED</span>}
+        </span>
+      </button>
+      {open && (
+        <div className="flex flex-col gap-3 border-t border-line px-3.5 pb-3.5 pt-3">
+          <div className="text-[13px] leading-snug">
+            <p className="font-semibold">{oddsLine(o)}</p>
+            <p className="text-muted">
+              {changesLabel(pick.changes)} · {duration(pick.duration_min)} · {pick.legs.map((l) => l.train).join(' + ')}
+            </p>
+          </div>
+          {ride && (
+            <div className="rounded-xl bg-surface p-3">
+              <span className="tag text-accent-text">IF IT’S LATE, YOU’D RIDE</span>
+              <p className="mono text-[15px] font-bold">
+                {ride.times} <span className="font-sans text-[13px] font-semibold">· {ride.what}</span>
+              </p>
+              <p className="text-[12px] text-muted">{ride.rel}</p>
+            </div>
+          )}
+          <Actions pick={pick} onBook={onBook} tone="plain" />
+        </div>
+      )}
+    </article>
+  )
+}

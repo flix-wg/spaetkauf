@@ -1,0 +1,34 @@
+import type { Threshold } from '../api'
+import { eur } from '../format'
+
+const MAX = 130
+const POS = (m: number) => `${(Math.min(m, MAX) / MAX) * 100}%`
+
+export function Meter({ delay, thresholds }: { delay: number; thresholds: Threshold[] }) {
+  return (
+    <div className="pb-1 pt-1">
+      <div className="relative mx-3 h-3 rounded-full bg-black/15" role="img" aria-label={`Delay ${delay} minutes, thresholds at 20, 60 and 120`}>
+        <div className="meter-fill absolute inset-y-0 left-0 rounded-full bg-ink" style={{ width: POS(Math.max(delay, 0)) }} />
+        {thresholds.map((t) => (
+          <span
+            key={t.at}
+            className={`absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink ${t.reached ? 'bg-ink' : 'bg-white'}`}
+            style={{ left: POS(t.at) }}
+          />
+        ))}
+      </div>
+      <div className="relative mx-3 mt-2 h-[40px]">
+        {thresholds.map((t) => (
+          <div
+            key={t.at}
+            className="absolute flex -translate-x-1/2 flex-col items-center text-center"
+            style={{ left: POS(t.at) }}
+          >
+            <span className={`font-mono text-[13px] font-bold ${t.reached ? '' : 'opacity-90'}`}>+{t.at}</span>
+            <span className="text-[11px] leading-tight">{t.amount_eur !== null ? eur(t.amount_eur) : t.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
