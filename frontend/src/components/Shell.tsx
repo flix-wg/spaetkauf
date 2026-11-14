@@ -27,22 +27,47 @@ export function lastSearchPath() {
   }
 }
 
-export function ScreenHeader({ title, back }: { title: string; back?: React.ReactNode }) {
+function InfoButton() {
   const { open } = useSheet()
   return (
-    <header className="sticky top-0 z-10 flex min-h-[64px] items-center justify-between gap-2 bg-white px-5 pb-2 pt-3 lg:min-h-[96px] lg:px-10 lg:pb-3 lg:pt-6">
+    <button
+      type="button"
+      onClick={() => open('sources')}
+      aria-label="About and sources"
+      className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted hover:bg-surface"
+    >
+      <IconInfo />
+    </button>
+  )
+}
+
+// Phone: the title scrolls with the page under the fixed top bar. Desktop: it sticks, since the logo is in the side bar.
+// `deskOnly` hides it on a phone where it would repeat the top bar.
+export function ScreenHeader({ title, back, deskOnly }: { title: string; back?: React.ReactNode; deskOnly?: boolean }) {
+  return (
+    <header
+      className={`${deskOnly ? 'hidden lg:flex' : 'flex'} items-center justify-between gap-2 bg-white px-5 pb-1 pt-4 lg:sticky lg:top-0 lg:z-10 lg:min-h-[96px] lg:px-10 lg:pb-3 lg:pt-6`}
+    >
       <div className="flex min-w-0 items-center gap-1">
         {back}
         <h1 className="truncate font-display text-[26px] font-bold leading-tight lg:text-[38px]">{title}</h1>
       </div>
-      <button
-        type="button"
-        onClick={() => open('sources')}
-        aria-label="About and sources"
-        className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted hover:bg-surface"
-      >
-        <IconInfo />
-      </button>
+      <div className="hidden lg:block">
+        <InfoButton />
+      </div>
+    </header>
+  )
+}
+
+// Phone only. It sits outside the scrolling area, so neither scrolling nor a pull at the top can move it.
+function TopBar() {
+  return (
+    <header className="flex h-[60px] shrink-0 items-center justify-between border-b border-line bg-white px-5">
+      <NavLink to="/" aria-label="Kurt, home" className="flex items-center gap-2.5 no-underline">
+        <Kurt width={48} motion="blink" />
+        <span className="font-display text-[26px] font-bold leading-none tracking-[-0.01em] text-ink">Kurt</span>
+      </NavLink>
+      <InfoButton />
     </header>
   )
 }
@@ -152,6 +177,7 @@ export function Shell() {
   return (
     <div className="relative mx-auto h-dvh w-full max-w-[480px] overflow-hidden bg-white">
       <div className="flex h-full flex-col">
+        <TopBar />
         <main className="scroll-y min-h-0 flex-1">
           <Outlet />
         </main>
