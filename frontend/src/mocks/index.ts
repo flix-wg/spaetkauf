@@ -1,5 +1,6 @@
 import { ApiError, type Banner, type Created, type KurtCall, type Recording, type Strike } from '../api'
-import { BACKTEST, STATIONS, claimFor, lateNow, picksFor, tripAt } from './fixtures'
+import { BACKTEST, STATIONS, at, claimFor, lateNow, picksFor, tripAt } from './fixtures'
+import { arrivePicksFor, historyRuns, routeTrains, trainStops } from './history'
 
 const flag = (k: string) => {
   try {
@@ -116,11 +117,14 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
     const date = q.get('date') || DATE
     const fn = name(from, from)
     const tn = name(to, to)
+    const arrive = q.get('mode') === 'arrive'
+    const by = q.get('time') ?? ''
+    if (arrive && !by) throw new ApiError(400, 'time (latest arrival, HH:MM) is required with mode=arrive.')
     if (flag('picks') === 'budget') throw new ApiError(429, 'Kurt has used up today’s route searches.')
     if (flag('picks') === 'none') return out({ from: fn, to: tn, date, tz: 'Europe/Berlin', picks: [], note: '' })
     // mock.picks=nopick: the backend flags no Kurt's pick (none at 30 %+ with a ride-instead).
     const strike = mockStrike(date)
-    const list = picksFor(date, fn, tn).map((x) => (flag('picks') !== 'nopick' && !strike?.covers_date ? x : {
+    const list = (arrive ? arrivePicksFor(date, fn, tn, by) : picksFor(date, fn, tn)).map((x) => (flag('picks') !== 'nopick' && !strike?.covers_date ? x : {
       ...x, is_kurts_pick: false, odds: flag('picks') !== 'nopick' ? x.odds : x.odds && { ...x.odds, p20: x.odds.p20 === null ? null : Math.min(x.odds.p20, 0.24) },
     }))
     const kurt_call: KurtCall = strike?.covers_date
@@ -129,6 +133,7 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
     return out({
       from: fn, to: tn, date, tz: 'Europe/Berlin', picks: list,
       note: 'A delay already posted when you buy does not count.', kurt_call, strike,
+      ...(arrive ? { mode: 'arrive', arrive_by: at(date, by) } : {}),
     })
   }
   if (p === '/api/signals') {
@@ -170,6 +175,9 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
     if (method === 'GET') return out(trip(id))
     return out(undefined)
   }
+  if (p === '/api/history') return out(historyRuns(q, flag('history')))
+  if (p === '/api/history/train') return out(trainStops(q, flag('history')))
+  if (p === '/api/history/route') return out(routeTrains(q, flag('history')))
   if (p === '/api/late-now') return out(lateNow(flag('late')))
   if (p === '/api/backtest') return out(BACKTEST)
   if (p === '/api/push/key') return out({ public_key: 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U' })

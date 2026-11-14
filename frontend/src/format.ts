@@ -36,6 +36,12 @@ export const pctNum = (p: number) => Math.round(p <= 1 ? p * 100 : p)
 const DAYS: Record<string, string> = {
   mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday', sun: 'Sunday',
 }
+export const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+// Backend weekday names ("Saturday") to the 0 = Monday index the history endpoints take.
+export function weekdayIndex(w: string) {
+  const i = WEEKDAYS.findIndex((d) => d.slice(0, 3).toLowerCase() === w.slice(0, 3).toLowerCase())
+  return i < 0 ? undefined : i
+}
 export function weekdayPlural(w: string) {
   const full = DAYS[w.slice(0, 3).toLowerCase()] ?? w
   return `${full}s`

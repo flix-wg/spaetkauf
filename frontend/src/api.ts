@@ -44,6 +44,11 @@ export interface Pick {
   is_kurts_pick: boolean
   ride_instead: RideInstead | null
   bahn_url: string
+  // mode=arrive only: minutes before the arrive-by time, an upper bound on missing it, and which delays still make it.
+  spare_min?: number
+  p_miss?: number | null
+  late_ok?: { unlock: boolean; refund25: boolean; refund50: boolean }
+  group?: 'on_time' | 'late_ok'
 }
 // A Context.dev change that announces a strike (D11). dates null: the dates could not be read.
 export interface Strike {
@@ -67,6 +72,52 @@ export interface PicksResponse {
   note: string
   kurt_call: KurtCall
   strike: Strike | null
+  mode?: 'arrive'
+  arrive_by?: string
+}
+// /api/history*: past runs from the DB arrival data. weekday 0 = Monday.
+export interface HistorySummary {
+  n: number
+  late20: number
+  late60: number
+  late120: number
+  cancelled: number
+}
+export interface HistoryRuns {
+  train: string
+  stop: string
+  weekday: string | null
+  runs: { date: string; planned: string; delay_min: number | null; cancelled: boolean | null }[]
+  summary: HistorySummary
+  source: string
+}
+export interface TrainStops {
+  train: string
+  weekday: string | null
+  stops: { stop: string; key: string; n: number; late20: number; late20_share: number }[]
+  source: string
+}
+export interface RouteTrains {
+  from: string
+  to: string
+  weekday: string | null
+  trains: {
+    train: string
+    n: number
+    dep: string | null
+    arr: string | null
+    late20: number
+    late20_share: number
+    late60: number
+    late60_share: number
+    median_delay_min: number | null
+  }[]
+  source: string
+}
+export interface HistoryQuery {
+  train: string
+  stop: string
+  weekday?: number
 }
 export interface SignalItem {
   kind: string
@@ -261,8 +312,14 @@ const tripPath = (id: string, secret: string, sub = '') => `/api/trips/${encodeU
 export const api = {
   health: () => call<Health>('GET', '/api/health'),
   stations: (q: string) => call<Station[]>('GET', `/api/stations${qs({ q })}`),
-  picks: (p: { from: string; to: string; date: string; time: string }) =>
+  picks: (p: { from: string; to: string; date: string; time: string; mode?: 'arrive' }) =>
     call<PicksResponse>('GET', `/api/picks${qs(p)}`),
+  history: (h: HistoryQuery) =>
+    call<HistoryRuns>('GET', `/api/history${qs({ train: h.train, stop: h.stop, weekday: h.weekday?.toString() })}`),
+  historyTrain: (train: string, weekday?: number) =>
+    call<TrainStops>('GET', `/api/history/train${qs({ train, weekday: weekday?.toString() })}`),
+  historyRoute: (from: string, to: string, weekday?: number) =>
+    call<RouteTrains>('GET', `/api/history/route${qs({ from, to, weekday: weekday?.toString() })}`),
   signals: (p: { from: string; to: string; date: string }) => call<SignalsResponse>('GET', `/api/signals${qs(p)}`),
   createTrip: (pick: Pick, price_eur?: number) =>
     call<Created>('POST', '/api/trips', price_eur === undefined ? { pick } : { pick, price_eur }),
