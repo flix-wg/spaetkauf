@@ -14,10 +14,11 @@ const RULES = [
 ]
 
 // `full` adds the exceptions; the short version links to them instead.
-export function Rules({ big, full }: { big?: boolean; full?: boolean }) {
+// `untitled` drops the heading where a disclosure already says it.
+export function Rules({ big, full, untitled }: { big?: boolean; full?: boolean; untitled?: boolean }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <p className={`text-[13px] font-bold ${big ? "lg:text-[16px]" : ""}`}>What a delay gets you</p>
+      {!untitled && <p className={`text-[13px] font-bold ${big ? "lg:text-[16px]" : ""}`}>What a delay gets you</p>}
       <ul className="flex flex-col divide-y divide-line rounded-2xl border border-line bg-white" aria-label="What a delay gets you">
         {RULES.map(([d, what]) => (
           <li key={d} className={`flex items-baseline gap-3 px-3 py-2 ${big ? 'lg:px-4 lg:py-3' : ''}`}>
