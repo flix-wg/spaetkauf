@@ -1,0 +1,23 @@
+'use strict';
+const DEFAULT_SERVER = 'https://65-108-33-75.sslip.io';
+const input = document.getElementById('server');
+const message = document.getElementById('message');
+chrome.storage.sync.get({ server: DEFAULT_SERVER }).then(config => { input.value = config.server; });
+async function save(value) {
+  try {
+    const url = new URL(value);
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash || url.pathname !== '/') throw new Error('Enter an http(s) server origin without a path, credentials, query or fragment.');
+    if (/(^|\.)bahn\.de$/i.test(url.hostname) || /(^|\.)deutschebahn\.com$/i.test(url.hostname)) throw new Error('Use a Spätkauf server, not a Deutsche Bahn host.');
+    const origin = url.origin + '/*';
+    if (url.protocol === 'https:') {
+      if (!await chrome.permissions.request({ origins: [origin] })) throw new Error('Server access was not granted.');
+    } else if (!await chrome.permissions.contains({ origins: [origin] })) {
+      throw new Error('HTTP is supported only for localhost or 127.0.0.1. Use HTTPS for a custom server.');
+    }
+    await chrome.storage.sync.set({ server: url.origin });
+    input.value = url.origin;
+    message.textContent = 'Saved';
+  } catch (error) { message.textContent = error.message; }
+}
+document.getElementById('settings').addEventListener('submit', event => { event.preventDefault(); save(input.value); });
+document.getElementById('reset').addEventListener('click', () => save(DEFAULT_SERVER));
