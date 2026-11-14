@@ -1,5 +1,5 @@
 import { ApiError, type HistoryRuns, type Pick, type RouteTrains, type TrainStops } from '../api'
-import { WEEKDAYS } from '../format'
+import { hhmm, WEEKDAYS, weekdayIndex } from '../format'
 import { at } from './fixtures'
 
 const SOURCE = 'Deutsche Bahn arrival data via piebro/deutsche-bahn-data, CC BY 4.0'
@@ -65,19 +65,28 @@ function trainName(train: string) {
   return `${m[1].toUpperCase()} ${m[2]}`
 }
 
-export function historyRuns(q: URLSearchParams, mode: string): HistoryRuns {
+export function historyRuns(q: URLSearchParams, mode: string, picks: Pick[] = []): HistoryRuns {
   const train = trainName(q.get('train') ?? '')
   gate(mode, train)
   const stop = q.get('stop') ?? ''
   const wd = q.get('weekday')
+  const pick = picks.find((p) => {
+    const last = p.legs.at(-1)
+    return last?.train === train && last.to === stop && p.odds?.n != null && p.odds.late != null
+      && wd !== null && weekdayIndex(p.odds.weekday) === Number(wd)
+  })
   const r = rng(`${train}|${stop}|${wd}`)
-  const hm = `${String(10 + Math.floor(r() * 12)).padStart(2, '0')}:${String(Math.floor(r() * 12) * 5).padStart(2, '0')}`
+  const hm = pick ? hhmm(pick.legs.at(-1)!.arr) : `${String(10 + Math.floor(r() * 12)).padStart(2, '0')}:${String(Math.floor(r() * 12) * 5).padStart(2, '0')}`
   const lateShare = 0.3 + r() * 0.25
   let last = LAST_DAY
   if (wd !== null) while (weekdayOf(last) !== WEEKDAYS[Number(wd)]) last = shift(last, -1)
-  const runs = Array.from({ length: wd === null ? 140 : 46 }, (_, i) => {
+  const n = pick?.odds?.n ?? (wd === null ? 140 : 46)
+  const lateCount = pick?.odds?.late ?? 0
+  const runs = Array.from({ length: n }, (_, i) => {
     const date = shift(last, -(wd === null ? i : i * 7))
-    const x = r()
+    // Distribute exactly the card's late count across its runs, including cancellations.
+    const isLate = Math.floor((i + 1) * lateCount / n) > Math.floor(i * lateCount / n)
+    const x = pick ? (isLate ? r() * lateShare : lateShare + r() * (1 - lateShare)) : r()
     const cancelled = x < 0.03
     const delay = cancelled ? null : x < lateShare ? 20 + Math.floor(r() * (r() < 0.35 ? 110 : 40)) : Math.floor(r() * 19) - 2
     return { date, planned: at(date, hm), delay_min: delay, cancelled }

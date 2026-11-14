@@ -1,4 +1,4 @@
-import { ApiError, type Banner, type Created, type KurtCall, type Recording, type Strike } from '../api'
+import { ApiError, type Banner, type Created, type KurtCall, type Pick, type Recording, type Strike } from '../api'
 import { BACKTEST, STATIONS, at, claimFor, lateNow, picksFor, tripAt } from './fixtures'
 import { arrivePicksFor, historyRuns, routeTrains, trainStops } from './history'
 
@@ -39,6 +39,7 @@ function mockStrike(date: string): Strike | null {
 // Fixed, so picks and signals name the same change.
 const STRIKE_AT = new Date(Date.now() - 50 * 60000).toISOString()
 const started = new Map<string, number>()
+let historyPicks: Pick[] = []
 let seq = 0
 
 function replayTrip(id: string) {
@@ -130,6 +131,7 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
     const kurt_call: KurtCall = strike?.covers_date
       ? 'strike'
       : !list.some((x) => x.is_kurts_pick) ? 'none' : strike?.dates === null ? 'strike_unclear' : 'pick'
+    historyPicks = list
     return out({
       from: fn, to: tn, date, tz: 'Europe/Berlin', picks: list,
       note: 'A delay already posted when you buy does not count.', kurt_call, strike,
@@ -175,7 +177,7 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
     if (method === 'GET') return out(trip(id))
     return out(undefined)
   }
-  if (p === '/api/history') return out(historyRuns(q, flag('history')))
+  if (p === '/api/history') return out(historyRuns(q, flag('history'), historyPicks))
   if (p === '/api/history/train') return out(trainStops(q, flag('history')))
   if (p === '/api/history/route') return out(routeTrains(q, flag('history')))
   if (p === '/api/late-now') return out(lateNow(flag('late')))
