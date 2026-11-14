@@ -130,8 +130,9 @@ def _reservation_only(pick: dict) -> bool:
 
 
 def ride_instead(booked: dict, others: list[dict], before: int = 0) -> dict | None:
-    """Earliest-arriving other connection leaving from `before` min earlier to 120 min later than the
-    booked one that beats booked arrival + 20 min (D7).
+    """Earliest-arriving other connection leaving up to 120 min after the booked one that beats booked
+    arrival + 20 min (D7). Only when none fits, one leaving up to `before` min earlier: that one helps
+    only if the delay is posted before it leaves.
 
     Connections sharing a trip with the booked one are skipped: that train is the late one.
     """
@@ -145,6 +146,7 @@ def ride_instead(booked: dict, others: list[dict], before: int = 0) -> dict | No
         and not trips & {leg["trip_id"] for leg in p["legs"]}
         and not _reservation_only(p)
     ]  # fmt: skip
+    fits = [p for p in fits if _t(p["dep"]) >= dep] or fits
     if not fits:
         return None
     best = min(fits, key=lambda p: (p["arr"], p["changes"]))
@@ -347,16 +349,18 @@ async def picks(
         raise HTTPException(400, "time (latest arrival, HH:MM) is required with mode=arrive")
     tr: Transitous = request.app.state.transitous
     conn = odds_conn(request)
-    start = start_time(day, at, datetime.now(BERLIN))
+    now = datetime.now(BERLIN)
+    start = start_time(day, at, now)
     src, src_name = await resolve(tr, from_)
     dst, dst_name = await resolve(tr, to)
     found, first = await fetch(tr, src, dst, start, day, arrive, before)
     src_name = src_name or first.get("from", {}).get("name") or from_
     dst_name = dst_name or first.get("to", {}).get("name") or to
+    catchable = [p for p in found if _t(p["dep"]) >= now]  # an earlier train may have left already
     for p in found:  # earlier trains are candidates only, listed picks start at `start`
         fill_names(p["legs"], src_name, dst_name)
         p["odds"] = connection_odds(conn, p["legs"])
-        p["ride_instead"] = ride_instead(p, found, before)
+        p["ride_instead"] = ride_instead(p, catchable, before)
         p["bahn_url"] = bahn_url(src_name, dst_name, p["dep"], conn)
         if arrive:
             arrive_fields(conn, p, start)

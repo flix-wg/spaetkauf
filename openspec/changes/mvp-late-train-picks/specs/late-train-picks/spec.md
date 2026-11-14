@@ -33,7 +33,7 @@ The system SHALL return real long-distance connections for the chosen origin, de
 - **THEN** the system says so and suggests another date or station
 
 ### Requirement: Ride-instead pairing
-For each pick the system SHALL name the best other connection the traveller could ride if the booked one is late: the earliest-arriving connection that departs from the same origin up to 120 minutes after the booked departure (by default no earlier than it; when the traveller opts in with `before`, up to 60 minutes earlier, which only helps if the delay is posted before that train leaves), arrives at most 20 minutes after the booked arrival and is not reservation-only.
+For each pick the system SHALL name the best other connection the traveller could ride if the booked one is late: the earliest-arriving connection that departs from the same origin up to 120 minutes after the booked departure (by default no earlier than it; when the traveller opts in with `before`, a train up to 60 minutes earlier that has not left yet, used only when no later one fits, since it helps only if the delay is posted before it leaves), arrives at most 20 minutes after the booked arrival and is not reservation-only.
 
 #### Scenario: A better train exists
 - **WHEN** a direct train leaves 30 minutes after the booked one and arrives earlier

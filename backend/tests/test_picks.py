@@ -219,3 +219,8 @@ def test_earlier_ride_instead_only_with_before(make_client):
     assert only["legs"][0]["train"] == "ICE 2" and only["ride_instead"]["trains"] == ["ICE 1"]
     plan = [x for x in h.params if "fromPlace" in x][-1]
     assert plan["time"] == picks._iso(datetime.fromisoformat(at("07:00")))
+    # A later train that fits wins over an earlier one.
+    later = {"id": "c", "dep": at("08:40"), "arr": at("12:10"), "changes": 0, "legs": [{"trip_id": "t3", "train": "ICE 3", "from": "", "to": ""}]}
+    early = {"id": "a", "dep": at("07:30"), "arr": at("11:30"), "changes": 0, "legs": [{"trip_id": "t1", "train": "ICE 1", "from": "", "to": ""}]}
+    booked = {"id": "b", "dep": at("08:00"), "arr": at("12:00"), "changes": 0, "legs": [{"trip_id": "t2", "train": "ICE 2", "from": "", "to": ""}]}
+    assert picks.ride_instead(booked, [early, later], 60)["trains"] == ["ICE 3"]
