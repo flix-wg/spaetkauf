@@ -450,9 +450,8 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
   )
 }
 
-// A finished trip under +20: the ticket stayed bound and nothing comes back. For a replay or one of
-// Kurt's picks, that is a miss; say so, and how often his odds expected it.
 function OnTime({ t }: { t: Trip }) {
+  const wasUnlocked = t.peak_delay_min !== null && t.peak_delay_min >= 20
   const kurts = t.is_replay || t.booked.is_kurts_pick
   const o = t.booked.odds ?? null
   const p = hasOdds(o) ? pctNum(o.p20) : null
@@ -462,11 +461,13 @@ function OnTime({ t }: { t: Trip }) {
       <Kurt width={44} className="mt-0.5 shrink-0" />
       <div className="flex flex-col gap-1 lg:gap-1.5">
         <p className="text-[15px] font-bold leading-snug lg:text-[20px]">
-          Arrived on time.{kurts && ' Kurt was wrong on this one.'}
+          Arrived on time.{!wasUnlocked && kurts && ' Kurt was wrong on this one.'}
         </p>
         <p className="text-[13px] leading-snug lg:text-[17px]">
-          The ticket stayed bound to this train and nothing comes back.
-          {kurts && p !== null &&
+          {wasUnlocked
+            ? `The binding was lifted when it reached +${t.peak_delay_min}; nothing comes back.`
+            : 'The ticket stayed bound to this train and nothing comes back.'}
+          {!wasUnlocked && kurts && p !== null &&
             ` Kurt’s odds for this train were ${p} %; about ${onTime < 1 ? 'fewer than 1' : onTime} in 10 such picks run on time.`}
         </p>
       </div>

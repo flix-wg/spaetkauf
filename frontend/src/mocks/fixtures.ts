@@ -109,6 +109,7 @@ export function tripAt(date: string, o: Partial<Trip> & { delay: number }): Trip
     price_eur: price,
     state,
     delay_min: delay,
+    peak_delay_min: delay,
     expected_arr: expected,
     updated_at: new Date().toISOString(),
     stale: false,

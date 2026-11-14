@@ -113,6 +113,7 @@ export interface Trip {
   price_eur: number | null
   state: TripState
   delay_min: number | null
+  peak_delay_min: number | null
   expected_arr: string | null
   updated_at: string | null
   stale: boolean

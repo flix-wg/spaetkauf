@@ -42,13 +42,13 @@ def _snap(delay, cancelled=False):
     return {"delay_min": delay, "expected_arr": None, "cancelled": cancelled, "raw": {}}
 
 
-def test_delay_series_alerts_once_per_threshold(settings):
+def test_delay_series_alerts_once_per_threshold(client, settings):
     sent = []
 
     async def notify(db, row, payload):
         sent.append(payload)
 
-    tid, _ = create_trip(settings.db_path, PICK, Decimal("34.99"))
+    tid, secret = create_trip(settings.db_path, PICK, Decimal("34.99"))
     states = []
     for i, delay in enumerate([12, 24, 15, 26, 61]):
         asyncio.run(
@@ -56,6 +56,9 @@ def test_delay_series_alerts_once_per_threshold(settings):
         )
         row = _row(settings.db_path, tid)
         states.append(trip_view(row, latest_snapshot(settings.db_path, tid), T0)["state"])
+        assert client.get(f"/api/trips/{tid}", params={"secret": secret}).json()[
+            "peak_delay_min"
+        ] == max([12, 24, 15, 26, 61][: i + 1])
 
     assert states == ["on_time", "unlocked", "on_time", "unlocked", "cash25"]
     assert [p["title"] for p in sent] == ["It's late. You win.", "Cash back unlocked"]

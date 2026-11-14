@@ -230,7 +230,12 @@ def get_trip(
 ):
     db = request.app.state.settings.db_path
     row = load_trip(db, trip_id, _secret(secret, x_trip_secret))
-    return trip_view(row, latest_snapshot(db, trip_id))
+    conn = connect(db)
+    peak_delay = conn.execute(
+        "SELECT MAX(delay_min) FROM trip_snapshots WHERE trip_id = ?", (trip_id,)
+    ).fetchone()[0]
+    conn.close()
+    return {**trip_view(row, latest_snapshot(db, trip_id)), "peak_delay_min": peak_delay}
 
 
 @router.patch("/{trip_id}")
