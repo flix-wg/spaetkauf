@@ -9,6 +9,7 @@ import { Kurt } from '../components/Kurt'
 import { CompactPick, KurtsPick, StrikeCall } from '../components/PickCard'
 import { ScreenHeader } from '../components/Shell'
 import { disruptions, SignalsArea, StrikeLine } from '../components/Signals'
+import { onPick } from '../onroute'
 import { Empty, ErrorState, Loading } from '../components/States'
 import { dayLabel, hhmm, shortStation } from '../format'
 import { useAsync } from '../hooks'
@@ -110,9 +111,9 @@ export function Picks() {
             <>
               {picks.data.picks.map((p) =>
                 !p.is_kurts_pick ? null : arrive ? (
-                  <ArriveKurtsPick key={p.id} pick={p} tz={picks.data.tz} by={by} strike={call === 'strike_unclear' ? strike : null} news={news} onBook={setBooking} onHistory={setHist} />
+                  <ArriveKurtsPick key={p.id} pick={p} tz={picks.data.tz} by={by} strike={call === 'strike_unclear' ? strike : null} news={onPick(news, p)} onBook={setBooking} onHistory={setHist} />
                 ) : (
-                  <KurtsPick key={p.id} pick={p} tz={picks.data.tz} strike={call === 'strike_unclear' ? strike : null} news={news} onBook={setBooking} onHistory={setHist} />
+                  <KurtsPick key={p.id} pick={p} tz={picks.data.tz} strike={call === 'strike_unclear' ? strike : null} news={onPick(news, p)} onBook={setBooking} onHistory={setHist} />
                 ),
               )}
               {strike && !strikeDay && call !== 'strike_unclear' && <StrikeLine s={strike} tone="plain" />}

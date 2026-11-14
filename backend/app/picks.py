@@ -80,6 +80,7 @@ def connection(it: dict) -> dict | None:
             "arr": _iso(_t(leg["scheduledEndTime"])),
             "trip_id": leg["tripId"],
         }
+        | ({"via": [s["name"] for s in leg["intermediateStops"]]} if isinstance(leg.get("intermediateStops"), list) else {})
         for leg in raw
     ]
     end = raw[-1]["to"]

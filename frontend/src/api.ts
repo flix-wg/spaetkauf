@@ -16,6 +16,7 @@ export interface Leg {
   dep: string
   arr: string
   trip_id: string
+  via?: string[]
 }
 export interface Odds {
   p20: number | null
