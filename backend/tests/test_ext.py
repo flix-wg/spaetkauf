@@ -98,6 +98,9 @@ def test_odds_overnight_eva_and_threshold(client):
     assert body["results"][0]["weekday"] == "Sunday"
     assert body["results"][0]["p20"] == 0.2 and body["kurt"] is None
     assert body["link"].startswith("/?")
+    next_day = post_odds(client, [journey("ICE 1", date="2026-11-21")]).json()
+    assert next_day["kurt"] == 0
+    assert parse_qs(urlsplit(next_day["link"]).query)["date"] == ["2026-11-21"]
     body = post_odds(client, [journey("ICE 1", date="2026-11-15"), journey("ICE 1")]).json()
     assert body["kurt"] == 1 and body["results"][1]["kurt"]
     assert post_odds(client, [journey("ICE 1")], to_eva="9999999").json()["kurt"] == 0

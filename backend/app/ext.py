@@ -117,8 +117,10 @@ def extension_odds(body: OddsRequest, request: Request):
     kurt = max(eligible, key=lambda r: r["p20"])["i"] if eligible else None
     if kurt is not None:
         results[kurt]["kurt"] = True
-    at = body.connections[kurt if kurt is not None else 0].dep if body.connections else "00:00"
-    params = {"tn": body.to, "date": body.date.isoformat(), "time": at}
+    selected = body.connections[kurt if kurt is not None else 0] if body.connections else None
+    at = selected.dep if selected else "00:00"
+    day = (selected.date if selected else None) or body.date
+    params = {"tn": body.to, "date": day.isoformat(), "time": at}
     if body.from_:
         params.update({"from": body.from_, "to": body.to, "fn": body.from_})
     link = ("/picks?" if body.from_ else "/?") + urlencode(params)
@@ -160,7 +162,7 @@ async def ask_model(api_key: str, skeleton: str) -> dict:
     async with anthropic.AsyncAnthropic(api_key=api_key, timeout=20.0, max_retries=1) as client:
         message = await client.messages.create(
             model="claude-haiku-5-5",
-            max_tokens=1024,
+            max_tokens=4096,
             output_config={
                 "effort": "low",
                 "format": {"type": "json_schema", "schema": SPEC_SCHEMA},
