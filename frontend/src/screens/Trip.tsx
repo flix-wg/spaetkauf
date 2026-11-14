@@ -151,6 +151,8 @@ function TripView({
   const first = b.legs[0]
   const last = b.legs[b.legs.length - 1]
   const dest = stopName(last.to) || 'your stop'
+  // Lifted here so the conductor view stays open if the forecast drops while it is being shown.
+  const [conductor, setConductor] = useState(false)
   // Auto-recorded trips (replays) know only the arrival, not the boarding time.
   const depKnown = !!first.dep
   const waiting = t.delay_min === null
@@ -275,7 +277,7 @@ function TripView({
             <p className="text-[14px] font-semibold leading-snug lg:text-[18px]">Unlocked, but under 60 late pays nothing back.</p>
           )}
         </section>
-        {wonUnlocked && !done && !t.is_replay && <Zugbindung t={t} dest={dest} />}
+        {((wonUnlocked && !done && !t.is_replay) || conductor) && <Zugbindung t={t} dest={dest} full={conductor} setFull={setConductor} />}
       </div>
 
       <div className="contents lg:flex lg:flex-col lg:gap-4">
@@ -321,8 +323,9 @@ const DE_DAY = new Intl.DateTimeFormat('de-DE', {
 })
 
 // The 20-minute forecast is the rule's trigger, but it is Transitous' figure, not DB's: say whose it is.
-function Zugbindung({ t, dest }: { t: Trip; dest: string }) {
-  const [full, setFull] = useState(false)
+function Zugbindung({ t, dest, full, setFull }: { t: Trip; dest: string; full: boolean; setFull: (v: boolean) => void }) {
+  const opener = useRef<HTMLButtonElement>(null)
+  const close = useRef<HTMLButtonElement>(null)
   const b = t.booked
   const trains = b.legs.map((l) => l.train).join(' + ')
   const cancelled = t.state === 'cancelled'
@@ -330,10 +333,18 @@ function Zugbindung({ t, dest }: { t: Trip; dest: string }) {
   const asOf = t.updated_at ? hhmm(t.updated_at) : null
   useEffect(() => {
     if (!full) return
+    const root = document.getElementById('root')
+    const back = opener.current
+    root?.setAttribute('inert', '')
+    close.current?.focus()
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setFull(false)
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [full])
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      root?.removeAttribute('inert')
+      back?.focus()
+    }
+  }, [full, setFull])
   return (
     <section aria-label="Zugbindung" className="flex flex-col gap-2 rounded-2xl border-2 border-ink bg-white p-3.5 lg:p-5">
       <span className="tag">ZUGBINDUNG LIFTED AT 20+ MIN</span>
@@ -348,11 +359,11 @@ function Zugbindung({ t, dest }: { t: Trip; dest: string }) {
       <p className="text-[12px] text-muted">
         {asOf ? `As of ${asOf}. ` : ''}Transitous real-time data, not DB’s own. Check DB Navigator shows the delay too: the conductor goes by DB.
       </p>
-      <button type="button" className="btn-primary" onClick={() => setFull(true)}>Show to conductor</button>
+      <button ref={opener} type="button" className="btn-primary" onClick={() => setFull(true)}>Show to conductor</button>
       {full && createPortal(
         <div role="dialog" aria-modal="true" aria-label="Zugbindung aufgehoben" className="fixed inset-0 z-50 flex flex-col gap-5 overflow-y-auto bg-white p-6 text-black">
-          <p className="font-display text-[34px] font-bold leading-tight">Zugbindung aufgehoben</p>
-          <p className="text-[18px] font-semibold">BB Personenverkehr 9.1.1 und 9.1.4: ab 20 Min. erwarteter Verspätung am Ziel</p>
+          <p className="font-display text-[34px] font-bold leading-tight">{cancelled ? 'Zug fällt aus' : `Verspätung am Ziel erwartet: +${d} Min.`}</p>
+          <p className="text-[18px] font-semibold">Zugbindung aufgehoben nach BB Personenverkehr 9.1.1, sobald die DB mindestens 20 Min. Verspätung am Ziel erwartet (9.1.4).</p>
           <div className="flex flex-col gap-1 border-y-4 border-black py-4">
             <p className="mono text-[26px] font-bold">{trains}</p>
             <p className="text-[18px]">{stopName(b.legs[0].from)} → {dest}</p>
@@ -363,7 +374,7 @@ function Zugbindung({ t, dest }: { t: Trip; dest: string }) {
             {cancelled ? <><br />Zug fällt aus</> : t.expected_arr && <><br />erwartet {hhmm(t.expected_arr)} (+{d} Min.)</>}
           </p>
           <p className="text-[15px]">{asOf ? `Stand ${asOf} Uhr · ` : ''}Echtzeitdaten von Transitous, nicht von der DB</p>
-          <button type="button" className="btn-primary mt-auto !min-h-[56px]" onClick={() => setFull(false)}>Close</button>
+          <button ref={close} type="button" className="btn-primary mt-auto !min-h-[56px]" onClick={() => setFull(false)}>Close</button>
         </div>,
         document.body,
       )}

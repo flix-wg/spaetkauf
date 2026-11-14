@@ -211,3 +211,10 @@ def test_claim_evidence_keeps_changes_of_five_minutes(client, settings):
         "2026-11-14T12:00:00Z", "2026-11-14T13:07:00Z", 67,
     )
     assert "Transitous" in ev["source"]
+
+
+def test_timeline_keeps_threshold_crossings():
+    from app.claim import timeline
+
+    snaps = [{"at": str(i), "delay_min": d, "cancelled": 0} for i, d in enumerate([57, 58, 61, 59, 58])]
+    assert [r["delay_min"] for r in timeline(snaps)] == [57, 61, 59, 58]

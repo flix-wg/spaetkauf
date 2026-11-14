@@ -21,8 +21,11 @@ def claim_amount(price: Decimal, pct: int) -> Decimal:
     return (raw / STEP).to_integral_value(rounding=ROUND_CEILING) * STEP
 
 
+LINES = (20, 60, 120)  # Zugbindung, 25 %, 50 %: a crossing is always kept.
+
+
 def timeline(snaps: list[dict]) -> list[dict]:
-    """First observation, each change of 5+ min against the last kept row, last observation."""
+    """First and last observation, each change of 5+ min against the last kept row, each crossing of a LINES threshold."""
     rows = [s for s in snaps if s["delay_min"] is not None or s["cancelled"]]
     kept: list[dict] = []
     for i, s in enumerate(rows):
@@ -32,6 +35,7 @@ def timeline(snaps: list[dict]) -> list[dict]:
             or i == len(rows) - 1
             or bool(s["cancelled"]) != prev["cancelled"]
             or abs((s["delay_min"] or 0) - (prev["delay_min"] or 0)) >= 5
+            or any(((s["delay_min"] or 0) >= line) != ((prev["delay_min"] or 0) >= line) for line in LINES)
         ):
             kept.append(
                 {"at": s["at"], "delay_min": s["delay_min"], "cancelled": bool(s["cancelled"])}
