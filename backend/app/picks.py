@@ -22,7 +22,8 @@ ENOUGH = 10
 MAX_PAGES = 3
 LATE_MIN = 20
 KURT_MIN_P20 = 0.30
-RIDE_WINDOW = (timedelta(minutes=0), timedelta(minutes=120))
+RIDE_AFTER = timedelta(minutes=120)
+MAX_BEFORE = 60  # minutes an earlier ride-instead may leave before the booked train (opt-in)
 RIDE_SLACK = timedelta(minutes=20)
 ARRIVE_WINDOW = timedelta(minutes=180)  # arrive mode: scheduled arrivals in [T - this, T]
 P_MISS_CAP = 0.10  # Kurt's arrive-mode pick may arrive after T at most this often
@@ -128,8 +129,9 @@ def _reservation_only(pick: dict) -> bool:
     return any(reservation_only_leg(x["train"], x["from"], x["to"]) for x in pick["legs"])
 
 
-def ride_instead(booked: dict, others: list[dict]) -> dict | None:
-    """Earliest-arriving other connection in the window that beats booked arrival + 20 min (D7).
+def ride_instead(booked: dict, others: list[dict], before: int = 0) -> dict | None:
+    """Earliest-arriving other connection leaving from `before` min earlier to 120 min later than the
+    booked one that beats booked arrival + 20 min (D7).
 
     Connections sharing a trip with the booked one are skipped: that train is the late one.
     """
@@ -138,7 +140,7 @@ def ride_instead(booked: dict, others: list[dict]) -> dict | None:
     fits = [
         p for p in others
         if p["id"] != booked["id"]
-        and RIDE_WINDOW[0] <= _t(p["dep"]) - dep <= RIDE_WINDOW[1]
+        and -timedelta(minutes=before) <= _t(p["dep"]) - dep <= RIDE_AFTER
         and _t(p["arr"]) <= arr + RIDE_SLACK
         and not trips & {leg["trip_id"] for leg in p["legs"]}
         and not _reservation_only(p)
@@ -277,11 +279,13 @@ def _local_day(ts: str) -> date:
 
 
 async def fetch(
-    tr: Transitous, src: str, dst: str, start: datetime, day: date, arrive: bool = False
+    tr: Transitous, src: str, dst: str, start: datetime, day: date, arrive: bool = False,
+    before: int = 0,
 ) -> tuple[list, dict]:
     """Itineraries on `day`, page by page until ENOUGH connections or MAX_PAGES. Departing:
     leaving from `start` on, paging forward. Arriving: scheduled arrival in
-    [start - ARRIVE_WINDOW, start], paging backward."""
+    [start - ARRIVE_WINDOW, start], paging backward. `before`: the first page starts that many minutes earlier so earlier
+    trains are there as ride-instead candidates; ENOUGH counts only trains from `start` on."""
     found: dict[str, dict] = {}
     first: dict = {}
     cursor = None
@@ -289,7 +293,9 @@ async def fetch(
         if cursor:
             page = await tr.plan(src, dst, arrive_by=arrive, cursor=cursor)
         else:
-            page = first = await tr.plan(src, dst, time=_iso(start), arrive_by=arrive)
+            page = first = await tr.plan(
+                src, dst, time=_iso(start - timedelta(minutes=before)), arrive_by=arrive
+            )
         its = [p for p in map(connection, page.get("itineraries", [])) if p]
         for pick in its:
             if arrive:
@@ -307,7 +313,8 @@ async def fetch(
             cursor = page.get("nextPageCursor")
             last = max((it["startTime"] for it in page.get("itineraries", [])), default=None)
             done = last and _local_day(last) > day
-        if len(found) >= ENOUGH or not cursor or done:
+        shown = sum(1 for p in found.values() if _t(p["dep"]) >= start) if not arrive else len(found)
+        if shown >= ENOUGH or not cursor or done:
             break
     return list(found.values()), first
 
@@ -330,10 +337,12 @@ async def picks(
     day: Annotated[date, Query(alias="date")],
     at: Annotated[str | None, Query(alias="time")] = None,
     mode: Literal["depart", "arrive"] = "depart",
+    before: Annotated[int, Query(description="ride-instead may leave this many minutes earlier")] = 0,
 ):
     """mode=arrive: `time` is the latest arrival T. Only connections arriving by T are fetched,
     so ride-instead alternatives arrive by T too."""
     arrive = mode == "arrive"
+    before = 0 if arrive else max(0, min(before, MAX_BEFORE))  # arrive mode ignores it
     if arrive and not at:
         raise HTTPException(400, "time (latest arrival, HH:MM) is required with mode=arrive")
     tr: Transitous = request.app.state.transitous
@@ -341,16 +350,18 @@ async def picks(
     start = start_time(day, at, datetime.now(BERLIN))
     src, src_name = await resolve(tr, from_)
     dst, dst_name = await resolve(tr, to)
-    found, first = await fetch(tr, src, dst, start, day, arrive)
+    found, first = await fetch(tr, src, dst, start, day, arrive, before)
     src_name = src_name or first.get("from", {}).get("name") or from_
     dst_name = dst_name or first.get("to", {}).get("name") or to
-    for p in found:
+    for p in found:  # earlier trains are candidates only, listed picks start at `start`
         fill_names(p["legs"], src_name, dst_name)
         p["odds"] = connection_odds(conn, p["legs"])
-        p["ride_instead"] = ride_instead(p, found)
+        p["ride_instead"] = ride_instead(p, found, before)
         p["bahn_url"] = bahn_url(src_name, dst_name, p["dep"], conn)
         if arrive:
             arrive_fields(conn, p, start)
+    if not arrive:
+        found = [p for p in found if _t(p["dep"]) >= start]
     ranked = rank_arrive(found) if arrive else rank(found)
     strike = strike_signal(tr.settings.db_path, day)
     call = kurt_call(ranked, strike)

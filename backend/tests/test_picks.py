@@ -206,3 +206,16 @@ def test_bahn_url_carries_station_ids_so_bahn_de_fills_them_in():
         in url
     )
     assert "soid" not in picks.bahn_url("Nowhere", "München Hbf", "2026-11-16T07:01:00+00:00", conn)
+
+
+def test_earlier_ride_instead_only_with_before(make_client):
+    pages = [[itin(("ICE 1", "München Hbf", "07:30", "11:30")),
+              itin(("ICE 2", "München Hbf", "08:00", "12:00"))]]  # fmt: skip
+    h = plan_pages(pages)
+    client = make_client(h)
+    assert get(client, time="08:00").json()["picks"][0]["ride_instead"] is None
+    body = get(client, time="08:00", before=500).json()  # clamped to 60
+    (only,) = body["picks"]  # ICE 1 left before the search time: a candidate, not listed
+    assert only["legs"][0]["train"] == "ICE 2" and only["ride_instead"]["trains"] == ["ICE 1"]
+    plan = [x for x in h.params if "fromPlace" in x][-1]
+    assert plan["time"] == picks._iso(datetime.fromisoformat(at("07:00")))
