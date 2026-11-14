@@ -3,7 +3,7 @@ import hmac
 import importlib.util
 import json
 import time
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import httpx
@@ -13,7 +13,15 @@ from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.db import connect, init_db
-from app.signals import BERLIN, announces_strike, parse_strike_dates, router
+from app.signals import (
+    BERLIN,
+    announces_strike,
+    ensure_schema,
+    parse_strike_dates,
+    read_strike,
+    router,
+    strike_for,
+)
 
 PARAMS = {"from": "Hamburg Hbf", "to": "Berlin Hbf", "date": "2026-11-15"}
 
@@ -112,7 +120,7 @@ def signed(secret: str, payload: dict, ts: int | None = None) -> tuple[bytes, di
 
 def test_webhook_stores_signed_and_rejects_forged(tmp_path, monkeypatch):
     monkeypatch.setenv("CONTEXT_WEBHOOK_SECRET", "whsec_other,whsec_test")
-    c = make_client(tmp_path, None)
+    c = make_client(tmp_path, None, key="")
     change = {
         "url": "https://www.gdl.de/presse/x",
         "title": "Warnstreik",
@@ -203,6 +211,35 @@ def test_announces_strike():
     assert announces_strike("EVG calls a strike")
     assert not announces_strike("Kein neuer Streik vor Weihnachten")
     assert not announces_strike("Tarifverhandlungen werden fortgesetzt")
+
+
+def test_past_strike_is_not_an_unclear_warning(tmp_path, monkeypatch):
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 11, 14, 12, tzinfo=UTC).astimezone(tz)
+
+    monkeypatch.setattr("app.signals.datetime", Clock)
+    row = {
+        "title": "GDL-Streik vom 10. bis 12. Januar 2024 beendet",
+        "changed_at": "2026-11-14T10:00:00+00:00",
+        "source": "gdl.de",
+        "url": "https://www.gdl.de/presse/x",
+    }
+    assert read_strike(row) is None
+    db = tmp_path / "t.sqlite"
+    conn = connect(db)
+    try:
+        ensure_schema(conn)
+        with conn:
+            conn.execute(
+                "INSERT INTO context_changes(id, title, changed_at, source, url) "
+                "VALUES ('past', :title, :changed_at, :source, :url)",
+                row,
+            )
+        assert strike_for(conn, date(2026, 11, 15), today=REF) is None
+    finally:
+        conn.close()
 
 
 def load_script():

@@ -183,7 +183,11 @@ def read_strike(row: dict) -> dict | None:
     if not announces_strike(text):
         return None
     seen = _changed_day(row["changed_at"])
-    dates = [d for d in parse_strike_dates(text, seen) or [] if d >= seen.isoformat()] or None
+    dates = parse_strike_dates(text, seen)
+    if dates is not None:
+        dates = [d for d in dates if d >= seen.isoformat()]
+        if not dates:
+            return None
     return {
         "title": row.get("title") or "",
         "url": row["url"],
