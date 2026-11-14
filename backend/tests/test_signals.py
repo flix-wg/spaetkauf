@@ -296,3 +296,86 @@ def test_signed_test_change_round_trip(tmp_path, monkeypatch):
     conn = connect(db)
     assert conn.execute("SELECT COUNT(*) FROM trip_alerts").fetchone()[0] == 0
     conn.close()
+
+
+@pytest.mark.parametrize(
+    "text, covered",
+    [
+        *[(f"GDL-Streik am 16. November {word}", False) for word in (
+            "abgesagt", "ausgesetzt", "beendet", "abgewendet", "Einigung",
+            "called off", "cancelled", "canceled", "suspended", "agreement",
+        )],
+        (("Pressemitteilung vom 16. November 2026\n"
+         "GDL-Streik vom 10. bis 12. Januar 2024"), False),
+        ("GDL-Streik: Pressemitteilung vom 16. November 2026", False),
+        ("Kein Streik am 16. November. GDL-Streik am 18. November", False),
+        ("BVG-Streik am 16. November; Fernverkehr nicht betroffen", False),
+        ("BVG-Streik am 16. November", False),
+        ("GDL-Streik am 18. November 2026. Sitzung am 16. November", False),
+        ("Rail strike on 16 November; long-distance not affected", False),
+        ("GDL-Streik vom 16. bis 18. November", True),
+        ("Keine Einigung: GDL-Streik am 16. November", True),
+        ("BVG und Deutsche Bahn: Streik am 16. November", True),
+    ],
+)
+def test_strike_text_covers_only_announced_rail_dates(text, covered):
+    strike = read_strike({
+        "title": text, "source": "news.example", "url": "https://news.example/strike",
+        "changed_at": "2026-11-14T10:00:00+00:00",
+    })
+    assert bool(strike and strike["dates"] and "2026-11-16" in strike["dates"]) == covered
+    if text.startswith("GDL-Streik am 16.") or any(
+        word in text for word in ("BVG-Streik", "not affected")
+    ):
+        assert strike is None
+
+
+@pytest.fixture
+def strike_db(tmp_path, monkeypatch):
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 11, 14, 12, tzinfo=UTC).astimezone(tz)
+
+    monkeypatch.setattr("app.signals.datetime", Clock)
+    conn = connect(tmp_path / "strikes.sqlite")
+    ensure_schema(conn)
+
+    def add(id, title, source="gdl.de", hour=9):
+        with conn:
+            conn.execute(
+                "INSERT INTO context_changes(id, title, source, url, changed_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (id, title, source, f"https://{source}/{id}",
+                 f"2026-11-14T{hour:02}:00:00+00:00"),
+            )
+
+    yield conn, add
+    conn.close()
+
+
+@pytest.mark.parametrize("dated", [True, False])
+def test_newer_cancellation_removes_older_announcement(strike_db, dated):
+    conn, add = strike_db
+    add("old", "GDL-Streik vom 16. bis 18. November")
+    add("cancel", "Streik abgesagt" + (" am 16. November" if dated else ""), hour=10)
+    strike = strike_for(conn, date(2026, 11, 16), today=REF)
+    if dated:
+        assert strike["dates"] == ["2026-11-17", "2026-11-18"]
+        assert not strike["covers_date"]
+        add("rest", "Einigung: Streik am 17. und 18. November abgesagt", hour=11)
+        assert strike_for(conn, date(2026, 11, 16), today=REF) is None
+    else:
+        assert strike is None
+    # A later announcement remains active despite the older cancellation.
+    add("new", "GDL-Streik am 16. November", hour=12)
+    assert strike_for(conn, date(2026, 11, 16), today=REF)["covers_date"]
+
+
+def test_try_date_skips_other_active_announcement(strike_db):
+    conn, add = strike_db
+    add("first", "GDL-Streik am 18. November", hour=10)
+    add("second", "EVG-Streik am 17. November", source="evg.org")
+    strike = strike_for(conn, date(2026, 11, 18), today=REF)
+    assert strike["try_date"] == "2026-11-16"
+    assert "No strike is announced for Mon 16 Nov" in strike["note"]

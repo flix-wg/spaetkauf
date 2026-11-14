@@ -110,6 +110,37 @@ STRIKE_WORDS = re.compile(
 )
 NEGATION = re.compile(r"\b(?:kein\w*|no|not|ohne|without)\s+(?:\w+\s+){0,2}$", re.IGNORECASE)
 
+CANCELLATION = re.compile(
+    r"\b(?:abgesagt|ausgesetzt|beendet|abgewendet|Einigung|called off|cancelled|canceled|"
+    r"suspended|agreement)\b", re.IGNORECASE
+)
+LOCAL = re.compile(
+    r"\b(?:BVG|MVG|HVV|U-Bahn|Bus|Tram|Straßenbahn|ÖPNV|Nahverkehr|S-Bahn)\b", re.IGNORECASE
+)
+LONG_DISTANCE = re.compile(
+    r"\b(?:Fernverkehr|ICE|IC|Deutsche Bahn|DB|GDL|EVG|long-distance)\b", re.IGNORECASE
+)
+UNAFFECTED = re.compile(
+    r"\b(?:Fernverkehr|long-distance)[^.!?\n]*(?:nicht betroffen|not affected|ausgenommen)"
+    r"|\b(?:ausgenommen|not affected)[^.!?\n]*(?:Fernverkehr|long-distance)", re.IGNORECASE
+)
+PUBLICATION = re.compile(
+    r"\b(?:Pressemitteilung vom|Stand|veröffentlicht am|aktualisiert|published|updated|as of)"
+    r"\s*:?\s*$", re.IGNORECASE
+)
+
+
+def cancels_strike(text: str) -> bool:
+    return any(not NEGATION.search(text[:m.start()]) for m in CANCELLATION.finditer(text))
+
+
+def _dated_text(text: str, cancellation: bool = False) -> str:
+    # Keep ordinal dots ("16. November") inside the sentence.
+    return "\n".join(
+        part for part in re.split(r"[\n!?]+|(?<!\d)\.(?:\s+|$)|(?<=\d{4})\.(?:\s+|$)", text)
+        if announces_strike(part) or (cancellation and cancels_strike(part))
+    )
+
 
 def _day(y: int, m: int, d: int) -> date | None:
     try:
@@ -150,6 +181,8 @@ def parse_strike_dates(text: str, ref: date) -> list[str] | None:
     found = []
     for pattern in DATE_PATTERNS:
         for m in pattern.finditer(text):
+            if PUBLICATION.search(text[:m.start()]):
+                continue
             found.append((m.start(), m.end(), _match_dates(m, ref)))
     found.sort(key=lambda f: (f[0], -f[1]))
     taken: list[tuple[int, int, list[date]]] = []
@@ -180,10 +213,15 @@ def read_strike(row: dict) -> dict | None:
     Dates before the day the change was seen are dropped (a page's own past dates).
     """
     text = f"{row.get('title') or ''}\n{row.get('summary') or ''}"
-    if not announces_strike(text):
+    if (
+        not announces_strike(text)
+        or cancels_strike(text)
+        or UNAFFECTED.search(text)
+        or (LOCAL.search(text) and not LONG_DISTANCE.search(text))
+    ):
         return None
     seen = _changed_day(row["changed_at"])
-    dates = parse_strike_dates(text, seen)
+    dates = parse_strike_dates(_dated_text(text), seen)
     if dates is not None:
         dates = [d for d in dates if d >= seen.isoformat()]
         if not dates:
@@ -213,11 +251,35 @@ def strike_for(conn, day: date, today: date | None = None) -> dict | None:
     rows = conn.execute(
         "SELECT * FROM context_changes WHERE changed_at >= ? ORDER BY changed_at DESC", (since,)
     ).fetchall()
-    best, best_rank = None, 3
-    for row in rows:
-        s = read_strike(dict(row))
+    active, cancellations = [], []
+    for row in map(dict, rows):
+        text = f"{row.get('title') or ''}\n{row.get('summary') or ''}"
+        if cancels_strike(text):
+            dates = parse_strike_dates(
+                _dated_text(text, cancellation=True), _changed_day(row["changed_at"])
+            )
+            cancellations.append((row, dates))
+            continue
+        s = read_strike(row)
         if s is None:
             continue
+        for cancellation, dates in cancellations:
+            if cancellation["changed_at"] <= s["changed_at"]:
+                continue
+            if dates is None:
+                if cancellation["source"] == s["source"]:
+                    s = None
+                    break
+            elif s["dates"] is not None:
+                s["dates"] = [d for d in s["dates"] if d not in dates]
+                if not s["dates"]:
+                    s = None
+                    break
+        if s is not None:
+            active.append(s)
+    covered = {d for s in active for d in s["dates"] or []}
+    best, best_rank = None, 3
+    for s in active:
         if s["dates"] is None:
             rank = 1
         elif day.isoformat() in s["dates"]:
@@ -234,7 +296,7 @@ def strike_for(conn, day: date, today: date | None = None) -> dict | None:
     try_date = None
     if covers:
         d = day - timedelta(days=1)
-        while d.isoformat() in best["dates"]:
+        while d.isoformat() in covered:
             d -= timedelta(days=1)
         try_date = d.isoformat() if d >= today else None
     if covers:
