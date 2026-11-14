@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from test_odds import odds_db
 
-from app import ext, odds
+from app import ext, odds, picks
 from app.config import Settings
 from app.db import connect, init_db
 
@@ -38,7 +38,8 @@ def client(tmp_path, monkeypatch):
                 "ge60": 2,
             }
             for wd, k in ((5, 12), (6, 4))
-        ],
+        ]
+        + [{"train": "ICE 7", "stop": "Fulda", "weekday": 5, "n": 20, "ge10": 6, "ge20": 4}],
     )
     app.include_router(ext.router)
     with TestClient(app) as client:
@@ -188,3 +189,29 @@ def test_posted_connections_keep_odds_but_cannot_be_kurt(client):
     assert [r["p20"] for r in before["results"]] == [r["p20"] for r in after["results"]]
     connections[1]["posted"] = True
     assert post_odds(client, connections).json()["kurt"] is None
+
+
+def test_change_counts_like_the_app_when_transitous_has_the_route(client, monkeypatch):
+    legs = [
+        {"train": "ICE 7", "from": "Hamburg Hbf", "to": "Fulda", "trip_id": "a",
+         "dep": "2026-11-14T09:00:00+00:00", "arr": "2026-11-14T11:00:00+00:00"},
+        {"train": "ICE 1", "from": "Fulda", "to": "München Hbf", "trip_id": "b",
+         "dep": "2026-11-14T11:12:00+00:00", "arr": "2026-11-14T13:00:00+00:00"},
+    ]  # fmt: skip
+
+    async def resolve(tr, place):
+        return place, place
+
+    async def fetch(tr, src, dst, start, day):
+        return [{"dep": legs[0]["dep"], "legs": [dict(leg) for leg in legs]}], {}
+
+    monkeypatch.setattr(picks, "resolve", resolve)
+    monkeypatch.setattr(picks, "fetch", fetch)
+    client.app.state.transitous = object()
+    body = post_odds(
+        client, [journey("ICE 7", "ICE 1"), journey("RB 2")], **{"from": "Hamburg Hbf"}
+    )
+    first = body.json()["results"][0]
+    expected = odds.connection_odds(client.app.state.odds, legs)
+    assert first["basis"] == "estimate" and first["p20"] == expected["p20"] > 0.6
+    assert (first["train"], first["late"], first["n"]) == ("ICE 1", 12, 20)

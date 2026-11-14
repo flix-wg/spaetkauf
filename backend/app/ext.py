@@ -1,5 +1,6 @@
 """Historical odds and structural selector adaptation for the browser extension."""
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -66,9 +67,44 @@ class OddsRequest(BaseModel):
     connections: list[Connection] = Field(max_length=30)
 
 
+TRANSIT_WAIT = 4  # seconds; the extension gives up after 8
+
+
+async def route_legs(request: Request, body: OddsRequest) -> dict[tuple[str, str], list[dict]]:
+    """Transitous legs for the page's route, keyed by (local departure, last train), so a change
+    counts as in the app. bahn.de cards show no change station or leg times without a click.
+    Empty without a start station, or when Transitous fails or takes longer than TRANSIT_WAIT."""
+    tr = getattr(request.app.state, "transitous", None)
+    if tr is None or not body.from_ or not body.connections:
+        return {}
+    first = min(body.connections, key=lambda c: (c.date or body.date, c.dep))
+    day = first.date or body.date
+    start = datetime.combine(day, time.fromisoformat(first.dep), odds.BERLIN)
+
+    async def look() -> dict[tuple[str, str], list[dict]]:
+        src, src_name = await picks.resolve(tr, body.from_)
+        dst, dst_name = await picks.resolve(tr, body.to)
+        found, _ = await picks.fetch(tr, src, dst, start, day)
+        out = {}
+        for p in found:
+            picks.fill_names(p["legs"], src_name or body.from_, dst_name or body.to)
+            dep = datetime.fromisoformat(p["dep"]).astimezone(odds.BERLIN).strftime("%H:%M")
+            last = parse_train(p["legs"][-1]["train"])
+            if last:
+                out.setdefault((dep, " ".join(last)), p["legs"])
+        return out
+
+    try:
+        return await asyncio.wait_for(look(), TRANSIT_WAIT)
+    except Exception as exc:  # noqa: BLE001  any failure keeps the last train's odds
+        log.info("extension route lookup failed: %s", type(exc).__name__)
+        return {}
+
+
 @router.post("/odds")
-def extension_odds(body: OddsRequest, request: Request):
+async def extension_odds(body: OddsRequest, request: Request):
     conn = picks.odds_conn(request)
+    by_route = await route_legs(request, body)
     stop = body.to
     if body.to_eva:
         row = conn.execute(
@@ -120,11 +156,18 @@ def extension_odds(body: OddsRequest, request: Request):
             )
             if result["p20"] is not None:
                 result.update(train=train, basis="history" if len(trains) == 1 else "last_train")
+            legs = by_route.get((connection.dep, train))
+            if result["p20"] is not None and legs and len(legs) > 1:
+                both = odds.connection_odds(conn, legs)
+                if both["p20"] is not None:
+                    result.update(both, train=train)  # basis "estimate", the same number as the app
         results.append(result)
     eligible = [
-        r for r in results
+        r
+        for r in results
         if not body.connections[r["i"]].posted
-        and r["p20"] is not None and r["p20"] >= picks.KURT_MIN_P20
+        and r["p20"] is not None
+        and r["p20"] >= picks.KURT_MIN_P20
         # Same rule as the app: a pick needs another train on this page to switch to.
         and picks.ride_instead(page[r["i"]], page)
     ]
