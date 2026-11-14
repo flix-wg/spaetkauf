@@ -160,6 +160,8 @@ export interface Alternative {
   compensation_eur?: number | null
 }
 export interface Trip {
+  booking_delay_excluded?: boolean
+  switching_before_departure_only?: boolean
   booked: Pick
   price_eur: number | null
   state: TripState

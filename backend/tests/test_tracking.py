@@ -104,7 +104,7 @@ def test_poll_reads_alighting_stop_and_broken_connection(settings):
 
 
 def test_switch_to_earlier_arrival_has_no_compensation_at_stake(settings):
-    tid, _ = create_trip(settings.db_path, PICK, Decimal("34.99"))
+    tid, _ = create_trip(settings.db_path, {**PICK, "dep": "2026-11-14T10:30:00Z"}, Decimal("34.99"))
     alts = [
         {"dep": "2026-11-14T10:40:00Z", "arr": "2026-11-14T11:50:00Z", "changes": 0, "trains": ["ICE 9"]},
         {"dep": "2026-11-14T11:30:00Z", "arr": "2026-11-14T13:10:00Z", "changes": 1, "trains": ["IC 1", "ICE 2"]},
@@ -315,3 +315,74 @@ def test_on_time_history_replay_finishes_without_alerts(client, settings, monkey
     conn = connect(settings.db_path)
     assert conn.execute("SELECT COUNT(*) FROM trip_alerts").fetchone()[0] == 0
     conn.close()
+
+
+def test_timetable_only_poll_preserves_live_evidence(settings):
+    data = fixture("trip_ice514.json")
+    for leg in data["legs"]:
+        leg["realTime"] = False
+    tr = Transitous(settings, httpx.MockTransport(lambda r: httpx.Response(200, json=data)))
+    pick = {**PICK, "legs": [{"trip_id": "x", "to": "Hamburg-Altona"}]}
+    tid, _ = create_trip(settings.db_path, pick)
+
+    async def notify(*args):
+        pass
+
+    async def go():
+        assert await poll(tr, pick) is None
+        view = trip_view(_row(settings.db_path, tid), latest_snapshot(settings.db_path, tid), T0)
+        assert view["delay_min"] is None and view["updated_at"] is None
+        await record(settings.db_path, tid, _snap(35), T0, notify)
+        await track_trips(tr, notify, T0 + timedelta(minutes=11))
+        await tr.aclose()
+
+    asyncio.run(go())
+    view = trip_view(_row(settings.db_path, tid), latest_snapshot(settings.db_path, tid),
+                     T0 + timedelta(minutes=11))
+    assert view["delay_min"] == 35 and view["stale"]
+    assert view["updated_at"] == "2026-11-14T10:00:00Z"
+
+
+def test_alternatives_stop_at_expected_origin_departure(client, settings, fake):
+    from app.alternatives import refresh_alternatives
+
+    tid, _ = create_trip(settings.db_path, PICK)
+    snap = {**_snap(35), "at": T0.isoformat(),
+            "raw": json.dumps({"origin_dep": "2026-11-14T10:05:00Z"})}
+    conn = connect(settings.db_path)
+    conn.execute("UPDATE trips SET alts = ? WHERE id = ?", (json.dumps([
+        {"dep": "2026-11-14T11:00:00Z", "arr": PICK["arr"], "trains": ["ICE 9"]}
+    ]), tid))
+    conn.commit()
+    conn.close()
+    row = _row(settings.db_path, tid)
+    assert trip_view(row, snap, T0)["alternatives"]
+    later = T0 + timedelta(minutes=6)
+    asyncio.run(record(settings.db_path, tid, {**_snap(35), "raw": json.loads(snap["raw"])},
+                       T0, _noop))
+    asyncio.run(refresh_alternatives(client.app.state.transitous, row, later))
+    view = trip_view(row, snap, later)
+    assert view["alternatives"] == [] and view["switching_before_departure_only"]
+    assert not any(path.endswith("/plan") for path in fake.calls)
+
+
+async def _noop(*args):
+    pass
+
+
+def test_already_posted_suppresses_threshold_alerts(client, settings):
+    tid, secret = create_trip(settings.db_path, {**PICK, "already_posted": True}, Decimal(40))
+    sent = []
+
+    async def notify(db, row, payload):
+        sent.append(payload["title"])
+
+    for delay, cancelled in [(130, False), (130, True)]:
+        fresh = asyncio.run(record(settings.db_path, tid, _snap(delay, cancelled), T0, notify))
+        assert fresh == (["cancelled"] if cancelled else [])
+    view = trip_view(_row(settings.db_path, tid), latest_snapshot(settings.db_path, tid), T0)
+    assert view["booking_delay_excluded"]
+    assert not any(t["reached"] or t["amount_eur"] for t in view["thresholds"])
+    assert sent == ["Your train is cancelled"]
+    claim = client.get(f"/api/trips/{tid}/claim", params={"secret": secret}).json()
+    assert not claim["due"] and "already posted" in claim["reason"]

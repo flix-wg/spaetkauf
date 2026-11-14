@@ -76,8 +76,24 @@ def options(plan: dict, booked_trip_ids: set[str], now: datetime) -> list[dict]:
     return out[: SHOW * 2]
 
 
+def origin_departed(row: dict, snap: dict | None, now: datetime) -> bool:
+    pick = json.loads(row["pick"])
+    raw = json.loads(snap.get("raw") or "{}") if snap else {}
+    first = (pick.get("legs") or [{}])[0]
+    dep = _t(raw.get("origin_dep") or first.get("dep") or pick.get("dep"))
+    return bool(dep and dep <= now)
+
+
 async def refresh_alternatives(tr: Transitous, row: dict, now: datetime) -> None:
     """Re-plan from the booked origin at most every 10 min; /plan is budget-limited."""
+    conn = connect(tr.settings.db_path)
+    snap = conn.execute(
+        "SELECT * FROM trip_snapshots WHERE trip_id = ? ORDER BY at DESC, rowid DESC LIMIT 1",
+        (row["id"],),
+    ).fetchone()
+    conn.close()
+    if origin_departed(row, dict(snap) if snap else None, now):
+        return
     last = _t(row.get("alts_at"))
     if last and now - last < REFRESH:
         return
@@ -107,6 +123,8 @@ async def refresh_alternatives(tr: Transitous, row: dict, now: datetime) -> None
 def alternatives_view(
     row: dict, snap: dict | None, price: Decimal | None, now: datetime
 ) -> list[dict]:
+    if origin_departed(row, snap, now):
+        return []
     pick = json.loads(row["pick"])
     sched = _t(pick.get("arr"))
     expected = _t(snap.get("expected_arr") if snap else None) or sched

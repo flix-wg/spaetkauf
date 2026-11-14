@@ -10,7 +10,7 @@ from decimal import Decimal
 from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 
-from .alternatives import alternatives_view
+from .alternatives import alternatives_view, origin_departed
 from .claim import WHERE, claim_amount, compute_claim
 from .db import connect
 from .push import check_subscription
@@ -125,21 +125,24 @@ def trip_view(row: dict, snap: dict | None, now: datetime | None = None) -> dict
         stale = now - _parse(snap["at"]) > STALE_AFTER and not finished
     else:
         stale = bool(dep and dep - timedelta(hours=3) <= now <= (arr or now) + FINISH_AFTER)
+    excluded = bool(pick.get("already_posted"))
     thresholds = []
     for at, label, pct in THRESHOLDS:
         amount = None
-        if price is not None and pct:
+        if price is not None and pct and not excluded:
             value = claim_amount(price, pct)
             amount = float(value) if value >= Decimal("4.00") else None
         thresholds.append(
-            {"at": at, "label": label, "amount_eur": amount, "reached": (delay or 0) >= at}
+            {"at": at, "label": label, "amount_eur": amount, "reached": not excluded and (delay or 0) >= at}
         )
-    state = derive_state(delay, cancelled)
+    state = derive_state(None if excluded else delay, cancelled)
     alts = []
     if state != "on_time" and not finished and not row["switched"]:
         alts = alternatives_view(row, snap, price, now)
     raw = json.loads(snap["raw"]) if snap and snap.get("raw") else {}
     return {
+        "booking_delay_excluded": excluded,
+        "switching_before_departure_only": origin_departed(row, snap, now),
         "booked": pick,
         "price_eur": float(price) if price is not None else None,
         "state": state,
@@ -296,6 +299,9 @@ def get_claim(
         view["delay_min"],
         bool(row["switched"]),
     )
+    if view["booking_delay_excluded"]:
+        result = {"due": False, "pct": 0, "amount_eur": None,
+                  "reason": "The delay was already posted when you booked; no compensation is due."}
     pick = view["booked"]
     legs = pick.get("legs") or [{}]
     first, last = legs[0], legs[-1]

@@ -25,7 +25,7 @@ const LABEL: Record<TripState, string> = {
 
 // Same moments as the push alerts, shown in the app while this screen is open.
 function alertFor(prev: TripState, t: Trip): string | null {
-  if (prev === t.state) return null
+  if (prev === t.state || (t.booking_delay_excluded && t.state !== 'cancelled')) return null
   const d = t.delay_min !== null ? `+${t.delay_min}` : ''
   const stop = t.at_stop ? stopName(t.at_stop.name) : ''
   const money = (at: number) => {
@@ -72,6 +72,7 @@ function TripBody({ ref_ }: { ref_: TripRef }) {
   const prev = useRef<TripState | null>(null)
   const [alert, setAlert] = useState<string | null>(null)
   const [gone, setGone] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
     if (state.status === 'error' && state.error instanceof ApiError && state.error.status === 404) {
@@ -81,7 +82,7 @@ function TripBody({ ref_ }: { ref_: TripRef }) {
   }, [state, ref_.id])
 
   useEffect(() => {
-    if (state.status !== 'ok') return
+    if (state.status !== 'ok' || state.stale) return
     if (prev.current && state.data.delay_min !== null) setAlert(alertFor(prev.current, state.data) ?? alert)
     prev.current = state.data.state
     setFast(state.data.is_replay && !state.data.finished)
@@ -104,15 +105,24 @@ function TripBody({ ref_ }: { ref_: TripRef }) {
       <div className="flex flex-col gap-3 px-4 pb-8 lg:px-10 lg:pb-12">
         {state.status === 'loading' && <Loading label="Kurt is checking your train…" />}
         {state.status === 'error' && <ErrorState error={state.error} retry={retry} />}
+        {deleteError && <p role="alert">{deleteError}</p>}
         {state.status === 'ok' && (
           <TripView
-            t={state.data}
+            t={{ ...state.data, stale: state.data.stale || !!state.stale }}
             ref_={ref_}
             reload={retry}
             alert={alert}
             dismiss={() => setAlert(null)}
             onDelete={async () => {
-              await api.deleteTrip(ref_).catch(() => undefined)
+              setDeleteError('')
+              try {
+                await api.deleteTrip(ref_)
+              } catch (error) {
+                if (!(error instanceof ApiError && error.status === 404)) {
+                  setDeleteError('Could not delete trip. Try again when connected.')
+                  return
+                }
+              }
               removeTrip(ref_.id)
               nav('/trips')
             }}
@@ -139,11 +149,11 @@ function TripView({
   const done = t.finished
   const finalDelay = t.final_delay_min ?? delay
   const wonUnlocked = t.state !== 'on_time'
-  const doneOk = done && finalDelay < 20 && t.state !== 'cancelled'
+  const doneOk = done && !waiting && finalDelay < 20 && t.state !== 'cancelled'
   const card = wonUnlocked && !doneOk ? 'bg-accent on-accent' : 'bg-surface'
   const cancelled = t.state === 'cancelled'
-  const showClaim = !doneOk && (done || delay >= 60)
-  const showSwitch = !done && wonUnlocked && !t.switched
+  const showClaim = !t.booking_delay_excluded && !waiting && !doneOk && (done || delay >= 60)
+  const showSwitch = !done && wonUnlocked && !t.switched && !t.stale && !t.booking_delay_excluded
   const notYet = waiting && Date.now() < new Date(b.dep).getTime() - 3 * 3600_000
   // History runs carry Berlin local times stamped as UTC (docs/replays.md), so they are shown as UTC.
   const atStop = t.delay_basis === 'at_stop'
@@ -200,7 +210,7 @@ function TripView({
         <section className={`${card} flex flex-col gap-3 rounded-[22px] p-4 lg:gap-5 lg:rounded-[28px] lg:p-7`} aria-label="Live delay">
           <div className="flex items-center justify-between gap-2">
             <span className="flex min-w-0 flex-col gap-0.5 lg:gap-1.5">
-              <span className="tag lg:!text-[16px]">{doneOk ? 'ARRIVED · ON TIME' : done ? `ARRIVED · ${LABEL[t.state]}` : waiting ? (t.is_replay ? 'REPLAY STARTING' : 'WAITING FOR LIVE DATA') : LABEL[t.state]}</span>
+              <span className="tag lg:!text-[16px]">{t.booking_delay_excluded && !cancelled ? 'DELAY KNOWN AT BOOKING' : waiting ? (t.is_replay ? 'REPLAY STARTING' : 'WAITING FOR LIVE DATA') : doneOk ? 'ARRIVED · ON TIME' : done ? `ARRIVED · ${LABEL[t.state]}` : LABEL[t.state]}</span>
               <span className="text-[13px] lg:text-[18px] lg:leading-snug">
                 {done
                   ? finalDelay < 0 ? `Arrived ${-finalDelay} min early at ${dest}` : `Final delay at ${dest}`
@@ -227,7 +237,7 @@ function TripView({
             </p>
           ) : cancelled ? (
             <p className="text-[14px] font-semibold leading-snug lg:text-[18px]">Ride any train to {dest}, or ask DB for a full refund.</p>
-          ) : doneOk ? null : (
+          ) : doneOk || t.booking_delay_excluded ? null : (
             <Meter delay={done ? finalDelay : delay} thresholds={t.thresholds} />
           )}
           {t.stale && !done && !waiting ? (
@@ -246,8 +256,13 @@ function TripView({
               {t.expected_arr && !done ? ` · now expected ${hhmm(t.expected_arr)}` : ''}
             </p>
           )}
-          {doneOk && <OnTime t={t} />}
-          {done && !doneOk && finalDelay < 60 && (
+          {t.booking_delay_excluded && (
+            <p className="text-[14px] leading-snug" role="status">
+              This delay was already posted when you booked. It does not unlock your ticket or qualify for compensation.
+            </p>
+          )}
+          {doneOk && !t.booking_delay_excluded && <OnTime t={t} />}
+          {done && !waiting && !t.booking_delay_excluded && !doneOk && finalDelay < 60 && (
             <p className="text-[14px] font-semibold leading-snug lg:text-[18px]">Unlocked, but under 60 late pays nothing back.</p>
           )}
         </section>
@@ -343,7 +358,9 @@ function SwitchOrStay({ t, ref_, reload }: { t: Trip; ref_: TripRef; reload: () 
         <p className="text-[13px] leading-snug lg:text-[16px]">
           {t.is_replay
             ? 'A replay does not look up other trains. On a live trip, the ones you can still catch appear here.'
-            : 'No other train you can still catch right now. Kurt checks again as the delay moves.'}
+            : t.switching_before_departure_only
+              ? 'Switching is only offered before departure from your booked origin.'
+              : 'No other train you can still catch right now. Kurt checks again as the delay moves.'}
         </p>
       )}
       {alts.map((a, i) => (

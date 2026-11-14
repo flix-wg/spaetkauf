@@ -105,13 +105,19 @@ async def poll(tr: Transitous, pick: dict) -> dict | None:
             log.info("trip %s: alighting stop not found", leg["trip_id"])
             return None
         reads.append(got)
+    if not all(r["realtime"] for r in reads):
+        return None
     last = reads[-1]
     at_risk = any(a["arr"] and b["dep"] and _t(a["arr"]) > _t(b["dep"]) for a, b in pairwise(reads))
     return {
         "delay_min": round((_t(last["arr"]) - _t(last["sched_arr"])).total_seconds() / 60),
         "expected_arr": last["arr"],
         "cancelled": any(r["cancelled"] for r in reads),
-        "raw": {"connection_at_risk": at_risk, "realtime": all(r["realtime"] for r in reads)},
+        "raw": {
+            "connection_at_risk": at_risk,
+            "realtime": True,
+            "origin_dep": reads[0]["dep"],
+        },
     }
 
 
@@ -205,7 +211,8 @@ async def record(
     if live and state != "on_time":
         await refresh_alternatives(tr, row, now)
         row = _load(db_path, trip_id)
-    fresh = new_alerts(db_path, trip_id, snap["delay_min"], bool(snap["cancelled"]), now)
+    alert_delay = None if json.loads(row["pick"]).get("already_posted") else snap["delay_min"]
+    fresh = new_alerts(db_path, trip_id, alert_delay, bool(snap["cancelled"]), now)
     if fresh:
         view = trip_view(row, latest_snapshot(db_path, trip_id), now)
         await notify(db_path, row, message(row, view, max(fresh, key=SEVERITY.index)))
