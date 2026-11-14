@@ -36,7 +36,7 @@ test('closed badge stays outside interactive controls and clears after removal',
   clear(doc);
   assert.equal(card.el.querySelector('spk-badge'), null);
 });
-test('content retries failed odds on the next scheduled run and caches success', async () => {
+test('content retries failed odds on its own and caches success', async () => {
   const fs = require('node:fs');
   const vm = require('node:vm');
   const dom = new JSDOM('<body><li>10:00 12:00 ICE 1 Delay</li></body>', { url: 'https://example.test/#zo=Munich&hd=2026-11-14T10:00' });
@@ -63,7 +63,7 @@ test('content retries failed odds on the next scheduled run and caches success',
   await flush(); scheduled(); await flush();
   assert.equal(calls, 1); assert.equal(renders, 0);
   assert.equal(messages.find(m => m.type === 'odds').body.connections[0].posted, true);
-  changed([{ target: context.document.body, addedNodes: [], removedNodes: [] }]);
+  scheduled(); // the retry timer, with no page change
   scheduled(); await flush();
   assert.equal(calls, 2); assert.equal(renders, 1);
   changed([{ target: context.document.body, addedNodes: [], removedNodes: [] }]);

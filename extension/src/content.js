@@ -2,6 +2,7 @@
   'use strict';
   let enabled = true;
   let timer;
+  let retry;
   let pendingSince = null;
   let generation = 0;
   let lastKey = null;
@@ -14,6 +15,7 @@
   function stop() {
     enabled = false;
     clearTimeout(timer);
+    clearTimeout(retry);
     observer.disconnect();
     removeEventListener('hashchange', schedule);
   }
@@ -96,6 +98,9 @@
     } else {
       for (const el of rendered) SpkOverlay.clear(el);
       status.error = lastResponse?.error || 'Odds unavailable';
+      // A settled page fires no mutation that would run again, so retry on a timer.
+      clearTimeout(retry);
+      retry = setTimeout(schedule, 15000);
     }
     await report(status);
   }
