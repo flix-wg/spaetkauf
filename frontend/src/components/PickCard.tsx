@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { Odds, Pick, Strike } from '../api'
+import type { HistoryQuery, Odds, Pick, Strike } from '../api'
+import { historyOf } from './HistorySheet'
 import { changesLabel, dayLabel, duration, hhmm, pct, pctNum, weekdayPlural } from '../format'
 import { Kurt, Snails } from './Kurt'
 import { IconChevron, IconExternal } from './Icons'
@@ -19,6 +20,17 @@ export function oddsLine(p: Pick) {
     return `${pctNum(o.p20)} % is for the whole trip, a missed change included.${counts ? ` ${last} alone: late ${counts}.` : ''}`
   }
   return `Late ${counts ?? days}`
+}
+
+// The odds line opens the runs behind it when the screen can show the history sheet.
+export function OddsLine({ pick, onHistory, className = '' }: { pick: Pick; onHistory?: (q: HistoryQuery) => void; className?: string }) {
+  const q = onHistory && historyOf(pick)
+  if (!q) return <p className={className}>{oddsLine(pick)}</p>
+  return (
+    <button type="button" onClick={() => onHistory(q)} className={`self-start text-left underline decoration-1 underline-offset-[3px] ${className}`}>
+      {oddsLine(pick)}
+    </button>
+  )
 }
 
 function rideLine(p: Pick, tz: string) {
@@ -61,7 +73,19 @@ export function Actions({
 }
 
 // `strike`: a strike with unclear dates, shown as a warning on the pick.
-export function KurtsPick({ pick, tz, strike, onBook }: { pick: Pick; tz: string; strike: Strike | null; onBook: (p: Pick) => void }) {
+export function KurtsPick({
+  pick,
+  tz,
+  strike,
+  onBook,
+  onHistory,
+}: {
+  pick: Pick
+  tz: string
+  strike: Strike | null
+  onBook: (p: Pick) => void
+  onHistory?: (q: HistoryQuery) => void
+}) {
   const ride = rideLine(pick, tz)
   const o = pick.odds
   const has = hasOdds(o)
@@ -94,7 +118,7 @@ export function KurtsPick({ pick, tz, strike, onBook }: { pick: Pick; tz: string
           )}
         </div>
       </div>
-      <p className="-mt-1 text-[13px] font-semibold lg:text-[16px] lg:leading-snug">{oddsLine(pick)}</p>
+      <OddsLine pick={pick} onHistory={onHistory} className="-mt-1 text-[13px] font-semibold lg:text-[16px] lg:leading-snug" />
       {strike && <StrikeLine s={strike} tone="card" />}
       {ride ? (
         <div className="flex flex-col gap-0.5 rounded-xl bg-white p-3 lg:gap-1 lg:rounded-2xl lg:p-4">
@@ -114,7 +138,17 @@ export function KurtsPick({ pick, tz, strike, onBook }: { pick: Pick; tz: string
   )
 }
 
-export function CompactPick({ pick, tz, onBook }: { pick: Pick; tz: string; onBook: (p: Pick) => void }) {
+export function CompactPick({
+  pick,
+  tz,
+  onBook,
+  onHistory,
+}: {
+  pick: Pick
+  tz: string
+  onBook: (p: Pick) => void
+  onHistory?: (q: HistoryQuery) => void
+}) {
   const [open, setOpen] = useState(false)
   const ride = rideLine(pick, tz)
   const o = pick.odds
@@ -159,8 +193,8 @@ export function CompactPick({ pick, tz, onBook }: { pick: Pick; tz: string; onBo
       </button>
       {open && (
         <div className="flex flex-col gap-3 border-t border-line px-3.5 pb-3.5 pt-3 lg:px-5 lg:pb-5">
-          <div className="text-[13px] leading-snug lg:text-[15px]">
-            <p className="font-semibold">{oddsLine(pick)}</p>
+          <div className="flex flex-col text-[13px] leading-snug lg:text-[15px]">
+            <OddsLine pick={pick} onHistory={onHistory} className="font-semibold" />
             <p className="text-muted">
               {changesLabel(pick.changes)} · {duration(pick.duration_min)} · {pick.legs.map((l) => l.train).join(' + ')}
             </p>
