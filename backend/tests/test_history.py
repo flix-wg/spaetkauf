@@ -10,7 +10,7 @@ from app.main import create_app
 # 2026-11-07 and 2026-11-14 are Saturdays, 2026-11-13 a Friday.
 # ICE 1103 runs Frankfurt (dep) -> Muenchen (arr); run 3 is cancelled at Muenchen, run 4 is 130 min late.
 # (run id, day, minute of day at Muenchen, delay, cancelled)
-MUC = [(1, "2026-11-07", 600, 25, False), (2, "2026-11-13", 605, 3, False),
+MUC = [(1, "2026-11-07", 600, 25, False), (2, "2026-11-13", 600, 3, False),
        (3, "2026-11-14", 610, None, True), (4, "2026-11-14", 1300, 130, False)]  # fmt: skip
 
 
@@ -73,7 +73,7 @@ def test_stop_board_and_route(client):
     route = client.get(
         "/api/history/route", params={"from": "Frankfurt", "to": "München Hbf"}
     ).json()
-    assert route["trains"] == [{"train": "ICE 1103", "n": 4, "dep": "07:07", "arr": "10:07",
+    assert route["trains"] == [{"train": "ICE 1103", "n": 4, "dep": "07:00", "arr": "10:00",
                                 "late20": 3, "late20_share": 0.75, "late60": 2, "late60_share": 0.5,
                                 "median_delay_min": 25.0}]  # fmt: skip
     back = client.get(

@@ -88,7 +88,14 @@ def rate(stats: dict, threshold: int, m: float) -> float:
     )
 
 
-def _reach(conn: sqlite3.Connection, legs: list[dict], m: float) -> tuple[float, dict] | None:
+def _upper(stats: dict, threshold: int, m: float) -> float:
+    """The larger of the raw and the shrunk share: shrinkage must not pull a bound down."""
+    return max(rate(stats, threshold, m), rate(stats, threshold, 0))
+
+
+def _reach(
+    conn: sqlite3.Connection, legs: list[dict], m: float, rate_fn=rate
+) -> tuple[float, dict] | None:
     """(share of runs making every change, history of the last leg); None when a leg has none."""
     stats = [leg_odds(conn, leg["train"], leg["to"], leg["arr"]) for leg in legs]
     if any(s["status"] != "ok" for s in stats):
@@ -96,7 +103,7 @@ def _reach(conn: sqlite3.Connection, legs: list[dict], m: float) -> tuple[float,
     reach = 1.0
     for leg, nxt, s in zip(legs, legs[1:], stats):
         change_min = (_t(nxt["dep"]) - _t(leg["arr"])).total_seconds() / 60
-        reach *= 1 - rate(s, bucket_at_or_below(change_min - CHANGE_MARGIN_MIN), m)
+        reach *= 1 - rate_fn(s, bucket_at_or_below(change_min - CHANGE_MARGIN_MIN), m)
     return reach, stats[-1]
 
 
@@ -105,15 +112,15 @@ def miss_odds(
 ) -> float | None:
     """Upper bound on arriving more than `spare_min` late: the last leg's share at the largest
     bucket at or below spare_min, and every missed change counts as a miss. 1.0 below the finest
-    bucket (5 min); None without history."""
+    bucket (5 min); None without history. Each share is the larger of raw and shrunk."""
     m = SHRINK_M if m is None else m
-    parts = _reach(conn, legs, m)
+    parts = _reach(conn, legs, m, _upper)
     if parts is None:
         return None
     if spare_min < BUCKETS[0]:
         return 1.0
     reach, end = parts
-    return round(1 - reach * (1 - rate(end, bucket_at_or_below(spare_min), m)), 4)
+    return round(1 - reach * (1 - _upper(end, bucket_at_or_below(spare_min), m)), 4)
 
 
 def connection_odds(conn: sqlite3.Connection, legs: list[dict], m: float | None = None) -> dict:

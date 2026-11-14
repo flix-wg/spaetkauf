@@ -107,10 +107,10 @@ def main() -> None:
     con.execute("CHECKPOINT out")
     con.execute("DETACH out")
     con.close()
-    tmp.replace(args.out)
     print(f"{args.out.name}: {n_all} events ({n_arr} with an arrival), {n_runs} runs, "
-          f"{args.out.stat().st_size / 1e6:.1f} MB, {time.time() - t0:.0f} s", flush=True)
-    check_against_odds(args.out, ODDS)
+          f"{tmp.stat().st_size / 1e6:.1f} MB, {time.time() - t0:.0f} s", flush=True)
+    check_against_odds(tmp, ODDS)  # exits before the rename, so a failed build keeps the old file
+    tmp.replace(args.out)
 
 
 def check_against_odds(history: Path, odds: Path) -> None:

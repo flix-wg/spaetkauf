@@ -198,7 +198,8 @@ def route(
     weekday: int | None = Query(None, ge=0, le=6),
     cur=Cursor,
 ):
-    """Trains that served `from` and then `to` on the same run, with how late they arrived at `to`."""
+    """Trains that served `from` and then `to` on the same run, with how late they arrived at `to`.
+    dep/arr are the most common scheduled times (a median would invent times across midnight)."""
     stops = _all_stops(cur)
     a_key, a_name = _find_stop(from_, stops, "in the history")
     b_key, b_name = _find_stop(to, stops, "in the history")
@@ -218,7 +219,7 @@ def route(
               {extra})
         SELECT t.train_type::VARCHAR, t.train_number, count(*) AS n,
                sum({LATE.format("j", 20)}::INT), sum({LATE.format("j", 60)}::INT),
-               median(j.arr_delay), median(j.dep_min), median(j.arr_min)
+               median(j.arr_delay), mode(j.dep_min), mode(j.arr_min)
         FROM j JOIN trains t ON t.id = j.train_id
         GROUP BY t.train_type, t.train_number ORDER BY n DESC LIMIT {MAX_ROUTE_TRAINS}
         """,
