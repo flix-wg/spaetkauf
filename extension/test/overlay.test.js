@@ -1,0 +1,35 @@
+'use strict';
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+globalThis.SpkParse = require('../src/parse.js');
+const { text, render, clear } = require('../src/overlay.js');
+const { JSDOM } = require('jsdom');
+const result = { p20: 0.41, late: 14, n: 34, weekday: 'Saturday', basis: 'history', kurt: false };
+const card = { trains: ['ICE 599'] };
+test('odds text, Kurt, changes and missing history', () => {
+  assert.deepEqual(text(result, card), { line: '41 % chance of 20+ min late · 14 of 34 Saturdays were', kurt: false });
+  assert.equal(text({ ...result, kurt: true }, card).line, 'Kurt: 41 % chance of 20+ min late · 14 of 34 Saturdays were');
+  assert.equal(text({ ...result, p20: 0.416, basis: 'last_train' }, card).line, '42 % chance of 20+ min late · 14 of 34 Saturdays were · last train only, changes not counted');
+  assert.equal(text({ ...result, p20: null, basis: 'none', train: 'ICE 599' }, card).line, 'No history for this train yet');
+  assert.equal(text({ ...result, p20: NaN }, { trains: ['ICE 599', 'RE 4'] }).line, 'No odds: last leg is a regional train');
+});
+test('closed badge stays outside interactive controls and clears after removal', () => {
+  const dom = new JSDOM('<article><button><span>Train</span></button><button>Weiter</button></article>');
+  const doc = dom.window.document;
+  const card = { el: doc.querySelector('article'), core: doc.querySelector('span') };
+  let clicks = 0;
+  card.el.addEventListener('click', () => clicks++);
+  const host = render(card, result, { server: 'https://example.test', link: '/' });
+  assert.equal(host.previousElementSibling, doc.querySelector('button'));
+  assert.equal(host.shadowRoot, null);
+  host.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+  assert.equal(clicks, 0);
+  const stray = host.cloneNode(true);
+  card.el.append(stray);
+  render(card, result, { server: 'https://example.test', link: '/' });
+  assert.equal(stray.isConnected, false);
+  assert.equal(doc.querySelectorAll('spk-badge').length, 1);
+  card.el.remove();
+  clear(doc);
+  assert.equal(card.el.querySelector('spk-badge'), null);
+});

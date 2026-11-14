@@ -5,6 +5,12 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS http_cache (
   key TEXT PRIMARY KEY, fetched_at REAL NOT NULL, body TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS ext_adapt (
+  hash TEXT PRIMARY KEY,
+  status TEXT NOT NULL CHECK (status IN ('pending', 'ok', 'failed')),
+  spec TEXT, updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS ext_adapt_budget (day TEXT PRIMARY KEY, used INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS plan_budget (day TEXT PRIMARY KEY, used INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS trips (
   id TEXT PRIMARY KEY,
