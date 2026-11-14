@@ -105,6 +105,7 @@ export function Search() {
   const [to, setTo] = useState<Field>({ text: sp.get('tn') ?? '', station: null })
   const [date, setDate] = useState(sp.get('date') ?? todayISO())
   const [time, setTime] = useState(sp.get('time') ?? nowHHMM())
+  const [mode, setMode] = useState<'depart' | 'arrive'>(sp.get('mode') === 'arrive' ? 'arrive' : 'depart')
   const [errs, setErrs] = useState<{ from?: string; to?: string }>({})
   const [busy, setBusy] = useState(false)
 
@@ -132,6 +133,7 @@ export function Search() {
     setFrom({ text: a.value.name, station: a.value })
     setTo({ text: b.value.name, station: b.value })
     const p = new URLSearchParams({ from: a.value.id, to: b.value.id, fn: a.value.name, tn: b.value.name, date, time })
+    if (mode === 'arrive') p.set('mode', 'arrive')
     const path = `/picks?${p}`
     try {
       sessionStorage.setItem('spaetkauf.lastSearch', path)
@@ -174,6 +176,20 @@ export function Search() {
               <IconSwap size={20} className="rotate-90" />
             </button>
           </div>
+          <div role="radiogroup" aria-label="The time is when you" className="grid grid-cols-2 gap-1 rounded-xl bg-surface p-1">
+            {(['depart', 'arrive'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                role="radio"
+                aria-checked={mode === m}
+                onClick={() => setMode(m)}
+                className={`min-h-[44px] rounded-lg text-[15px] font-semibold ${mode === m ? 'bg-white text-ink shadow-[0_1px_2px_rgba(20,22,26,0.12)]' : 'text-muted hover:text-ink'}`}
+              >
+                {m === 'depart' ? 'Depart at' : 'Arrive by'}
+              </button>
+            ))}
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label htmlFor="date" className="mb-1 block text-[13px] font-semibold text-muted">Date</label>
@@ -181,7 +197,7 @@ export function Search() {
                 className="h-[52px] w-full min-w-0 rounded-xl border-[1.5px] border-line bg-white px-3 text-[16px] font-semibold focus:border-ink" />
             </div>
             <div>
-              <label htmlFor="time" className="mb-1 block text-[13px] font-semibold text-muted">Time</label>
+              <label htmlFor="time" className="mb-1 block text-[13px] font-semibold text-muted">{mode === 'arrive' ? 'Arrive by' : 'Depart at'}</label>
               <input id="time" type="time" required value={time} onChange={(e) => setTime(e.target.value)}
                 className="h-[52px] w-full min-w-0 rounded-xl border-[1.5px] border-line bg-white px-3 text-[16px] font-semibold focus:border-ink" />
             </div>

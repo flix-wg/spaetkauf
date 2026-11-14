@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom'
-import { api, ApiError, type Pick } from '../api'
+import { api, ApiError, type HistoryQuery, type Pick } from '../api'
+import { ArriveKurtsPick, ArrivePick } from '../components/ArriveCard'
+import { HistorySheet } from '../components/HistorySheet'
 import { BookSheet } from '../components/BookSheet'
 import { IconChevron } from '../components/Icons'
 import { Kurt } from '../components/Kurt'
@@ -8,7 +10,7 @@ import { CompactPick, KurtsPick, StrikeCall } from '../components/PickCard'
 import { ScreenHeader } from '../components/Shell'
 import { SignalsArea, StrikeLine } from '../components/Signals'
 import { Empty, ErrorState, Loading } from '../components/States'
-import { dayLabel, shortStation } from '../format'
+import { dayLabel, hhmm, shortStation } from '../format'
 import { useAsync } from '../hooks'
 import { useSheet } from '../sheets'
 
@@ -21,9 +23,14 @@ export function Picks() {
   const to = sp.get('to') ?? ''
   const date = sp.get('date') ?? ''
   const time = sp.get('time') ?? ''
+  const arrive = sp.get('mode') === 'arrive'
   const [booking, setBooking] = useState<Pick | null>(null)
+  const [hist, setHist] = useState<HistoryQuery | null>(null)
 
-  const [picks, retry] = useAsync(() => api.picks({ from, to, date, time }), [from, to, date, time])
+  const [picks, retry] = useAsync(
+    () => api.picks({ from, to, date, time, mode: arrive ? 'arrive' : undefined }),
+    [from, to, date, time, arrive],
+  )
   // Signals search by city name; ids would make a useless news query.
   const fn = sp.get('fn') || from
   const tn = sp.get('tn') || to
@@ -49,7 +56,10 @@ export function Picks() {
   tryQ.delete('sheet')
   if (strike?.try_date) tryQ.set('date', strike.try_date)
   const tryHref = strike?.try_date ? `/picks?${tryQ}` : null
-  const back = `/?${new URLSearchParams({ fn: sp.get('fn') ?? '', tn: sp.get('tn') ?? '', date, time })}`
+  const back = `/?${new URLSearchParams({ fn: sp.get('fn') ?? '', tn: sp.get('tn') ?? '', date, time, ...(arrive ? { mode: 'arrive' } : {}) })}`
+  const by = res?.arrive_by ? hhmm(res.arrive_by, res.tz) : time
+  const late = res?.picks.filter((p) => p.group === 'late_ok' && !p.is_kurts_pick) ?? []
+  const onTime = res?.picks.filter((p) => p.group === 'on_time' && !p.is_kurts_pick) ?? []
 
   return (
     <>
@@ -64,6 +74,7 @@ export function Picks() {
             <span className="min-w-0 py-2 leading-snug">
               {shortStation(sp.get('fn'))} → {shortStation(sp.get('tn'))}{' '}
               <span className="whitespace-nowrap">· {date ? dayLabel(`${date}T12:00:00Z`) : ''}</span>
+              {arrive && <span className="whitespace-nowrap"> · by {time}</span>}
             </span>
             <span className="shrink-0 pl-2 text-[13px] font-normal text-muted lg:text-[15px]">change</span>
           </Link>
@@ -73,9 +84,11 @@ export function Picks() {
           {picks.status === 'ok' && picks.data.picks.length > 0 && (
             <>
               {picks.data.picks.map((p) =>
-                p.is_kurts_pick ? (
-                  <KurtsPick key={p.id} pick={p} tz={picks.data.tz} strike={call === 'strike_unclear' ? strike : null} onBook={setBooking} />
-                ) : null,
+                !p.is_kurts_pick ? null : arrive ? (
+                  <ArriveKurtsPick key={p.id} pick={p} tz={picks.data.tz} by={by} strike={call === 'strike_unclear' ? strike : null} onBook={setBooking} onHistory={setHist} />
+                ) : (
+                  <KurtsPick key={p.id} pick={p} tz={picks.data.tz} strike={call === 'strike_unclear' ? strike : null} onBook={setBooking} onHistory={setHist} />
+                ),
               )}
               {strike && !strikeDay && call !== 'strike_unclear' && <StrikeLine s={strike} tone="plain" />}
               {!hasKurts && !strikeDay && (
@@ -84,8 +97,9 @@ export function Picks() {
                   <span className="flex flex-col gap-1">
                     <span className="font-display text-[18px] font-bold leading-tight lg:text-[24px]">Kurt has no pick here</span>
                     <span className="text-[13px] leading-snug text-muted lg:text-[16px]">
-                      Kurt only picks a train that is 20+ late on at least 3 of 10 runs and has a better one to ride
-                      instead. None of these does. Their odds are below; another time of day may do better.
+                      {arrive
+                        ? `No late train fits the cap. Kurt only picks a train that still arrives by ${by} when it runs 20+ late, misses ${by} on at most 1 in 10 runs, and is 20+ late on at least 3 of 10. The trains that arrive by ${by} are listed with their odds.`
+                        : 'Kurt only picks a train that is 20+ late on at least 3 of 10 runs and has a better one to ride instead. None of these does. Their odds are below; another time of day may do better.'}
                     </span>
                   </span>
                 </section>
@@ -127,7 +141,30 @@ export function Picks() {
               Kurt found no ICE, IC or EC connection for this route and time.
             </Empty>
           )}
-          {picks.status === 'ok' && picks.data.picks.length > 0 && (
+          {picks.status === 'ok' && picks.data.picks.length > 0 && arrive && (
+            <>
+              {(
+                [
+                  ['Late still works', `Even 20+ min late, these arrive by ${by}.`, late],
+                  ['On time', `These make ${by} only if they run close to time.`, onTime],
+                ] as const
+              ).map(([title, sub, list]) =>
+                list.length === 0 ? null : (
+                  <section key={title} className="flex flex-col gap-3" aria-label={title}>
+                    <h2 className="mt-1 flex flex-col font-display text-[18px] font-bold lg:mt-0 lg:text-[26px]">
+                      {title}
+                      <span className="font-sans text-[13px] font-normal text-muted lg:text-[15px]">{sub}</span>
+                    </h2>
+                    {list.map((p) => (
+                      <ArrivePick key={p.id} pick={p} tz={picks.data.tz} by={by} onBook={setBooking} onHistory={setHist} />
+                    ))}
+                  </section>
+                ),
+              )}
+              {picks.data.note && <p className="px-1 text-[12px] text-muted lg:text-[14px]">{picks.data.note}</p>}
+            </>
+          )}
+          {picks.status === 'ok' && picks.data.picks.length > 0 && !arrive && (
             <>
               {picks.data.picks.some((p) => !p.is_kurts_pick) && (
                 <h2 className="mt-1 flex items-center gap-1 font-display text-[18px] font-bold lg:mt-0 lg:min-h-[60px] lg:text-[26px]">
@@ -137,7 +174,7 @@ export function Picks() {
               {picks.data.picks
                 .filter((p) => !p.is_kurts_pick)
                 .map((p) => (
-                  <CompactPick key={p.id} pick={p} tz={picks.data.tz} onBook={setBooking} />
+                  <CompactPick key={p.id} pick={p} tz={picks.data.tz} onBook={setBooking} onHistory={setHist} />
                 ))}
               {picks.data.note && <p className="px-1 text-[12px] text-muted lg:text-[14px]">{picks.data.note}</p>}
             </>
@@ -150,6 +187,7 @@ export function Picks() {
           )}
         </div>
       </div>
+      {hist && <HistorySheet q={hist} onClose={() => setHist(null)} />}
       {booking && picks.status === 'ok' && <BookSheet pick={booking} tz={picks.data.tz} onClose={() => setBooking(null)} />}
     </>
   )
