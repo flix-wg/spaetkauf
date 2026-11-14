@@ -14,7 +14,7 @@ FIXTURES = Path(__file__).parent / "fixtures"
 @pytest.fixture(autouse=True)
 def clear_service_credentials(monkeypatch):
     for key in (
-        "EXA_API_KEY", "CONTEXT_API_KEY", "CONTEXT_WEBHOOK_SECRET",
+        "ANTHROPIC_API_KEY", "EXA_API_KEY", "CONTEXT_API_KEY", "CONTEXT_WEBHOOK_SECRET",
         "VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY", "VAPID_SUBJECT",
     ):
         monkeypatch.setenv(key, "")

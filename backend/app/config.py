@@ -24,6 +24,8 @@ class Settings:
     loop: bool = True
     exa_key: str = ""
     context_key: str = ""
+    anthropic_key: str = ""
+    adapt_daily_cap: int = 50
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -39,4 +41,6 @@ class Settings:
             loop=env.get("SPAETKAUF_LOOP", "1") != "0",
             exa_key=env.get("EXA_API_KEY", ""),
             context_key=env.get("CONTEXT_API_KEY", ""),
+            anthropic_key=env.get("ANTHROPIC_API_KEY", ""),
+            adapt_daily_cap=int(env.get("SPAETKAUF_ADAPT_DAILY_CAP") or cls.adapt_daily_cap),
         )

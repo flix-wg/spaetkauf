@@ -5,7 +5,7 @@ import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 
-from . import __version__, board, history, picks, push, replay, signals, stations, trips
+from . import __version__, board, ext, history, picks, push, replay, signals, stations, trips
 from .config import REPO_ROOT, Settings
 from .db import init_db
 from .loop import run_loop
@@ -55,11 +55,13 @@ def create_app(
             "sources": {
                 "transitous": {None: "unknown", True: "ok", False: "unavailable"}[tr.last_ok],
                 "exa": "configured" if settings.exa_key else "missing",
+                "adapter": "configured" if settings.anthropic_key else "missing",
                 "context": "configured" if settings.context_key else "missing",
             },
             "plan_budget_left": tr.budget_left(),
         }
 
+    app.include_router(ext.router)
     app.include_router(stations.router)
     app.include_router(trips.router)
     app.include_router(board.router)
