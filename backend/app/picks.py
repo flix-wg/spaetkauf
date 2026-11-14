@@ -10,7 +10,7 @@ from urllib.parse import quote
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
-from .matching import parse_train, station_tokens
+from .matching import parse_train, station_key, station_tokens
 from .odds import BERLIN, connection_odds, miss_odds, odds_path, open_odds
 from .signals import strike_signal
 from .stations import rail_stops
@@ -155,11 +155,31 @@ def ride_instead(booked: dict, others: list[dict]) -> dict | None:
     }
 
 
-def bahn_url(from_name: str, to_name: str, dep: str) -> str:
+def station_eva(conn: sqlite3.Connection, name: str) -> str | None:
+    """The EVA number most runs at this station name carry in the odds, without leading zeros."""
+    row = conn.execute(
+        "SELECT eva FROM train_stop_stats WHERE station_key = ? GROUP BY eva ORDER BY sum(n) DESC LIMIT 1",
+        (station_key(name),),
+    ).fetchone()
+    return row[0].lstrip("0") if row else None
+
+
+def _station_id(name: str, eva: str) -> str:
+    return quote(f"A=1@O={name}@L={eva}@", safe="")
+
+
+def bahn_url(from_name: str, to_name: str, dep: str, conn: sqlite3.Connection | None = None) -> str:
+    """bahn.de fills in the stations only when soid/zoid carry their EVA numbers (without them the
+    search opens empty), so they are added whenever the odds know both stations."""
     local = _t(dep).astimezone(BERLIN).strftime("%Y-%m-%dT%H:%M:%S")
+    ids = ""
+    if conn is not None:
+        src, dst = station_eva(conn, from_name), station_eva(conn, to_name)
+        if src and dst:
+            ids = f"&soid={_station_id(from_name, src)}&zoid={_station_id(to_name, dst)}"
     return (
         "https://www.bahn.de/buchung/fahrplan/suche#sts=true"
-        f"&so={quote(from_name, safe='')}&zo={quote(to_name, safe='')}&hd={local}"
+        f"&so={quote(from_name, safe='')}&zo={quote(to_name, safe='')}{ids}&hd={local}"
         "&hza=D&ar=false&s=true&d=false&fm=false&bp=false"
     )
 
@@ -328,7 +348,7 @@ async def picks(
         fill_names(p["legs"], src_name, dst_name)
         p["odds"] = connection_odds(conn, p["legs"])
         p["ride_instead"] = ride_instead(p, found)
-        p["bahn_url"] = bahn_url(src_name, dst_name, p["dep"])
+        p["bahn_url"] = bahn_url(src_name, dst_name, p["dep"], conn)
         if arrive:
             arrive_fields(conn, p, start)
     ranked = rank_arrive(found) if arrive else rank(found)

@@ -1,3 +1,4 @@
+import sqlite3
 from datetime import UTC, datetime, timedelta
 
 import httpx
@@ -192,3 +193,16 @@ def test_kurt_call_follows_strike_announcements(make_client, settings, trains, t
         assert strike["dates"] is None and not strike["covers_date"] and not strike["test"]
     else:
         assert strike is None
+
+
+def test_bahn_url_carries_station_ids_so_bahn_de_fills_them_in():
+    conn = sqlite3.connect(":memory:")
+    conn.execute("CREATE TABLE train_stop_stats (station_key TEXT, eva TEXT, n INT)")
+    conn.executemany("INSERT INTO train_stop_stats VALUES (?, ?, ?)",
+                     [("hamburg", "08002549", 9), ("muenchen", "08000261", 9), ("muenchen", "08098262", 1)])  # fmt: skip
+    url = picks.bahn_url("Hamburg Hbf", "München Hbf", "2026-11-16T07:01:00+00:00", conn)
+    assert (
+        "&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40"
+        in url
+    )
+    assert "soid" not in picks.bahn_url("Nowhere", "München Hbf", "2026-11-16T07:01:00+00:00", conn)
