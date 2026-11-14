@@ -312,7 +312,7 @@ const tripPath = (id: string, secret: string, sub = '') => `/api/trips/${encodeU
 export const api = {
   health: () => call<Health>('GET', '/api/health'),
   stations: (q: string) => call<Station[]>('GET', `/api/stations${qs({ q })}`),
-  picks: (p: { from: string; to: string; date: string; time: string; mode?: 'arrive' }) =>
+  picks: (p: { from: string; to: string; date: string; time: string; mode?: 'arrive'; before?: string }) =>
     call<PicksResponse>('GET', `/api/picks${qs(p)}`),
   history: (h: HistoryQuery) =>
     call<HistoryRuns>('GET', `/api/history${qs({ train: h.train, stop: h.stop, weekday: h.weekday?.toString() })}`),

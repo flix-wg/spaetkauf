@@ -39,6 +39,7 @@ function rideLine(p: Pick, tz: string) {
   return {
     times: `${hhmm(r.dep, tz)} → ${hhmm(r.arr, tz)}`,
     what: `${r.trains.join(' + ')}${r.changes === 0 ? ' · direct' : ` · ${changesLabel(r.changes)}`}`,
+    earlier: r.dep < p.dep,
   }
 }
 
@@ -117,6 +118,7 @@ export function KurtsPick({
           <span className="tag text-accent-text lg:!text-[13px]">IF LATE, RIDE</span>
           <span className="mono text-[20px] font-bold leading-tight lg:text-[28px]">{ride.times}</span>
           <span className="text-[13px] font-semibold lg:text-[16px]">{ride.what}</span>
+          {ride.earlier && <span className="text-[12px] lg:text-[14px]">Earlier: only if the delay is posted in time</span>}
         </div>
       ) : null}
       <Actions pick={pick} onBook={onBook} tone="accent" />
@@ -188,6 +190,7 @@ export function CompactPick({
               <span className="tag text-accent-text">IF LATE, RIDE</span>
               <p className="mono text-[16px] font-bold lg:text-[20px]">{ride.times}</p>
               <p className="text-[13px] font-semibold lg:text-[15px]">{ride.what}</p>
+              {ride.earlier && <p className="text-[12px] lg:text-[14px]">Earlier: only if the delay is posted in time</p>}
             </div>
           )}
           <Actions pick={pick} onBook={onBook} tone="plain" />

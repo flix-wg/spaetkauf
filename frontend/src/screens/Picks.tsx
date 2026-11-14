@@ -15,6 +15,27 @@ import { useAsync } from '../hooks'
 import { useSheet } from '../sheets'
 
 
+const BEFORE_KEY = 'spaetkauf.rideBefore'
+
+function useEarlier() {
+  const [on, setOn] = useState(() => {
+    try {
+      return localStorage.getItem(BEFORE_KEY) === '60'
+    } catch {
+      return false
+    }
+  })
+  const set = (v: boolean) => {
+    setOn(v)
+    try {
+      localStorage.setItem(BEFORE_KEY, v ? '60' : '0')
+    } catch {
+      /* ignore */
+    }
+  }
+  return [on, set] as const
+}
+
 export function Picks() {
   const [sp] = useSearchParams()
   const { search } = useLocation()
@@ -26,10 +47,11 @@ export function Picks() {
   const arrive = sp.get('mode') === 'arrive'
   const [booking, setBooking] = useState<Pick | null>(null)
   const [hist, setHist] = useState<HistoryQuery | null>(null)
+  const [earlier, setEarlier] = useEarlier()
 
   const [picks, retry] = useAsync(
-    () => api.picks({ from, to, date, time, mode: arrive ? 'arrive' : undefined }),
-    [from, to, date, time, arrive],
+    () => api.picks({ from, to, date, time, mode: arrive ? 'arrive' : undefined, before: !arrive && earlier ? '60' : undefined }),
+    [from, to, date, time, arrive, earlier],
   )
   // Signals search by city name; ids would make a useless news query.
   const fn = sp.get('fn') || from
@@ -108,6 +130,12 @@ export function Picks() {
                   How good is Kurt?
                 </button>
               </p>
+              {!arrive && (
+                <label className="flex min-h-[44px] items-center gap-2 px-1 text-[13px] lg:text-[15px]">
+                  <input type="checkbox" checked={earlier} onChange={(e) => setEarlier(e.target.checked)} className="size-4 accent-[#FD4F00]" />
+                  Ride instead: also up to 1 h earlier
+                </label>
+              )}
             </>
           )}
         </div>
