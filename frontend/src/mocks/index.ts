@@ -152,6 +152,7 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
       ...(flag('banner') === '0' ? [] : [page]),
     ]
     if (mode === 'unavailable') return out({ status: 'unavailable', checked_at, items: [], banners: [], strike })
+    if (mode === 'capped') return out({ status: 'capped', checked_at, items: [], banners, strike })
     if (mode === 'empty') return out({ status: 'empty', checked_at, items: [], banners, strike })
     return out({
       status: 'ok', checked_at, banners, strike,

@@ -30,6 +30,7 @@ def result(n: int, host: str = "news.example", **summary) -> dict:
     s = {
         "kind": "strike",
         "relevant": True,
+        "affects_long_distance_on_route": True,
         "date_from": "2026-11-15",
         "date_to": None,
         "reason": f"r{n}",
@@ -176,7 +177,57 @@ def test_exa_daily_budget_caps_paid_calls(tmp_path, monkeypatch):
         c.get("/api/signals", params={**PARAMS, "date": f"2026-11-{d}"}).json()["status"]
         for d in (15, 16, 17)
     ]
-    assert answers == ["empty", "empty", "unavailable"] and len(exa.bodies) == 2
+    assert answers == ["empty", "empty", "capped"] and len(exa.bodies) == 2
+
+
+def test_exa_rejection_gives_the_budget_back(tmp_path, monkeypatch):
+    monkeypatch.setenv("SPAETKAUF_EXA_BUDGET", "1")
+    replies = [httpx.Response(503), httpx.Response(200, json={"results": [result(1)]})]
+    c = make_client(tmp_path, lambda request: replies.pop(0))
+    assert c.get("/api/signals", params=PARAMS).json()["status"] == "unavailable"
+    assert c.get("/api/signals", params=PARAMS).json()["status"] == "ok"
+    assert replies == []
+
+
+def test_only_items_on_the_route_for_long_distance_are_kept(tmp_path):
+    params = {"from": "München Hbf", "to": "Zürich HB", "date": "2026-11-22"}
+    on_route = {"date_from": "2026-11-22"}
+    exa = Exa([
+        result(1, **on_route, affects_long_distance_on_route=False,
+               reason="The Nürnberg–Ingolstadt line is closed; ICEs run via Augsburg."),
+        result(2, **on_route, affects_long_distance_on_route=None, reason="Schema miss."),
+        result(3, **on_route, reason="Works on the S-Bahn trunk line; not long-distance."),
+        result(4, **on_route, reason="Die Sperrung betrifft nicht den Fernverkehr."),
+        result(5, **on_route, reason="Track works affect only S-Bahn and RE trains near Lindau."),
+        result(6, **on_route, reason="Bauarbeiten bei Kempten, nur Regionalzüge sind betroffen."),
+        result(7, **on_route, reason="Strike: only regional trains run, no EC to Zürich."),
+        result(8, **on_route, reason="Track closure at Lindau diverts EC trains to Zürich."),
+    ])
+    c = make_client(tmp_path, exa)
+    assert [i["reason"] for i in c.get("/api/signals", params=params).json()["items"]] == [
+        "Strike: only regional trains run, no EC to Zürich.",
+        "Track closure at Lindau diverts EC trains to Zürich.",
+    ]
+    schema = exa.bodies[0]["contents"]["summary"]["schema"]
+    question = schema["properties"]["affects_long_distance_on_route"]["description"]
+    assert "affects_long_distance_on_route" in schema["required"]
+    assert all(w in question for w in ("München", "Zürich", "2026-11-22"))
+
+
+def test_answers_cached_before_the_route_check_are_not_served(tmp_path):
+    exa = Exa([result(1)])
+    c = make_client(tmp_path, exa)
+    conn = connect(c.app.state.settings.db_path)
+    ensure_schema(conn)
+    old = hashlib.sha256(b"hamburg|berlin|2026-11-15").hexdigest()
+    with conn:
+        conn.execute(
+            "INSERT INTO signals_cache(key, fetched_at, items) VALUES (?, ?, ?)",
+            (old, time.time(), json.dumps([{"reason": "Old off-route closure."}])),
+        )
+    conn.close()
+    assert c.get("/api/signals", params=PARAMS).json()["items"][0]["reason"] == "r1"
+    assert len(exa.bodies) == 1
 
 
 REF = date(2026, 11, 14)

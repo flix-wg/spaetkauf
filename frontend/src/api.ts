@@ -127,7 +127,7 @@ export interface SignalItem {
   url: string
 }
 export interface SignalsResponse {
-  status: 'ok' | 'empty' | 'unavailable'
+  status: 'ok' | 'empty' | 'unavailable' | 'capped'
   checked_at: string
   items: SignalItem[]
   banners: Banner[]

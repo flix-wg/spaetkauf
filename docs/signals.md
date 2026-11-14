@@ -8,8 +8,11 @@ a strike for the travel date changes Kurt's call (see "Strike call" below).
 - `GET /api/signals?from=&to=&date=` runs one Exa search per corridor and date: German keywords
   (Streik, Warnstreik, Streckensperrung, Bauarbeiten, Sturm) plus the two city names, news only,
   published in the last 21 days, 8 results, each with a structured English summary
-  (`kind`, `relevant`, `date_from`, `date_to`, `reason`). Station names lose "Hbf" and similar.
-- Answers are cached 6 h in SQLite, keyed by normalised from, to and date. Failures are not cached.
+  (`kind`, `relevant`, `affects_long_distance_on_route`, `date_from`, `date_to`, `reason`). The
+  `affects_long_distance_on_route` question names both cities and the date. Station names lose
+  "Hbf" and similar.
+- Answers are cached 6 h in SQLite, keyed by `CACHE_VERSION`, normalised from, to and date.
+  Failures are not cached. Bump `CACHE_VERSION` when the request or filter changes.
 - Context.dev watches three sources: the GDL press archive, the EVG press page and a web search for
   "Bahn Streik OR Warnstreik GDL OR EVG". Changes arrive at `POST /hooks/context` and show as
   banners (last 7 days, newest first, at most 3) with `title`, `test`, `is_strike`, `dates` and
@@ -48,7 +51,10 @@ a strike for the travel date changes Kurt's call (see "Strike call" below).
 
 ## What is filtered
 
-- Only results with `relevant: true`, at most 5, `source` is the hostname.
+- Only results with `relevant: true` and `affects_long_distance_on_route: true`, at most 5,
+  `source` is the hostname. Reasons that say there is no impact, "not long-distance", "nicht im
+  Fernverkehr" or that only S-Bahn, regional or local trains are affected are dropped, also from
+  the cache.
 - In the app, results whose reason names long-distance trains (long-distance, Fernverkehr, ICE,
   intercity, high-speed) and do not say they are unaffected add a warning to Kurt’s pick: past runs
   may not include this, so the chance may not hold. The pick and its odds stay the same.
@@ -58,7 +64,8 @@ a strike for the travel date changes Kurt's call (see "Strike call" below).
   are sent to Exa as `excludeDomains` and dropped again locally. Webhook changes on these hosts are
   not stored. No DB host is ever fetched.
 - No key, timeout, HTTP error or bad body gives `status: "unavailable"` with HTTP 200.
-  No relevant result gives `"empty"`.
+  An Exa error response or a failed connection gives the day's budget unit back.
+  No relevant result gives `"empty"` ("No route news found in the last 3 weeks.").
 
 ## Webhook
 
@@ -86,4 +93,4 @@ a strike for the travel date changes Kurt's call (see "Strike call" below).
 - Requests carry the client name from `SPAETKAUF_CLIENT_NAME` and no personal data.
 - Articles are shown as a one-line summary with source name, date and link, never full text.
 - Monitored pages are public union press pages, checked politely every 2 hours.
-- Exa searches are capped per UTC day (`SPAETKAUF_EXA_BUDGET`, default 150); once spent, uncached routes answer `unavailable`.
+- Exa searches are capped per UTC day (`SPAETKAUF_EXA_BUDGET`, default 150); once spent, uncached routes answer `capped` ("News check paused for today.").

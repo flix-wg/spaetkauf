@@ -40,10 +40,13 @@ DB_HOSTS = (
     "inside-bahn.de",
 )
 CACHE_TTL = 6 * 3600
+# Part of the cache key: bump when exa_body or parse_results change, so old answers are not served.
+CACHE_VERSION = 2
 LOOKBACK_DAYS = 21
 BANNER_DAYS = 7
 MAX_ITEMS = 5
 MAX_BANNERS = 3
+NOT_BILLED = (httpx.HTTPStatusError, httpx.ConnectError, httpx.ConnectTimeout)
 EXA_BUDGET = 150  # searches per UTC day, override with SPAETKAUF_EXA_BUDGET
 KINDS = {"strike", "works", "weather", "event", "other"}
 SCHEMA = """
@@ -355,6 +358,12 @@ def take_exa_budget(conn) -> bool:
     return cur.rowcount == 1
 
 
+def give_exa_budget(conn) -> None:
+    day = datetime.now(UTC).date().isoformat()
+    with conn:
+        conn.execute("UPDATE exa_budget SET used = used - 1 WHERE day = ? AND used > 0", (day,))
+
+
 def is_db_host(url: str) -> bool:
     host = (urlparse(url).hostname or "").lower()
     return any(host == d or host.endswith("." + d) for d in DB_HOSTS)
@@ -406,8 +415,18 @@ def exa_body(a: str, b: str, date: str) -> dict:
                         "date_from": {"type": "string", "description": "YYYY-MM-DD or empty"},
                         "date_to": {"type": "string", "description": "YYYY-MM-DD or empty"},
                         "reason": {"type": "string"},
+                        "affects_long_distance_on_route": {
+                            "type": "boolean",
+                            "description": (
+                                "Does this item affect long-distance trains (ICE, IC, EC) "
+                                f"travelling between {a} and {b} on {date}? False when the "
+                                f"affected line is not on the way between {a} and {b}, when only "
+                                "S-Bahn, regional or local trains are affected, or when it does "
+                                f"not apply on {date}."
+                            ),
+                        },
                     },
-                    "required": ["kind", "relevant", "reason"],
+                    "required": ["kind", "relevant", "affects_long_distance_on_route", "reason"],
                 },
             },
         },
@@ -428,12 +447,24 @@ def usable_reason(reason) -> bool:
     return not (UNAFFECTED.search(reason) or NO_IMPACT.search(reason))
 
 
+_LOCAL_TRAINS = (
+    r"(?:local|regional|S-Bahn|(?-i:RE|RB)\d*|commuter|suburban|Regional\w*|Nahverkehr)\b"
+)
 NO_IMPACT = re.compile(
     r"\bno\s+(?:[\w-]+\s+){0,3}?(?:impact|implications?|effects?|disruptions?)\b"
     r"|(?:\bnot|n't|\bnicht)\s+(?:[\w-]+\s+){0,2}?(?:affect\w*|betroffen|beeinträchtigt)"
     r"|\bkeine\s+(?:\w+\s+){0,2}?Auswirkungen"
     r"|\b(?:not an?|neither)\b[^.!?\n]*\bnor\b"
-    r"|\b(?:unrelated|irrelevant)\b",
+    r"|\b(?:unrelated|irrelevant)\b"
+    r"|\bnot\s+(?:an?\s+)?long[- ]distance"
+    r"|\bnicht\s+(?:(?:im|den|dem|der)\s+)?Fernverkehr"
+    rf"|\b(?:affect\w*|concern\w*|appl\w*\s+to)\s+only\s+(?:the\s+)?{_LOCAL_TRAINS}"
+    rf"|\bonly\s+(?:affect\w*|concern\w*|appl\w*\s+to)\s+(?:the\s+)?{_LOCAL_TRAINS}"
+    rf"|\bonly\s+(?:the\s+)?{_LOCAL_TRAINS}[^.!?\n,;]{{0,40}}?\b(?:is|are|was|were)\s+affected"
+    rf"|\b{_LOCAL_TRAINS}(?:[\s-](?:trains?|services?|traffic|lines?))?[\s-]only\b"
+    r"(?!\s+(?:run|operate|go|fahren|verkehren)\w*)"
+    rf"|\bnur\s+(?:die\s+|den\s+)?{_LOCAL_TRAINS}[^.!?\n,;]{{0,40}}?\b(?:ist|sind)\s+betroffen"
+    rf"|\bbetrifft\s+nur\s+(?:die\s+|den\s+)?{_LOCAL_TRAINS}",
     re.IGNORECASE,
 )
 
@@ -453,6 +484,8 @@ def parse_results(results: list, date: str) -> list[dict]:
             except ValueError:
                 continue
         if not isinstance(summary, dict) or summary.get("relevant") is not True:
+            continue
+        if summary.get("affects_long_distance_on_route") is not True:
             continue
         if not covers(summary, date):
             continue
@@ -525,7 +558,9 @@ async def get_signals(
     a, b = city(from_), city(to)
     conn = connect(settings.db_path)
     ensure_schema(conn)
-    key = hashlib.sha256(f"{a.casefold()}|{b.casefold()}|{date}".encode()).hexdigest()
+    key = hashlib.sha256(
+        f"v{CACHE_VERSION}|{a.casefold()}|{b.casefold()}|{date}".encode()
+    ).hexdigest()
     status, items, checked = "unavailable", [], time.time()
     try:
         async with _locks.setdefault(key, asyncio.Lock()):
@@ -536,11 +571,16 @@ async def get_signals(
                 items = [i for i in json.loads(row["items"]) if usable_reason(i.get("reason"))]
                 checked = row["fetched_at"]
                 status = "ok" if items else "empty"
-            elif settings.exa_key and a and b and take_exa_budget(conn):
+            elif settings.exa_key and a and b and not take_exa_budget(conn):
+                status = "capped"
+            elif settings.exa_key and a and b:
                 try:
                     items = await _search(request, settings, a, b, date)
-                except (httpx.HTTPError, ValueError, AttributeError):
+                except (httpx.HTTPError, ValueError, AttributeError) as exc:
                     items = []
+                    # Rejected or never sent: not billed, so retries during an outage stay free.
+                    if isinstance(exc, NOT_BILLED):
+                        give_exa_budget(conn)
                 else:
                     status = "ok" if items else "empty"
                     checked = time.time()

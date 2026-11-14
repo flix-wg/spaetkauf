@@ -97,7 +97,7 @@ GET  /api/picks?from=&to=&date=&time=[&before=0..60] -> {from, to, date, tz, pic
              bahn_url}
 GET  /api/picks?...&mode=arrive&time=T -> as above plus {mode:"arrive", arrive_by}; Pick plus
              {spare_min, p_miss|null, late_ok:{unlock, refund25, refund50}, group:"late_ok"|"on_time"}
-GET  /api/signals?from=&to=&date=     -> {status:"ok"|"empty"|"unavailable", checked_at, items:[{kind, reason, source, published, url}], banners:[{source, url, changed_at, title, test, is_strike, dates, covers_date}], strike:Strike|null}
+GET  /api/signals?from=&to=&date=     -> {status:"ok"|"empty"|"unavailable"|"capped", checked_at, items:[{kind, reason, source, published, url}], banners:[{source, url, changed_at, title, test, is_strike, dates, covers_date}], strike:Strike|null}
 POST /api/trips  {pick, price_eur?, push?}   -> {trip_id, secret}
 GET  /api/trips/{id}?secret=          -> Trip = {booked:Pick, price_eur, state, delay_min, expected_arr, updated_at, stale,
              thresholds:[{at:20|60|120, label, amount_eur|null, reached}],

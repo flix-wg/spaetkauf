@@ -126,10 +126,16 @@ export function SignalsArea({
         News check unavailable right now.
       </p>
     )
+  } else if (s.status === 'capped') {
+    body = (
+      <p className="rounded-2xl bg-surface p-3.5 text-[13px] leading-snug text-muted">
+        News check paused for today.
+      </p>
+    )
   } else if (s.status === 'empty' || s.items.length === 0) {
     body = (
-      <p className="rounded-2xl bg-ok-tint p-3.5 text-[13px] leading-snug text-ok">
-        No strike or closure news for {day}.
+      <p className="rounded-2xl bg-surface p-3.5 text-[13px] leading-snug text-muted">
+        No route news found in the last 3 weeks.
       </p>
     )
   } else {
