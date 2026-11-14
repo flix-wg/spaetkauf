@@ -32,8 +32,8 @@ The extension SHALL mark as Kurt's pick the badged connection with the highest o
 When a card already shows a delay or cancellation, the extension SHALL start its badge with "Delay already posted: won't count", SHALL NOT mark it as Kurt's pick, and SHALL leave its odds unchanged. Seat and occupancy notices SHALL NOT count as a posted delay.
 
 #### Scenario: Kurt's pick shows a cancellation
-- **WHEN** the card the server chose as Kurt's pick says "Zug fällt aus"
-- **THEN** its badge reads "Delay already posted: won't count" followed by its odds, and no card on the page is marked as Kurt's pick
+- **WHEN** the card with the highest odds says "Zug fällt aus" and another card has 35 %
+- **THEN** the first badge reads "Delay already posted: won't count" followed by its unchanged odds, and the 35 % card becomes Kurt's pick
 
 #### Scenario: Seat notice
 - **WHEN** a card only says "Hohe Auslastung erwartet"
@@ -51,7 +51,7 @@ The extension SHALL only read the page the traveller loaded and add its own badg
 - **THEN** the setting is refused
 
 ### Requirement: Only odds inputs leave the page
-The extension SHALL send odds requests only to the configured Spätkauf server, without cookies, containing only the origin and destination names, the destination's station number, the date, and per connection its departure and arrival time, train names and date if different. The server SHALL answer them from its odds table without contacting another host.
+The extension SHALL send odds requests only to the configured Spätkauf server, without cookies, containing only the origin and destination names, the destination's station number, the date, and per connection its departure and arrival time, train names, date if different, and whether the card shows a posted delay. The server SHALL answer them from its odds table without contacting another host.
 
 #### Scenario: Odds request
 - **WHEN** a results page is parsed

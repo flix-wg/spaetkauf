@@ -57,7 +57,7 @@ async function handle(message, sender) {
   const server = serverURL(config.server);
   if (message.type === 'health') {
     const response = await request(server, '/api/health', undefined, 5000);
-    return { ok: response.ok && response.data?.ok !== false, version: response.data?.version, adapter: response.data?.adapter, error: response.error };
+    return { ok: response.ok && response.data?.ok !== false, version: response.data?.version, adapter: response.data?.sources?.adapter ?? response.data?.adapter, error: response.error };
   }
   if (!config.enabled) return { ok: false, status: 0, error: 'Extension disabled' };
   if (message.type === 'odds') {

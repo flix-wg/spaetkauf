@@ -141,7 +141,7 @@ export function ClaimScreen() {
               <div className="flex flex-col gap-2 rounded-2xl bg-surface p-3.5">
                 <h2 className="font-display text-[16px] font-bold lg:text-[20px]">Where to file</h2>
                 <p className="text-[13px] leading-snug lg:text-[15px]">{c.where}</p>
-                {c.due && !c.is_replay && (
+                {c.due && !c.is_replay && !c.provisional && (
                   <a href="https://www.bahn.de/service/fahrgastrechte" target="_blank" rel="noopener noreferrer" className="btn-primary mt-1">
                     Open DB’s refund page <IconExternal size={18} />
                   </a>
