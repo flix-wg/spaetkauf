@@ -33,15 +33,37 @@ The system SHALL return real long-distance connections for the chosen origin, de
 - **THEN** the system says so and suggests another date or station
 
 ### Requirement: Ride-instead pairing
-For each pick the system SHALL name the best other connection the traveller could ride if the booked one is late: the earliest-arriving connection that departs from the same origin up to 120 minutes after the booked departure (by default no earlier than it; when the traveller opts in with `before`, a train up to 60 minutes earlier that has not left yet, used only when no later one fits, since it helps only if the delay is posted before it leaves), arrives at most 20 minutes after the booked arrival and is not reservation-only.
+For each pick the system SHALL name the best other connection the traveller could ride if the booked one is late: the earliest-arriving connection from the same origin that leaves at or up to 120 minutes after the booked departure, arrives at most 20 minutes after the booked arrival, shares no train with the booked connection and is not reservation-only.
 
 #### Scenario: A better train exists
 - **WHEN** a direct train leaves 30 minutes after the booked one and arrives earlier
-- **THEN** the pick shows it under "If it's late, you'd ride" with its times and how many minutes earlier or later it arrives than the booked connection
+- **THEN** the pick shows it under "If late, ride" with its times, trains and number of changes
 
 #### Scenario: No alternative in the window
-- **WHEN** no other connection departs in the window
-- **THEN** the pick shows no ride-instead train and says the next option is on the live screen
+- **WHEN** no other connection fits the window
+- **THEN** the pick shows no ride-instead train and is not marked as Kurt's pick
+
+### Requirement: Earlier ride-instead on request
+When the traveller turns on "Ride instead: also up to 1 h earlier", the system SHALL also consider a connection that leaves up to 60 minutes before the booked one and has not left yet, but only when no later connection fits, and SHALL say that it helps only if the delay is posted in time. Arrive-by searches ignore this option.
+
+#### Scenario: Only an earlier train fits
+- **WHEN** the option is on, no later connection fits, and a train leaving 40 minutes before the booked one arrives earlier
+- **THEN** it is shown as the ride-instead with "Earlier: only if the delay is posted in time"
+
+#### Scenario: Option off
+- **WHEN** the option is off
+- **THEN** no ride-instead leaves before the booked train
+
+### Requirement: Arrive-by search
+The system SHALL let the traveller search by latest arrival time. It SHALL list connections scheduled to arrive in the 3 hours before that time, each with its spare time, an upper bound on how often it would have arrived too late, and which delay outcomes still arrive in time. Kurt's pick SHALL be the one with the highest odds (at least 30 %) among those that stay in time even 20+ minutes late and were too late on at most 10 % of runs; it needs no ride-instead.
+
+#### Scenario: Late still works
+- **WHEN** the traveller must arrive by 18:00 and a train is due at 16:50
+- **THEN** it is listed under "Late still works" with 1 h 10 min to spare, its miss bound, and "In time even 1 h late: 25 % back"
+
+#### Scenario: Too tight for a delay
+- **WHEN** a train is due 10 minutes before the latest arrival time
+- **THEN** it is listed under "Only on time" and is not Kurt's pick
 
 ### Requirement: Buying stays with the traveller
 Each pick SHALL offer a link that opens bahn.de for the traveller to buy the ticket there, and a separate action to mark the pick as booked. The system SHALL NOT show prices or buy anything.

@@ -11,7 +11,7 @@ The system SHALL list long-distance trains whose live expected arrival at a majo
 
 #### Scenario: Trains are late
 - **WHEN** live data shows ICE 514 arriving at Hamburg Hbf 37 minutes late
-- **THEN** the board lists ICE 514 with +37 and marks it as unlocked
+- **THEN** the board lists ICE 514 with +37 and counts it in the "ticket unlocked right now" headline
 
 #### Scenario: Nothing is late
 - **WHEN** no watched train is 20+ minutes late

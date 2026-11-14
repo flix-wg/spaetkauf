@@ -1,6 +1,6 @@
 # Spätkauf for bahn.de
 
-Shows historical late-arrival odds beside long-distance connections and marks Kurt’s pick. It reads results already loaded by the traveller; it does not book or navigate.
+Shows historical late-arrival odds beside long-distance connections and marks Kurt’s pick. It reads results already loaded by the traveller; it does not book or navigate. When a card already shows a delay or cancellation, its badge starts with "Delay already posted: won’t count", keeps its odds and loses Kurt’s mark; no other card gets it. Seat and occupancy notices are ignored.
 
 Install: open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select `extension/`. In the extension’s settings, set the Spätkauf server URL (HTTPS, or HTTP on localhost). Custom HTTPS servers ask for access on save. The popup toggles overlays and shows server health, adapter availability, parser path, counts, last check, layout hash and three parsed connections.
 

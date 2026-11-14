@@ -61,6 +61,19 @@ Checkpoints (Helsinki time): core path on real data by Sat 14 Nov 10:00 · deplo
 - [ ] 9.2 Confirm with server logs that no request went to a bahn.de host during 9.1
 - [ ] 9.3 Tag the working version and note the tag and the demo address in `README.md`
 
+## 10. Built after the plan
+
+- [x] 10.1 Arrive-by mode for picks (`mode=arrive`, design D12): connections arriving in the 3 h before T, spare time, miss bound, late outcomes, Kurt's pick within the cap, and the two groups on the picks screen; test `test_arrive_mode_groups_bounds_and_kurts_pick`
+- [x] 10.2 Opt-in earlier ride-instead (`before`, up to 60 min, design D7) with the toggle on the picks screen and the note on the card; test `test_earlier_ride_instead_only_with_before`
+- [x] 10.3 Kurt's call from strike announcements (design D11): no pick on a covered day, `try_date`, warning on unclear dates, once-only push for watched trips; test `test_kurt_call_follows_strike_announcements` and the strike tests in `test_signals.py`
+- [x] 10.4 Per-run history (`scripts/build_history.py`, `data/history.duckdb`, `GET /api/history*`, `deploy/upload_history.sh`, design D18, `docs/history.md`); tests in `backend/tests/test_history.py`, including a check against `train_stop_stats`
+- [x] 10.5 Lookup screen (by train or route, optional weekday) and the runs sheet behind every odds line
+- [x] 10.6 Fourth tab (Lookup) and the desktop layout with side bar and QR code that replaced the laptop phone frame (design D19)
+- [x] 10.7 Replay picker on My trips (`GET /api/demo/recordings`, `recording` on `POST /api/demo/replay`) with history runs from `data/replays.json` (`docs/replays.md`)
+- [x] 10.8 Watch auto-tracking: up to two trains an hour that are 8 to 19 min late, at most 12 open auto trips (design D8)
+- [x] 10.9 Chrome MV3 extension (design D15, D16): parser for bahn.de result cards, badges in a closed shadow root, Kurt's pick, posted-delay flag, service worker with a 10 min cache, popup and settings, `POST /api/ext/odds`; tests `node --test` in `extension/`, `backend/tests/test_ext.py`, and `test/e2e.mjs` on local fixtures and one saved real page
+- [x] 10.10 Selector adapter (design D17): text-free skeleton, `POST /api/ext/adapt` with line grammar, hash check, per-layout cache, daily cap and `ANTHROPIC_API_KEY`; tests in `extension/test/skeleton.test.js` and `test_adapt_*`
+
 ## Workflow follow-up
 
 - Make the repository readable by the organisers before 15 Nov 10:00 Helsinki time.

@@ -50,6 +50,10 @@ The system SHALL offer a replay that plays back a recorded real trip at higher s
 - **WHEN** the presenter starts the replay
 - **THEN** a trip appears whose delay climbs as it did on the recorded day, the label "Replay of <date>" is visible, and the +20 alert fires within 30 seconds
 
+#### Scenario: Choosing a recording
+- **WHEN** the presenter opens My trips
+- **THEN** "Watch a replay" lists the live recordings and history runs with train, date and outcome, and tapping one starts that replay
+
 ### Requirement: Trips are stored without an account
 The system SHALL keep booked trips for the device without requiring sign-up, and SHALL let the traveller delete a trip.
 

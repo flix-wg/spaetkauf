@@ -2,12 +2,12 @@
 
 ## Purpose
 
-Frames the product as one installable mobile web app with a consistent, playful identity that also presents well on a laptop at a demo table.
+Frames the product as one installable mobile web app with a consistent, playful identity that also uses a laptop screen well at a demo table.
 
 ## ADDED Requirements
 
 ### Requirement: Mobile-first installable app
-The system SHALL work as a single web app at phone width with no horizontal scrolling, SHALL be installable to the home screen, and SHALL reach every screen through a bottom navigation with three entries: Picks, My trips, Late now.
+The system SHALL work as a single web app at phone width with no horizontal scrolling, SHALL be installable to the home screen, and SHALL reach every screen through a bottom navigation with four entries: Picks, My trips, Late now, Lookup.
 
 #### Scenario: Phone width
 - **WHEN** the app is opened at 390 px width
@@ -17,12 +17,12 @@ The system SHALL work as a single web app at phone width with no horizontal scro
 - **WHEN** the traveller adds the site to the home screen and opens it from there
 - **THEN** it opens without browser chrome and can ask for notification permission
 
-### Requirement: Laptop presentation view
-At laptop width the system SHALL show the app inside a phone-sized frame beside a panel with the product's one-line pitch and a QR code that opens the same address on a phone.
+### Requirement: Desktop layout
+From 1024 px width the system SHALL replace the bottom navigation with a side bar that holds the logo, the same four entries and a QR code that opens the current site address on a phone, and SHALL lay out screens with two parts in two columns. Below 1024 px the app SHALL be one column at most 480 px wide.
 
 #### Scenario: Opened on a laptop
-- **WHEN** the app is opened at 1280 px width or more
-- **THEN** the phone frame, the pitch line and a scannable QR code for the current site address are visible
+- **WHEN** the app is opened at 1280 px width
+- **THEN** the side bar with the four entries and a scannable QR code for the current site address is visible, and the picks screen shows the route and Kurt's pick beside the list of trains
 
 ### Requirement: Visual identity
 The system SHALL use a white background with the accent colour #FD4F00, the snail mascot Kurt, large monospaced delay numbers, and text that keeps a contrast ratio of at least 4.5:1.
