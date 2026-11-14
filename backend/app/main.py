@@ -5,7 +5,19 @@ import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 
-from . import __version__, board, ext, history, picks, push, replay, signals, stations, trips
+from . import (
+    __version__,
+    board,
+    ext,
+    history,
+    outbound,
+    picks,
+    push,
+    replay,
+    signals,
+    stations,
+    trips,
+)
 from .config import REPO_ROOT, Settings
 from .db import init_db
 from .loop import run_loop
@@ -18,6 +30,7 @@ def create_app(
     settings: Settings | None = None, transport: httpx.AsyncBaseTransport | None = None
 ) -> FastAPI:
     settings = settings or Settings.from_env()
+    outbound.log_outbound()
     init_db(settings.db_path)
 
     @contextlib.asynccontextmanager

@@ -74,6 +74,8 @@ export function Picks() {
   const call = res?.kurt_call
   const strikeDay = call === 'strike'
   const hasKurts = !!res && res.picks.some((p) => p.is_kurts_pick)
+  // Depart mode also needs a train to switch to; 0.3 is KURT_MIN_P20 in backend/app/picks.py.
+  const lateNoSwitch = !!res && res.picks.some((p) => !p.already_posted && !p.ride_instead && (p.odds?.p20 ?? 0) >= 0.3)
   const tryQ = new URLSearchParams(sp)
   tryQ.delete('sheet')
   if (strike?.try_date) tryQ.set('date', strike.try_date)
@@ -119,7 +121,11 @@ export function Picks() {
                   <span className="flex flex-col gap-1">
                     <span className="font-display text-[18px] font-bold leading-tight lg:text-[24px]">No pick here</span>
                     <span className="text-[13px] leading-snug text-muted lg:text-[16px]">
-                      {arrive ? `None is late often enough and still in by ${by}.` : 'None is late often enough. Try another time.'}
+                      {arrive
+                        ? `None is late often enough and still in by ${by}.`
+                        : lateNoSwitch
+                          ? 'The likely late ones have no quicker train to switch to. Try another time.'
+                          : 'None is late often enough. Try another time.'}
                     </span>
                   </span>
                 </section>

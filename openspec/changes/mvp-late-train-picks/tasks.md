@@ -53,7 +53,7 @@ Checkpoints (Helsinki time): core path on real data by Sat 14 Nov 10:00 · deplo
 
 - [x] 8.1 Write `deploy/Dockerfile`, `docker-compose.yml` and `Caddyfile`; verify `docker compose up` on the dev box serves the app and `/api/health` over the proxy
 - [ ] 8.2 Provision the Verda CPU VM after checking price and credit balance, deploy, set `.env`; verify from a phone on mobile data that the HTTPS address loads and a search works
-- [ ] 8.3 Write the restart and reset steps in `README.md`; verify by restarting the stack and finding booked trips intact
+- [x] 8.3 Write the restart and reset steps in `README.md`; verify by restarting the stack and finding booked trips intact
 
 ## 9. Integration and demo readiness
 
