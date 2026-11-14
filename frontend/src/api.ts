@@ -322,7 +322,17 @@ const qs = (o: Record<string, string | undefined>) => {
 }
 const tripPath = (id: string, secret: string, sub = '') => `/api/trips/${encodeURIComponent(id)}${sub}${qs({ secret })}`
 
+export interface LegalInfo {
+  name: string
+  address: string[]
+  email: string
+  hosting: string
+  cdn: string
+  adapter: boolean
+}
+
 export const api = {
+  legal: () => call<LegalInfo>('GET', '/api/legal'),
   health: () => call<Health>('GET', '/api/health'),
   stations: (q: string) => call<Station[]>('GET', `/api/stations${qs({ q })}`),
   picks: (p: { from: string; to: string; date: string; time: string; mode?: 'arrive'; before?: string }) =>

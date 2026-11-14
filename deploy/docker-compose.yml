@@ -11,6 +11,11 @@ services:
     volumes:
       - appdata:/data
       - /opt/spaetkauf/history:/history:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen(\"http://localhost:8000/api/health\", timeout=3)"]
@@ -32,6 +37,11 @@ services:
       - caddy_config:/config
     depends_on:
       - app
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
 
 volumes:

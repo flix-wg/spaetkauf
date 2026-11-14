@@ -1,3 +1,17 @@
+{
+	log default {
+		format filter {
+			wrap json
+			fields {
+				request>remote_ip ip_mask 16 32
+				request>client_ip ip_mask 16 32
+				request>headers delete
+				request>uri delete
+			}
+		}
+	}
+}
+
 {$SITE_ADDRESS:localhost} {
 	encode zstd gzip
 	header {

@@ -9,6 +9,7 @@ import { Late } from './screens/Late'
 import { Lookup } from './screens/Lookup'
 import { Empty } from './components/States'
 import { Link } from 'react-router-dom'
+import { Legal } from './screens/Legal'
 
 export function App() {
   return (
@@ -21,6 +22,8 @@ export function App() {
           <Route path="/trip/:id" element={<TripScreen />} />
           <Route path="/trip/:id/claim" element={<ClaimScreen />} />
           <Route path="/late" element={<Late />} />
+          <Route path="/impressum" element={<Legal page="impressum" />} />
+          <Route path="/datenschutz" element={<Legal page="datenschutz" />} />
           <Route path="/lookup" element={<Lookup />} />
           <Route
             path="*"

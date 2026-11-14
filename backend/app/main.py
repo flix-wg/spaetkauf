@@ -78,6 +78,17 @@ def create_app(
             "plan_budget_left": tr.budget_left(),
         }
 
+    @app.get("/api/legal")
+    def legal():
+        return {
+            "name": settings.operator_name,
+            "address": [line.strip() for line in settings.operator_address.split(";") if line.strip()],
+            "email": settings.operator_email,
+            "hosting": settings.legal_hosting,
+            "cdn": settings.legal_cdn,
+            "adapter": bool(settings.anthropic_key),
+        }
+
     app.include_router(ext.router)
     app.include_router(stations.router)
     app.include_router(trips.router)

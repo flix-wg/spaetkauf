@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import QRCode from 'qrcode'
 import { Kurt } from './Kurt'
 import { IconClock, IconHistory, IconInfo, IconTicket, IconTrain } from './Icons'
@@ -145,6 +145,16 @@ function SideNav() {
   )
 }
 
+function Footer() {
+  return (
+    <footer className="px-5 pb-8 pt-10 text-center text-[13px] text-muted">
+      <Link to="/impressum">Impressum</Link> · <Link to="/datenschutz">Datenschutz</Link> ·{' '}
+      <a href="https://github.com/flix-wg/spaetkauf">Quellcode</a> ·{' '}
+      <a href="https://transitous.org/sources/">Transitous-Quellen</a>
+    </footer>
+  )
+}
+
 export function Shell() {
   const desk = useMedia('(min-width: 1024px)')
   const { current, close } = useSheet()
@@ -169,6 +179,7 @@ export function Shell() {
         <main className="scroll-y min-h-0 min-w-0 flex-1">
           <div className="mx-auto w-full max-w-[1680px]">
             <Outlet />
+            <Footer />
           </div>
         </main>
         {sheets}
@@ -180,6 +191,7 @@ export function Shell() {
         <TopBar />
         <main className="scroll-y min-h-0 flex-1">
           <Outlet />
+          <Footer />
         </main>
         <Nav />
       </div>

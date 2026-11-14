@@ -106,6 +106,7 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
   const out = (v: unknown) => v as T
   if (flag('fail') === '1' && p !== '/api/health') throw new ApiError(0, 'Could not reach the server.')
 
+  if (p === '/api/legal') return out({ name: '', address: [], email: '', hosting: '', cdn: '', adapter: false })
   if (p === '/api/health') return out({ ok: true, version: 'mock', sources: { transitous: 'ok', exa: 'configured', context: 'configured' }, plan_budget_left: 641 })
   if (p === '/api/stations') {
     const s = (q.get('q') ?? '').toLowerCase()

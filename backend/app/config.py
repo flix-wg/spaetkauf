@@ -18,7 +18,12 @@ def _load_dotenv(path: Path) -> None:
 
 @dataclass(frozen=True)
 class Settings:
-    client_name: str = "spaetkauf-demo/0.1"
+    client_name: str = "kurt/0.1 (+https://github.com/flix-wg/spaetkauf)"
+    operator_name: str = ""
+    operator_address: str = ""
+    operator_email: str = ""
+    legal_hosting: str = ""
+    legal_cdn: str = ""
     db_path: Path = REPO_ROOT / "backend" / "var" / "app.sqlite"
     plan_budget: int = 700
     loop: bool = True
@@ -36,6 +41,11 @@ class Settings:
             db = REPO_ROOT / db
         return cls(
             client_name=env.get("SPAETKAUF_CLIENT_NAME") or cls.client_name,
+            operator_name=env.get("OPERATOR_NAME", ""),
+            operator_address=env.get("OPERATOR_ADDRESS", ""),
+            operator_email=env.get("OPERATOR_EMAIL", ""),
+            legal_hosting=env.get("LEGAL_HOSTING", ""),
+            legal_cdn=env.get("LEGAL_CDN", ""),
             db_path=db,
             plan_budget=int(env.get("SPAETKAUF_PLAN_BUDGET") or cls.plan_budget),
             loop=env.get("SPAETKAUF_LOOP", "1") != "0",

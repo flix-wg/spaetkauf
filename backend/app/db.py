@@ -1,5 +1,7 @@
 import os
 import sqlite3
+import time
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 SCHEMA = """
@@ -73,4 +75,19 @@ def init_db(path: Path) -> None:
         for col, kind in TRIP_COLUMNS.items():
             if col not in have:
                 conn.execute(f"ALTER TABLE trips ADD COLUMN {col} {kind}")
+    conn.close()
+
+
+def purge(path: Path) -> None:
+    """Retention stated on /datenschutz: a trip goes 30 days after arrival (or a year after it was
+    saved, if it never finished); cached search results after 7 days."""
+    now = datetime.now(UTC)
+    iso = lambda d: (now - timedelta(days=d)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    conn = connect(path)
+    with conn:
+        conn.execute(
+            "DELETE FROM trips WHERE finished_at < ? OR (finished_at IS NULL AND created_at < ?)",
+            (iso(30), iso(365)),
+        )
+        conn.execute("DELETE FROM http_cache WHERE fetched_at < ?", (time.time() - 7 * 86400,))
     conn.close()
