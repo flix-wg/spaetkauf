@@ -14,3 +14,6 @@ __pycache__/
 .ruff_cache/
 *.log
 .DS_Store
+data/history.duckdb
+data/history.tmp
+data/history.duckdb.wal

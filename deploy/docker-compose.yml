@@ -7,9 +7,10 @@ services:
     environment:
       SPAETKAUF_DB_PATH: /data/app.sqlite
       SPAETKAUF_ODDS_PATH: /app/data/odds.sqlite
-      SPAETKAUF_HISTORY_PATH: /app/data/history.sqlite
+      SPAETKAUF_HISTORY_PATH: /history/history.duckdb
     volumes:
       - appdata:/data
+      - /opt/spaetkauf/history:/history:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen(\"http://localhost:8000/api/health\", timeout=3)"]
