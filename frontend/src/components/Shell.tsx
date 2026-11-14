@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import QRCode from 'qrcode'
 import { Kurt } from './Kurt'
-import { IconClock, IconInfo, IconTicket, IconTrain } from './Icons'
+import { IconClock, IconHistory, IconInfo, IconTicket, IconTrain } from './Icons'
 import { Sheet } from './Sheet'
 import { SourcesSheet, BacktestSheet } from './InfoSheets'
 import { useSheet } from '../sheets'
@@ -51,13 +51,14 @@ const navItems = (pathname: string) => [
   { to: lastSearchPath(), label: 'Picks', icon: IconTrain, on: pathname === '/' || pathname === '/picks' },
   { to: '/trips', label: 'My trips', icon: IconTicket, on: pathname.startsWith('/trip') },
   { to: '/late', label: 'Late now', icon: IconClock, on: pathname === '/late' },
+  { to: '/lookup', label: 'Lookup', icon: IconHistory, on: pathname === '/lookup' },
 ]
 
 function Nav() {
   const { pathname } = useLocation()
   const items = navItems(pathname)
   return (
-    <nav aria-label="Main" className="grid shrink-0 grid-cols-3 border-t border-line bg-white pb-[env(safe-area-inset-bottom)]">
+    <nav aria-label="Main" className="grid shrink-0 grid-cols-4 border-t border-line bg-white pb-[env(safe-area-inset-bottom)]">
       {items.map(({ to, label, icon: Icon, on }) => (
         <NavLink
           key={label}

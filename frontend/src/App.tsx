@@ -6,6 +6,7 @@ import { Trips } from './screens/Trips'
 import { TripScreen } from './screens/Trip'
 import { ClaimScreen } from './screens/Claim'
 import { Late } from './screens/Late'
+import { Lookup } from './screens/Lookup'
 import { Empty } from './components/States'
 import { Link } from 'react-router-dom'
 
@@ -20,6 +21,7 @@ export function App() {
           <Route path="/trip/:id" element={<TripScreen />} />
           <Route path="/trip/:id/claim" element={<ClaimScreen />} />
           <Route path="/late" element={<Late />} />
+          <Route path="/lookup" element={<Lookup />} />
           <Route
             path="*"
             element={

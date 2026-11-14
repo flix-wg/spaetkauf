@@ -28,6 +28,7 @@ export const IconCopy = I(<><rect x="9" y="9" width="11" height="11" rx="2" /><p
 export const IconCheck = I(<path d="m5 12.5 4.5 4.5L19 7" />)
 export const IconClose = I(<path d="M6 6l12 12M18 6 6 18" />)
 export const IconTrash = I(<><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></>)
+export const IconHistory = I(<><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5" /><path d="M3.5 3.5v5h5M12 7.5V12l3 2" /></>)
 export const IconChevron = I(<path d="m9 6 6 6-6 6" />)
 export const IconBack = I(<path d="m15 6-6 6 6 6" />)
 export const IconSwap = I(<path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7" />)
