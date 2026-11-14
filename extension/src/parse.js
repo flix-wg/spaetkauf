@@ -26,7 +26,7 @@
   function unique(a) { return [...new Set(a)]; }
   function duration(text) {
     let m=text.match(/\b(\d{1,2}):(\d{2})\s*h\b/i); if(m) return +m[1]*60 + +m[2];
-    m=text.match(/\b(\d+)\s*(?:Stunden?|hours?|h)\s*(?:(\d+)\s*(?:Minuten?|minutes?|min|m))?/i);
+    m=text.match(/\b(\d+)\s*(?:Stunden?|hours?|h)(?=\b|\d)\s*(?:(\d+)\s*(?:Minuten?|minutes?|min|m)(?=\b|\d))?/i);
     if(m) return +m[1]*60 + +(m[2]||0);
     m=text.match(/\b(\d+)\s*(?:Minuten?|minutes?|min)\b/i); return m ? +m[1] : null;
   }

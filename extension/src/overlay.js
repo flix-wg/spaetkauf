@@ -1,21 +1,24 @@
 (function (root) {
   'use strict';
   const badges = new Map();
-  const note = "At +20 min your saver ticket's train binding is lifted: you may take any train. 60–119 min late: 25 % of the fare back; 120 min or more: 50 %. Odds come from past runs of this train on the same weekday.";
+  const note = "At +20 min your saver ticket's train binding is lifted: you may take any train. 60–119 min late: 25 % of the fare back; 120 min or more: 50 %. The chance comes from past runs of this train to your destination on the same weekday, pulled toward its other weekdays when there are few runs; the counts are the raw runs. With changes only the last train counts; missed changes are not included.";
   const snail = '<svg width="24" height="18" viewBox="0 0 80 60" aria-hidden="true"><rect x="4" y="44" width="68" height="10" rx="5" fill="white"/><path d="M11 46 C9 37 11 29 17 25" stroke="white" stroke-width="6" stroke-linecap="round" fill="none"/><path d="M16 25 L10 11 M19 25 L23 10" stroke="white" stroke-width="2.5"/><circle cx="10" cy="10" r="3.2" fill="white"/><circle cx="23" cy="9" r="3.2" fill="white"/><circle cx="47" cy="27" r="19" fill="#FD4F00" stroke="white" stroke-width="2.5"/><path d="M44 27 a3 3 0 1 1 6 0 a6 6 0 1 1 -12 0 a9 9 0 1 1 18 0 a12 12 0 1 1 -24 0" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>';
-  function text(result) {
+  function text(result, card) {
     const kurt = result.kurt === true;
     let line = result.basis === 'none' || !Number.isFinite(result.p20)
-      ? 'No history for this train yet'
-      : `${Math.round(result.p20 * 100)} % ≥ +20 (late ${result.late} of ${result.n} ${result.weekday}s)`;
+      ? (card?.trains?.length && root.SpkParse && !root.SpkParse.isLongDistance(card.trains.at(-1)) ? 'No odds: last leg is a regional train' : 'No history for this train yet')
+      : `${Math.round(result.p20 * 100)} % chance of 20+ min late · ${result.late} of ${result.n} ${result.weekday}s were`;
     if (result.basis === 'last_train') line += ' · last train only, changes not counted';
     if (kurt) line = 'Kurt: ' + line;
     return { line, kurt };
   }
   function render(card, result, { link, server }) {
-    const description = text(result);
+    const description = text(result, card);
     const signature = JSON.stringify([description, link, server]);
     const previous = badges.get(card.el);
+    for (const badge of card.el.querySelectorAll('spk-badge')) {
+      if (badge !== previous?.host) badge.remove();
+    }
     if (previous?.signature === signature && previous.core === card.core && previous.host.isConnected) return previous.host;
     previous?.host.remove();
     const doc = card.el.ownerDocument;

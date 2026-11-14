@@ -50,6 +50,26 @@ try {
   await page.waitForFunction(() => document.querySelectorAll('spk-badge').length === 5);
   assert.equal(await page.locator('spk-badge').count(), 5);
   assert.equal(await page.locator('spk-badge[data-kurt="true"]').count(), 1);
+  await page.evaluate(() => {
+    const original = document.querySelector('li.connection');
+    const clone = original.cloneNode(true);
+    clone.querySelectorAll('spk-badge').forEach(badge => badge.remove());
+    clone.querySelectorAll('time').forEach((time, i) => {
+      time.dateTime = time.textContent = i === 0 ? '10:50' : '14:21';
+    });
+    clone.querySelector('.trains').textContent = 'ICE 591';
+    original.parentElement.append(clone);
+  });
+  await page.waitForFunction(() => document.querySelectorAll('spk-badge').length === 6);
+  assert(await page.locator('li').evaluateAll(items => items.every(item => item.querySelectorAll('spk-badge').length <= 1)));
+  await page.evaluate(() => {
+    const original = document.querySelector('li.connection');
+    const clone = original.cloneNode(true);
+    clone.querySelectorAll('spk-badge').forEach(badge => badge.remove());
+    original.replaceWith(clone);
+  });
+  await page.waitForFunction(() => document.querySelectorAll('spk-badge').length === 6);
+  assert(await page.locator('li').evaluateAll(items => items.every(item => item.querySelectorAll('spk-badge').length <= 1)));
   const buttons = page.getByRole('button', { name: 'Weiter', exact: true });
   assert(await buttons.count() > 0, 'Fixture has booking controls');
   for (const button of await buttons.all()) {
@@ -86,7 +106,7 @@ try {
   await page.locator('spk-badge').first().waitFor({ timeout: 30000 });
   assert(await page.locator('spk-badge').count() >= 1);
   await page.screenshot({ path: path.join(shots, 'x-real.png'), fullPage: true });
-  console.log(`Passed: 5 badges, one Kurt, booking controls, popup, options, real fixture and service-worker server access. Screenshots: ${shots}`);
+  console.log(`Passed: 6 badges after appending and replacing cards, no duplicate badges, one Kurt, booking controls, popup, options, real fixture and service-worker server access. Screenshots: ${shots}`);
 } finally {
   await context?.close();
   await new Promise(resolve => server.close(resolve));

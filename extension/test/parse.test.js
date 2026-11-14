@@ -38,6 +38,7 @@ test('real captured results and URL use the same public entry points',()=>{
   }
 });
 test('normalization, authoritative times, fallback dates and invalid specs',()=>{
+  assert.equal(P.parseCards(document('<li>08:00 12:00 13:00 14:00 RE 4 Hanau</li>')).cards[0].arr,'13:00');
   assert.equal(P.normTrain('ice00042'),'ICE 42'); assert.equal(P.normTrain('D 4'),null);assert.equal(P.isLongDistance('RE 4'),false);
   const doc=document('<p>To: München Hbf</p><ul><li><time datetime="23:10">23:20</time> <span>01:10</span> ICE 42</li><li>01:00 03:00 RE 4</li></ul>');
   const cards=P.parseCards(doc).cards;P.assignDates(cards,'2026-12-31');assert.deepEqual(cards.map(c=>c.date),['2026-12-31','2027-01-01']);assert.equal(cards[0].dep,'23:10');

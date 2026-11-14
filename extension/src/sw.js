@@ -8,8 +8,25 @@ async function settings() {
 }
 function serverURL(value) {
   const url = new URL(value);
-  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || /(^|\.)bahn\.de$/i.test(url.hostname) || /(^|\.)deutschebahn\.com$/i.test(url.hostname)) throw new Error('Invalid Spätkauf server URL');
+  const hostname = url.hostname.replace(/\.+$/, '');
+  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || /(^|\.)(bahn\.de|db\.de|bahn\.com|deutschebahn\.com)$/i.test(hostname)) throw new Error('Invalid Spätkauf server URL');
   return url.origin;
+}
+function nextBerlinMidnight(now = Date.now()) {
+  const format = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+  });
+  const parts = time => Object.fromEntries(format.formatToParts(time).map(p => [p.type, p.value]));
+  const today = parts(now);
+  const target = Date.UTC(+today.year, +today.month - 1, +today.day + 1);
+  let midnight = target;
+  for (let i = 0; i < 2; i++) {
+    const local = parts(midnight);
+    const offset = Date.UTC(+local.year, +local.month - 1, +local.day, +local.hour, +local.minute, +local.second) - midnight;
+    midnight = target - offset;
+  }
+  return midnight;
 }
 async function request(server, path, body, timeout = 8000) {
   const controller = new AbortController();
@@ -63,7 +80,7 @@ async function handle(message, sender) {
     const { failures = {}, specs = {} } = await chrome.storage.local.get(['failures', 'specs']);
     if (specs[message.hash]) return { ok: true, status: 200, spec: specs[message.hash] };
     if (failures[message.hash] > Date.now()) return { ok: false, status: 422, error: 'Layout adaptation unavailable today' };
-    const response = await request(server, '/api/ext/adapt', { skeleton: message.skeleton, hash: message.hash });
+    const response = await request(server, '/api/ext/adapt', { skeleton: message.skeleton, hash: message.hash }, 60000);
     specWrite = specWrite.catch(() => {}).then(async () => {
       const saved = await chrome.storage.local.get({ specs: {}, failures: {} });
       if (response.ok && response.data.spec) {
@@ -73,7 +90,7 @@ async function handle(message, sender) {
         await chrome.storage.local.set({ specs: Object.fromEntries(entries) });
       } else if ([422, 429, 503].includes(response.status)) {
         saved.failures = Object.fromEntries(Object.entries(saved.failures).filter(([, until]) => until > Date.now()));
-        saved.failures[message.hash] = Date.now() + 86400000;
+        saved.failures[message.hash] = nextBerlinMidnight();
         await chrome.storage.local.set({ failures: saved.failures });
       }
     });

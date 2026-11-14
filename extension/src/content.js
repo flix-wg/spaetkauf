@@ -2,6 +2,7 @@
   'use strict';
   let enabled = true;
   let timer;
+  let pendingSince = null;
   let generation = 0;
   let lastKey = null;
   let lastResponse = null;
@@ -10,20 +11,27 @@
   function schedule() {
     generation++;
     clearTimeout(timer);
-    if (enabled) timer = setTimeout(() => run(generation).catch(error => report({ path: 'none', count: 0, ldCount: 0, error: error.message })), 400);
+    if (enabled) {
+      pendingSince ??= Date.now();
+      timer = setTimeout(() => {
+        pendingSince = null;
+        run(generation).catch(error => report({ path: 'none', count: 0, ldCount: 0, error: error.message }));
+      }, Math.max(0, Math.min(400, pendingSince + 2000 - Date.now())));
+    }
   }
   function report(status) {
     return send({ type: 'status', status: { ...status, at: new Date().toISOString() } }).catch(() => {});
   }
   async function run(token) {
     const ctx = SpkParse.pageContext(location, document);
+    const words = [ctx.from, ctx.to].filter(Boolean).flatMap(name => name.split(/[^\p{L}]+/u)).filter(word => word.length >= 3);
     const saved = await chrome.storage.local.get({ specs: {}, failures: {} });
     let hash = null;
     let skeleton;
     let cards;
     let path = 'none';
     if (Object.keys(saved.specs).length) {
-      skeleton = SpkSkeleton.build(document.body);
+      skeleton = SpkSkeleton.build(document.body, { words });
       hash = await SpkSkeleton.hash(skeleton);
       if (saved.specs[hash]) {
         cards = SpkParse.applySpec(document, saved.specs[hash]);
@@ -35,7 +43,7 @@
       cards = parsed.cards;
       if (cards.length) path = 'heuristic';
       else if (parsed.looksLikeResults) {
-        skeleton ??= SpkSkeleton.build(document.body);
+        skeleton ??= SpkSkeleton.build(document.body, { words });
         hash ??= await SpkSkeleton.hash(skeleton);
         if (!(saved.failures[hash] > Date.now())) {
           const response = await send({ type: 'adapt', skeleton, hash });
@@ -99,6 +107,7 @@
       lastResponse = null;
       if (!enabled) {
         clearTimeout(timer);
+        pendingSince = null;
         SpkOverlay.clear(document);
         rendered.clear();
         report({ path: 'none', count: 0, ldCount: 0, error: null });

@@ -15,6 +15,8 @@ test('every synthetic and real fixture produces only the skeleton grammar',()=>{
   names.push(...fs.readdirSync(path.join(__dirname,'../fixtures/real')).filter(n=>n.endsWith('.html')).map(n=>'real/'+n));
   for(const name of names)valid(S.build(fixture(name)));
   assert.ok(S.build(fixture('shadow.html')).includes('#shadow'));
+  const real=S.build(fixture('real/bahn-results-2026-11-14.html'),{words:['Hamburg','Hbf','München']});
+  for(const name of ['verbindung-list__result-item','reiseplan__uebersicht','reiseplan__uebersicht-uhrzeit-sollzeit'])assert.ok(real.includes('.'+name),name);
 });
 test('skeleton hashes ignore text values and extra repeated result cards',async()=>{
   function page(n,station='Hamburg',time='05:29',price='143,99') {
@@ -31,5 +33,9 @@ test('large pages, unsafe names, skipped subtrees and direct content tokens',()=
   const s=S.build(doc);valid(s);assert.ok(!s.includes('secret'));assert.ok(!s.includes('spk-'));assert.ok(!s.includes('script'));assert.equal(s.split('\n').length,2000);
   assert.deepEqual(S.classify('12:31 h'),['DUR']);
   assert.deepEqual(S.classify('05:29 ICE 573 143,99 € 45 min Hamburg'),['TIME','TRAIN','PRICE','DUR','TEXT']);
+  const unsafe=document('<main class="results passenger-Felix-Schmidt station-Hamburg price-143-99 station-MÜNCHEN row123" data-passenger-felix="yes" aria-hamburg="yes" data-id123="yes" data-layout="safe">05:29 ICE 1 06:00</main>');
+  const filtered=S.build(unsafe,{words:['Felix','Schmidt','Hamburg','München']});valid(filtered);
+  assert.match(filtered,/main\.results\[data-layout\]/);
+  assert.doesNotMatch(filtered,/passenger|station-|price-|row123|id123|aria-hamburg/i);
   const deep=document('<main>'+ '<div>'.repeat(90)+'05:29 ICE 1 06:00'+'</div>'.repeat(90)+'</main>');valid(S.build(deep));
 });

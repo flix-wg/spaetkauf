@@ -6,8 +6,9 @@ chrome.storage.sync.get({ server: DEFAULT_SERVER }).then(config => { input.value
 async function save(value) {
   try {
     const url = new URL(value);
+    const hostname = url.hostname.replace(/\.+$/, '');
     if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash || url.pathname !== '/') throw new Error('Enter an http(s) server origin without a path, credentials, query or fragment.');
-    if (/(^|\.)bahn\.de$/i.test(url.hostname) || /(^|\.)deutschebahn\.com$/i.test(url.hostname)) throw new Error('Use a Spätkauf server, not a Deutsche Bahn host.');
+    if (/(^|\.)(bahn\.de|db\.de|bahn\.com|deutschebahn\.com)$/i.test(hostname)) throw new Error('Use a Spätkauf server, not a Deutsche Bahn host.');
     const origin = url.origin + '/*';
     if (url.protocol === 'https:') {
       if (!await chrome.permissions.request({ origins: [origin] })) throw new Error('Server access was not granted.');

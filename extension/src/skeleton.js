@@ -8,7 +8,9 @@
     if(text.slice(end).trim())add('TEXT'); return out;
   }
   function signature(n) { return n.nodeType===11?'#shadow':n.localName+'.'+[...n.classList].join('.'); }
-  function build(rootNode) {
+  function build(rootNode, {words = []} = {}) {
+    const privateWords=words.map(w=>w.toLowerCase()).filter(w=>w.length>=3);
+    const safeName=name=>!/[0-9]{3}/.test(name) && !privateWords.some(w=>name.toLowerCase().includes(w));
     const times=P.scan(rootNode).times;
     let start=times[0]?.el || (rootNode.nodeType===9?rootNode.documentElement:rootNode);
     while(start && !times.every(t=>P.contains(start,t.el)))start=P.parent(start);
@@ -20,8 +22,8 @@
       let name=n.nodeType===11?'#shadow':n.localName;
       if(!name || !/^(?:#shadow|[a-z][a-z0-9-]{0,40})$/.test(name))return false;
       if(n.nodeType===1) {
-        for(const c of n.classList)if(/^[A-Za-z_-][A-Za-z0-9_-]{0,63}$/.test(c))name+='.'+c;
-        for(const a of n.attributes)if(/^(?:aria|data)-[a-z0-9-]{1,40}$/.test(a.name))name+='['+a.name+']'; else if(a.name==='role' && /^[a-z]{1,30}$/.test(a.value))name+='[role='+a.value+']';
+        for(const c of n.classList)if(/^[A-Za-z_-][A-Za-z0-9_-]{0,63}$/.test(c) && safeName(c))name+='.'+c;
+        for(const a of n.attributes)if(/^(?:aria|data)-[a-z0-9-]{1,40}$/.test(a.name) && safeName(a.name))name+='['+a.name+']'; else if(a.name==='role' && /^[a-z]{1,30}$/.test(a.value))name+='[role='+a.value+']';
       }
       if(n.localName==='svg')name='svg';
       const tokens=n.localName==='svg'?[]:classify([...n.childNodes].filter(c=>c.nodeType===3).map(c=>c.textContent).join(''));
