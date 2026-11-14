@@ -107,7 +107,7 @@ function RecordingRow({ r, busy, onPlay }: { r: Recording; busy: boolean; onPlay
           {shortStation(r.from) || '…'} → {shortStation(r.to)} · {crossing(r)}
         </span>
         <span className="text-[13px] font-semibold leading-snug lg:text-[16px]">
-          {r.finished ? OUTCOME[r.outcome] : r.outcome === 'on_time' ? 'Still recording · under +20 so far' : `Still recording · ${OUTCOME[r.outcome]}`}
+          {r.finished ? OUTCOME[r.outcome] : `Still recording · worst so far +${r.max_delay_min}`}
         </span>
         <span className={`tag w-fit rounded px-1.5 py-0.5 ${past ? 'bg-ink text-white' : 'bg-tint text-accent-text'}`}>
           {past ? 'PAST RUN · DB DELAY DATA' : 'RECORDED LIVE'}

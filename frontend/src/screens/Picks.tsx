@@ -67,15 +67,15 @@ export function Picks() {
             </span>
             <span className="shrink-0 pl-2 text-[13px] font-normal text-muted lg:text-[15px]">change</span>
           </Link>
+          {picks.status === 'ok' && strikeDay && strike && (
+            <StrikeCall s={strike} day={date ? dayLabel(`${date}T12:00:00Z`) : 'this day'} tryHref={tryHref} />
+          )}
           {picks.status === 'ok' && picks.data.picks.length > 0 && (
             <>
               {picks.data.picks.map((p) =>
                 p.is_kurts_pick ? (
                   <KurtsPick key={p.id} pick={p} tz={picks.data.tz} strike={call === 'strike_unclear' ? strike : null} onBook={setBooking} />
                 ) : null,
-              )}
-              {strikeDay && strike && (
-                <StrikeCall s={strike} day={date ? dayLabel(`${date}T12:00:00Z`) : 'this day'} tryHref={tryHref} />
               )}
               {strike && !strikeDay && call !== 'strike_unclear' && <StrikeLine s={strike} tone="plain" />}
               {!hasKurts && !strikeDay && (
@@ -145,7 +145,7 @@ export function Picks() {
           {/* Below the picks only once they are in, so nothing above jumps. */}
           {picks.status === 'ok' && (
             <div className="contents lg:mt-6 lg:block">
-              <SignalsArea s={sig} loading={signals.status === 'loading'} date={date} shown={res && res.picks.length > 0 ? strike : null} />
+              <SignalsArea s={sig} loading={signals.status === 'loading'} date={date} shown={res && (res.picks.length > 0 || strikeDay) ? strike : null} />
             </div>
           )}
         </div>

@@ -252,7 +252,7 @@ def test_rising_trains_are_auto_tracked_within_caps(client, settings, monkeypatc
 
 def test_replay_prefers_a_recording_that_crosses_20(client, settings, monkeypatch):
     monkeypatch.setattr(replay, "HISTORY", settings.db_path.parent / "none.json")
-    for delays in ([30, 40, 50, 65, 70, 80, 90, 95], [12, 15, 18, 22, 30, 41, 55, 58]):
+    for delays in ([30, 40, 50, 65, 70, 80, 90, 95], [12, 15, 18, 22, 30, 41, 58, 15]):
         tid, _ = create_trip(settings.db_path, PICK, auto=True)
         conn = connect(settings.db_path)
         with conn:
@@ -277,6 +277,7 @@ def test_replay_prefers_a_recording_that_crosses_20(client, settings, monkeypatc
     assert client.post("/api/demo/replay", json={"recording": f"live:{private}"}).status_code == 404
     got = client.get("/api/demo/recordings").json()
     assert [(r["crosses_20"], r["max_delay_min"]) for r in got] == [(True, 58), (False, 95)]
+    assert got[0]["outcome"] == "unlocked"
     assert got[0]["id"] == f"live:{tid}" and got[0]["source"] == "live"
     r = client.post("/api/demo/replay").json()
     assert r["recording"]["id"] == f"live:{tid}"

@@ -49,6 +49,11 @@ def _flags(delays: list[int]) -> dict:
     }
 
 
+def _outcome(delays: list[int], final: int | None, cancelled: bool) -> str:
+    state = derive_state(final, cancelled)
+    return "unlocked" if state == "on_time" and max(delays) >= 20 else state
+
+
 def _live(db_path) -> list[dict]:
     conn = connect(db_path)
     rows = conn.execute(
@@ -88,7 +93,7 @@ def _live(db_path) -> list[dict]:
                 "date": _day(pick, row["created_at"]),
                 "frames": len(delays),
                 "finished": row["finished_at"] is not None,
-                "outcome": derive_state(last["delay_min"], bool(last["cancelled"])),
+                "outcome": _outcome(delays, last["delay_min"], bool(last["cancelled"])),
                 **_flags(delays),
             }
         )
@@ -115,8 +120,8 @@ def _history() -> list[dict]:
                 "date": run["date"],
                 "frames": len(delays),
                 "finished": True,
-                "outcome": derive_state(
-                    run["stops"][-1]["delay_min"], run["stops"][-1]["cancelled"]
+                "outcome": _outcome(
+                    delays, run["stops"][-1]["delay_min"], run["stops"][-1]["cancelled"]
                 ),
                 **_flags(delays),
             }
