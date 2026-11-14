@@ -308,7 +308,9 @@ def get_claim(
     dep = pick.get("dep") or first.get("dep") or ""
     switched = bool(row["switched"])
     expected = view["expected_arr"]
-    provisional = not expected or _now() < _parse(expected)
+    # Only a live reading taken at or after the expected arrival confirms it; a stale forecast does not.
+    seen = view.get("updated_at")
+    provisional = not expected or not seen or _parse(seen) < _parse(expected)
     if row["is_replay"]:
         provisional = not view["finished"] or not expected
     delay = None if switched else view["delay_min"]

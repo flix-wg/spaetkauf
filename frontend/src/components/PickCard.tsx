@@ -160,7 +160,7 @@ export function CompactPick({
                 role="img"
                 aria-label={`${pct(o.p20)} chance of 20+ min late`}
               >
-                <Snails p20={o.p20} />
+                <span className="hidden min-[360px]:inline-flex"><Snails p20={o.p20} /></span>
                 <span className="mono text-[14px] font-bold lg:text-[19px]">{pctNum(o.p20)}%</span>
               </span>
             )}

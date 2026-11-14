@@ -87,7 +87,7 @@ export function ClaimScreen() {
                     <span className="font-display text-[24px] font-bold leading-tight">{c.switched ? 'Check your arrival' : c.provisional ? 'No payout forecast' : 'Nothing to claim'}</span>
                   )}
                   <span className="text-[13px] leading-snug lg:text-[16px]">{c.reason}</span>
-                  {c.provisional && !c.switched && <p className="mt-2 text-[13px]">This amount is a forecast and is final only once the train arrives. Reload after arrival to update it.</p>}
+                  {c.provisional && !c.switched && <p className="mt-2 text-[13px]">This amount is a forecast until Kurt sees the train arrive. If it never updates, enter your real arrival in DB’s claim form.</p>}
                 </div>
                 <Kurt width={72} shell="#FFFFFF" className="shrink-0" />
               </section>

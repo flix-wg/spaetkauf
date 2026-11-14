@@ -83,7 +83,8 @@ def connection(it: dict) -> dict | None:
         for leg in raw
     ]
     end = raw[-1]["to"]
-    posted = any(leg.get("cancelled") for leg in raw) or bool(end.get("cancelled"))
+    cancelled = any(leg.get("cancelled") for leg in raw) or bool(end.get("cancelled"))
+    posted = cancelled
     if raw[-1].get("realTime") and end.get("arrival") and end.get("scheduledArrival"):
         posted |= _minutes(_t(end["scheduledArrival"]), _t(end["arrival"])) >= LATE_MIN
     key = json.dumps([[leg["trip_id"] for leg in legs], legs[0]["dep"]])
@@ -97,6 +98,7 @@ def connection(it: dict) -> dict | None:
         "legs": legs,
         "odds": None,
         "already_posted": posted,
+        "cancelled": cancelled,
         "is_kurts_pick": False,
         "ride_instead": None,
         "bahn_url": "",
@@ -142,6 +144,7 @@ def ride_instead(booked: dict, others: list[dict], before: int = 0) -> dict | No
     fits = [
         p for p in others
         if p["id"] != booked["id"]
+        and not p.get("cancelled")
         and -timedelta(minutes=before) <= _t(p["dep"]) - dep <= RIDE_AFTER
         and _t(p["arr"]) <= arr + RIDE_SLACK
         and not trips & {leg["trip_id"] for leg in p["legs"]}

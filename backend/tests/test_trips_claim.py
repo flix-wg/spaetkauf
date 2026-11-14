@@ -109,6 +109,7 @@ def test_claim_forecast_until_arrival(client, settings, monkeypatch):
     from datetime import datetime
 
     from app.db import connect
+    from app.tracker import finish
 
     saved = client.post("/api/trips", json={"pick": PICK, "price_eur": 34.99}).json()
     tid, secret = saved["trip_id"], saved["secret"]
@@ -127,7 +128,22 @@ def test_claim_forecast_until_arrival(client, settings, monkeypatch):
     assert "Expected arrival" in [f["label"] for f in claim["fields"]]
     monkeypatch.setattr("app.trips._now", lambda: datetime.fromisoformat("2026-11-14T13:11:00Z"))
     claim = client.get(url, params={"secret": secret}).json()
-    assert claim["provisional"] is False and claim["amount_eur"] == 8.75
+    assert claim["provisional"] is True and claim["amount_eur"] == 8.75
+    assert "Expected arrival" in [f["label"] for f in claim["fields"]]
+    finish(settings.db_path, tid, 71, datetime.fromisoformat("2026-11-14T14:00:00Z"))
+    monkeypatch.setattr("app.trips._now", lambda: datetime.fromisoformat("2026-11-14T15:00:00Z"))
+    claim = client.get(url, params={"secret": secret}).json()
+    assert claim["provisional"] is True
+    assert "Expected arrival" in [f["label"] for f in claim["fields"]]
+    conn = connect(settings.db_path)
+    conn.execute(  # a live reading after the arrival time confirms it
+        "INSERT INTO trip_snapshots(trip_id, at, delay_min, expected_arr) VALUES (?,?,?,?)",
+        (tid, "2026-11-14T13:15:00Z", 72, "2026-11-14T13:12:00Z"),
+    )
+    conn.commit()
+    conn.close()
+    claim = client.get(url, params={"secret": secret}).json()
+    assert claim["provisional"] is False
     assert "Actual arrival" in [f["label"] for f in claim["fields"]]
 
 

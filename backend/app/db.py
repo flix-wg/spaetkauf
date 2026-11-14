@@ -1,3 +1,4 @@
+import os
 import sqlite3
 from pathlib import Path
 
@@ -57,7 +58,8 @@ def connect(path: Path) -> sqlite3.Connection:
     conn = sqlite3.connect(path, timeout=10)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
-    conn.execute("PRAGMA synchronous = NORMAL")  # WAL: commits skip fsync, a crash loses no data
+    synchronous = "OFF" if os.getenv("SPAETKAUF_TEST_DB_FAST") == "1" else "NORMAL"
+    conn.execute(f"PRAGMA synchronous = {synchronous}")
     return conn
 
 

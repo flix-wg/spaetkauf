@@ -13,6 +13,7 @@ FIXTURES = Path(__file__).parent / "fixtures"
 
 @pytest.fixture(autouse=True)
 def clear_service_credentials(monkeypatch):
+    monkeypatch.setenv("SPAETKAUF_TEST_DB_FAST", "1")
     for key in (
         "ANTHROPIC_API_KEY", "EXA_API_KEY", "CONTEXT_API_KEY", "CONTEXT_WEBHOOK_SECRET",
         "VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY", "VAPID_SUBJECT",

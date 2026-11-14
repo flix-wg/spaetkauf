@@ -145,7 +145,7 @@ export function Lookup() {
               <h2 className="font-display text-[20px] font-bold lg:text-[26px]">
                 {stopName(res.data.d.from) || res.data.d.from} → {stopName(res.data.d.to) || res.data.d.to}
                 <span className="block font-sans text-[13px] font-normal text-muted lg:text-[15px]">
-                  Share of {days} 20+ late at {stopName(res.data.d.to) || res.data.d.to}
+                  Share of {days} 20+ late or cancelled at {stopName(res.data.d.to) || res.data.d.to}
                 </span>
               </h2>
               {res.data.d.trains.length === 0 ? (
@@ -158,7 +158,7 @@ export function Lookup() {
                       <Row
                         key={t.train}
                         title={<>{t.train} <span className="mono font-normal text-muted">{t.dep ?? '–'} → {t.arr ?? '–'}</span></>}
-                        sub={`${t.late20} of ${t.n} ${days} · 60+ late: ${pctNum(t.late60_share)} %`}
+                        sub={`${t.late20} of ${t.n} ${days} · 60+ late or cancelled: ${pctNum(t.late60_share)} %`}
                         share={t.late20_share}
                         onClick={() => setHist({ train: t.train, stop: d.to, weekday })}
                       />

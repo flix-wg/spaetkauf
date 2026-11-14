@@ -9,6 +9,7 @@ import { useAsync } from '../hooks'
 export function Late() {
   const [s, retry] = useAsync(() => api.lateNow(), [], 60000)
   const d = s.status === 'ok' ? s.data : null
+  const stale = d?.stale || (s.status === 'ok' && s.stale)
   const list = d ? [...d.late].sort((a, b) => b.delay_min - a.delay_min) : []
   return (
     <>
@@ -24,14 +25,14 @@ export function Late() {
         )}
         {d?.checked_at && (
           <>
-            <section className={`${d.stale ? 'bg-surface' : 'bg-accent on-accent'} flex flex-col gap-1 rounded-[22px] p-4 lg:sticky lg:top-24 lg:gap-3 lg:rounded-[28px] lg:p-7`}>
+            <section className={`${stale ? 'bg-surface' : 'bg-accent on-accent'} flex flex-col gap-1 rounded-[22px] p-4 lg:sticky lg:top-24 lg:gap-3 lg:rounded-[28px] lg:p-7`}>
               <h2 className="font-display text-[24px] font-bold leading-tight lg:text-[38px] lg:leading-[1.1]">
                 <span className="mono">{list.length}</span> of <span className="mono">{d.checked}</span> trains: ticket unlocked right now
               </h2>
               <p className="flex items-center gap-1.5 text-[13px] lg:text-[16px]">
                 <IconClock size={15} /> Checked {timeAgo(d.checked_at)} ({hhmm(d.checked_at)})
               </p>
-              {d.stale && (
+              {stale && (
                 <p className="rounded-lg bg-white px-3 py-2 text-[13px] font-semibold lg:text-[15px]" role="alert">
                   Not current: the live source failed, this is the last list Kurt got.
                 </p>

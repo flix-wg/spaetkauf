@@ -224,3 +224,15 @@ def test_earlier_ride_instead_only_with_before(make_client):
     early = {"id": "a", "dep": at("07:30"), "arr": at("11:30"), "changes": 0, "legs": [{"trip_id": "t1", "train": "ICE 1", "from": "", "to": ""}]}
     booked = {"id": "b", "dep": at("08:00"), "arr": at("12:00"), "changes": 0, "legs": [{"trip_id": "t2", "train": "ICE 2", "from": "", "to": ""}]}
     assert picks.ride_instead(booked, [early, later], 60)["trains"] == ["ICE 3"]
+
+
+def test_cancelled_connection_is_not_a_ride_instead(make_client):
+    booked = itin(("ICE 1", "München Hbf", "08:00", "12:00"))
+    cancelled = itin(("ICE 2", "München Hbf", "08:30", "11:30"))
+    cancelled["legs"][-1]["cancelled"] = True
+    stop_cancelled = itin(("ICE 3", "München Hbf", "08:40", "11:40"))
+    stop_cancelled["legs"][-1]["to"]["cancelled"] = True
+    delayed = itin(("ICE 4", "München Hbf", "09:00", "12:10"), delay=25)
+    body = get(make_client(plan_pages([[booked, cancelled, stop_cancelled, delayed]]))).json()
+    pick = next(p for p in body["picks"] if p["legs"][0]["train"] == "ICE 1")
+    assert pick["ride_instead"]["trains"] == ["ICE 4"]
