@@ -1,6 +1,6 @@
 # Kurt for bahn.de
 
-Shows historical late-arrival odds beside long-distance connections and marks Kurt’s pick. It reads results already loaded by the traveller; it does not book or navigate. When a card already shows a delay or cancellation, its badge starts with "Delay already posted: won’t count", keeps its odds and loses Kurt’s mark; no other card gets it. Seat and occupancy notices are ignored.
+Shows historical late-arrival odds beside long-distance connections and marks Kurt’s pick: the highest chance of at least 30 % with another connection on the page that leaves within 2 hours and arrives at most 20 minutes later, the same rule as the app. It reads results already loaded by the traveller; it does not book or navigate. When a card already shows a delay or cancellation, its badge starts with "Delay already posted: won’t count", keeps its odds and loses Kurt’s mark; no other card gets it. Seat and occupancy notices are ignored.
 
 Install: open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select `extension/`. In the extension’s settings, set the Kurt server URL (HTTPS, or HTTP on localhost). Custom HTTPS servers ask for access on save. The popup toggles overlays and shows server health, adapter availability, parser path, counts, last check, layout hash and three parsed connections.
 
@@ -10,4 +10,4 @@ The server uses `claude-haiku-5-5` to suggest selectors when heuristics fail: on
 
 Tests from `extension/`: `node --test`; for the local browser integration run `SPK_SERVER=http://127.0.0.1:8000 node test/e2e.mjs`. Playwright and its Chromium channel must already be installed. Optional `SPK_SHOTS` sets the screenshot directory (default `~/tmp/spk-shots-real`). The integration test checks local fixtures and service-worker requests without backend CORS middleware; it blocks bahn.de network access.
 
-Limits: the extension has never been tested against live bahn.de beyond one saved page. Layout changes can defeat both heuristics and suggested selectors. Odds describe past runs, not a prediction; connections with changes use only the last train’s history and do not count missed changes.
+Limits: checked by hand on live bahn.de on 2026-11-14 (badges, Kurt’s pick, the explainer and Open in Kurt); the retry after a failed odds request and the popup were not tried live. The pick only sees backups shown on the page, so it can miss one the app finds. Layout changes can defeat both heuristics and suggested selectors. Odds describe past runs, not a prediction; connections with changes use only the last train’s history and do not count missed changes.

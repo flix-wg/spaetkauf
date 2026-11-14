@@ -49,6 +49,9 @@ a strike for the travel date changes Kurt's call (see "Strike call" below).
 ## What is filtered
 
 - Only results with `relevant: true`, at most 5, `source` is the hostname.
+- In the app, results whose reason names long-distance trains (long-distance, Fernverkehr, ICE,
+  intercity, high-speed) and do not say they are unaffected add a warning to Kurt’s pick: past runs
+  may not include this, so the chance may not hold. The pick and its odds stay the same.
 - Results whose date range ends before the travel date or starts after it are dropped.
   A result without an end date counts as one day unless its kind is strike.
 - Hosts bahn.de, deutschebahn.com, dbregio.de, db.de, bahnhof.de, inside-bahn.de (and subdomains)
@@ -73,9 +76,9 @@ a strike for the travel date changes Kurt's call (see "Strike call" below).
 
 - Exa: about $0.015 per uncached call (search $0.007 plus summaries $0.008). With the 6 h cache a
   corridor and date costs at most four calls a day.
-- Context.dev free plan: 1,000 credits a month. A page run costs 1, a search run 2. The two page
-  monitors run every 2 hours and the search monitor every 6 hours: about 24 + 8 = 32 credits a day,
-  roughly 960 a month, which is close to the limit. Pause the search monitor if credits run short.
+- Context.dev: a page run costs 1 credit, a search run 2. The two page monitors run every 2 hours
+  and the search monitor every 6 hours: about 24 + 8 = 32 credits a day. The account had about
+  49,700 credits left on 2026-11-14, so this is not the limit the free plan’s 1,000 a month suggests.
 
 ## Terms notes
 
