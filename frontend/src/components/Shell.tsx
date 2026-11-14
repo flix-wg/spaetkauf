@@ -33,7 +33,7 @@ function InfoButton() {
     <button
       type="button"
       onClick={() => open('sources')}
-      aria-label="About and sources"
+      aria-label="How Kurt works"
       className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted hover:bg-surface"
     >
       <IconInfo />
@@ -151,7 +151,7 @@ export function Shell() {
   const sheets = (
     <>
       {current === 'sources' && (
-        <Sheet title="Sources" onClose={close}>
+        <Sheet title="How Kurt works" onClose={close}>
           <SourcesSheet />
         </Sheet>
       )}

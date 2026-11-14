@@ -33,6 +33,9 @@ export function OddsLine({ pick, onHistory, className = '' }: { pick: Pick; onHi
   )
 }
 
+const SOONER = 'Same ticket, and you get there sooner than on your late train.'
+const EARLIER = 'It leaves before yours, so it only helps if the delay is announced in time.'
+
 function rideLine(p: Pick, tz: string) {
   const r = p.ride_instead
   if (!r) return null
@@ -104,7 +107,7 @@ export function KurtsPick({
           {has ? (
             <>
               <span className="mono text-[40px] font-bold leading-none lg:text-[68px]">{pctNum(o.p20)}%</span>
-              <span className="text-[12px] lg:text-[15px] lg:font-semibold">{o.basis === 'estimate' ? 'est. trip 20+ late' : '20+ late'}</span>
+              <span className="max-w-[88px] text-right text-[12px] leading-tight lg:max-w-none lg:text-[15px] lg:font-semibold">chance of 20+ min late</span>
             </>
           ) : (
             <span className="text-[13px] font-semibold">No odds yet</span>
@@ -115,10 +118,10 @@ export function KurtsPick({
       {strike && <StrikeLine s={strike} tone="card" />}
       {ride ? (
         <div className="flex flex-col gap-0.5 rounded-xl bg-white p-3 lg:gap-1 lg:rounded-2xl lg:p-4">
-          <span className="tag text-accent-text lg:!text-[13px]">IF LATE, RIDE</span>
+          <span className="tag text-accent-text lg:!text-[13px]">IF YOURS IS 20+ MIN LATE, TAKE</span>
           <span className="mono text-[20px] font-bold leading-tight lg:text-[28px]">{ride.times}</span>
           <span className="text-[13px] font-semibold lg:text-[16px]">{ride.what}</span>
-          {ride.earlier && <span className="text-[12px] lg:text-[14px]">Earlier: only if the delay is posted in time</span>}
+          <span className="text-[12px] lg:text-[14px]">{ride.earlier ? EARLIER : SOONER}</span>
         </div>
       ) : null}
       <Actions pick={pick} onBook={onBook} tone="accent" />
@@ -174,8 +177,8 @@ export function CompactPick({
               : !hasOdds(o)
                 ? `Not enough history · ${changesLabel(pick.changes)}`
                 : ride
-                  ? `If late, ride ${ride.times}`
-                  : `No quicker train to switch to · ${meta(pick)}`}
+                  ? `20+ min late? Take ${ride.times}`
+                  : `No other train gets you there sooner · ${meta(pick)}`}
           </span>
         </span>
       </button>
@@ -187,10 +190,10 @@ export function CompactPick({
           </div>
           {ride && (
             <div className="rounded-xl bg-surface p-3">
-              <span className="tag text-accent-text">IF LATE, RIDE</span>
+              <span className="tag text-accent-text">IF YOURS IS 20+ MIN LATE, TAKE</span>
               <p className="mono text-[16px] font-bold lg:text-[20px]">{ride.times}</p>
               <p className="text-[13px] font-semibold lg:text-[15px]">{ride.what}</p>
-              {ride.earlier && <p className="text-[12px] lg:text-[14px]">Earlier: only if the delay is posted in time</p>}
+              <p className="text-[12px] lg:text-[14px]">{ride.earlier ? EARLIER : SOONER}</p>
             </div>
           )}
           <Actions pick={pick} onBook={onBook} tone="plain" />

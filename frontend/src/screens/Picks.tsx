@@ -201,6 +201,9 @@ export function Picks() {
                   {hasKurts ? 'More picks' : 'All trains'} <IconChevron size={16} className="rotate-90 text-muted lg:hidden" />
                 </h2>
               )}
+              {picks.data.picks.some((p) => !p.is_kurts_pick) && (
+                <p className="-mt-2 text-[13px] text-muted lg:text-[15px]">More snails: more often 20+ min late. Good for you.</p>
+              )}
               {picks.data.picks
                 .filter((p) => !p.is_kurts_pick)
                 .map((p) => (

@@ -302,7 +302,7 @@ function TripView({
           <div className="flex items-end gap-2">
             <Kurt width={44} className="shrink-0" />
             <span className="rounded-2xl rounded-bl border-2 border-ink px-3 py-2.5 text-[14px] font-semibold leading-snug lg:text-[17px]">
-              Show your ticket as usual. The delay is your pass.
+              Show your ticket as usual. Your train is 20+ min late, so it’s valid on this one.
             </span>
           </div>
         )}
@@ -343,9 +343,9 @@ function SwitchOrStay({ t, ref_, reload }: { t: Trip; ref_: TripRef; reload: () 
       : d >= 60
         ? [
             `Stay on the ${train}: 25 % back is yours`,
-            `${a60 !== null ? eur(a60) : '25 %'} now, ${a120 !== null ? eur(a120) : '50 %'} if it cracks +120`,
+            `${a60 !== null ? eur(a60) : '25 %'} now, ${a120 !== null ? eur(a120) : '50 %'} if it reaches 120 min late`,
           ]
-        : [`Stay on the ${train}, race to +60`, `${a60 !== null ? eur(a60) : '25 %'} back if it cracks +60`]
+        : [`Stay on the ${train}`, `${a60 !== null ? eur(a60) : '25 %'} back if it reaches 60 min late`]
   return (
     <section className="flex flex-col gap-2.5 rounded-[22px] border-2 border-ink p-3.5 lg:gap-3.5 lg:rounded-[28px] lg:border-[3px] lg:p-6" aria-label="Switch or stay">
       <h2 className="font-display text-[20px] font-bold lg:text-[30px]">Switch or stay?</h2>

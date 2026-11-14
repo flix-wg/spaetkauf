@@ -46,7 +46,7 @@ export function ArriveKurtsPick({ pick, tz, by, strike, onBook, onHistory }: Car
         {hasOdds(o) && (
           <div className="flex shrink-0 flex-col items-end">
             <span className="mono text-[40px] font-bold leading-none lg:text-[68px]">{pctNum(o.p20)}%</span>
-            <span className="text-[12px] lg:text-[15px] lg:font-semibold">{o.basis === 'estimate' ? 'trip 20+ late' : '20+ late'}</span>
+            <span className="max-w-[88px] text-right text-[12px] leading-tight lg:max-w-none lg:text-[15px] lg:font-semibold">chance of 20+ min late</span>
           </div>
         )}
       </div>

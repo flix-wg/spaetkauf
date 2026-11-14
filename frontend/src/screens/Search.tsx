@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api, type Station } from '../api'
 import { Kurt } from '../components/Kurt'
+import { HowItWorks, Rules } from '../components/HowItWorks'
 import { IconSearch, IconSwap } from '../components/Icons'
 import { ScreenHeader } from '../components/Shell'
 import { useSheet } from '../sheets'
@@ -119,12 +120,6 @@ function StationField({
   )
 }
 
-const STEPS = [
-  'Search a route and see which trains arrive 20+ minutes late most often.',
-  'Book the cheap saver ticket on bahn.de. Kurt names the train you would ride instead.',
-  'Kurt watches your trip live and tells you when the ticket unlocks and when money is back.',
-]
-
 export function Search() {
   const nav = useNavigate()
   const { open } = useSheet()
@@ -182,11 +177,19 @@ export function Search() {
       <ScreenHeader title="Kurt" deskOnly />
       <div className="flex flex-col gap-5 px-5 pb-8 pt-4 lg:pt-0 lg:grid lg:grid-cols-[minmax(0,560px)_minmax(0,1fr)] lg:items-start lg:gap-x-14 lg:px-10 lg:pb-12">
         <div className="contents lg:flex lg:flex-col lg:gap-6">
-          <div className="flex items-end gap-3 rounded-[22px] bg-tint p-4 lg:p-6">
-            <Kurt width={76} className="shrink-0" />
-            <p className="text-[15px] font-semibold leading-snug lg:text-[20px]">
-              Buy the cheap ticket for the train that’s usually late. Ride the better one.
-            </p>
+          <div className="flex flex-col gap-3 rounded-[22px] bg-tint p-4 lg:p-6">
+            <div className="flex items-end gap-3">
+              <Kurt width={76} className="shrink-0" />
+              <p className="text-[15px] font-semibold leading-snug lg:text-[20px]">
+                Buy the cheap ticket for the train that’s usually late. Ride the better one.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 lg:hidden">
+              <Rules />
+              <button type="button" onClick={() => open('sources')} className="min-h-[36px] self-start text-[14px] font-semibold text-accent-text underline">
+                How it works
+              </button>
+            </div>
         </div>
         <form onSubmit={go} className="flex flex-col gap-3">
           <div className="relative flex flex-col gap-3">
@@ -249,16 +252,9 @@ export function Search() {
           How good is Kurt?
         </button>
         </div>
-        <ol className="hidden flex-col gap-5 rounded-[28px] bg-surface p-8 lg:flex" aria-label="How it works">
-          {STEPS.map((t, i) => (
-            <li key={i} className="flex gap-4 text-[20px] font-semibold leading-snug">
-              <span className="mono flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink text-[17px] font-bold text-white">
-                {i + 1}
-              </span>
-              <span className="pt-1">{t}</span>
-            </li>
-          ))}
-        </ol>
+        <div className="hidden rounded-[28px] bg-surface p-8 lg:block">
+          <HowItWorks big />
+        </div>
       </div>
     </>
   )

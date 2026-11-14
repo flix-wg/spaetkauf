@@ -44,6 +44,7 @@ export function Lookup() {
   const [to, setTo] = useState(sp.get('to') ?? '')
   const [wd, setWd] = useState(wdParam ?? '')
   const [hist, setHist] = useState<HistoryQuery | null>(null)
+  const [err, setErr] = useState('')
 
   const asked = by === 'train' ? sp.get('train') : sp.get('from') && sp.get('to') ? `${sp.get('from')}|${sp.get('to')}` : null
   const [res, retry] = useAsync<Found>(
@@ -60,8 +61,13 @@ export function Lookup() {
   function submit(e: React.FormEvent) {
     e.preventDefault()
     if (by === 'train') {
-      if (train.trim()) set({ train: train.trim() })
-    } else if (from.trim() && to.trim()) set({ from: from.trim(), to: to.trim() })
+      if (!train.trim()) return setErr('Enter a train number, for example ICE 1103.')
+      set({ train: train.trim() })
+    } else {
+      if (!from.trim() || !to.trim()) return setErr('Enter both stations, for example Hamburg Hbf and München Hbf.')
+      set({ from: from.trim(), to: to.trim() })
+    }
+    setErr('')
   }
   const days = weekday === undefined ? 'runs' : `${WEEKDAYS[weekday]}s`
 
@@ -80,7 +86,10 @@ export function Lookup() {
                 type="button"
                 role="radio"
                 aria-checked={by === m}
-                onClick={() => setSp(new URLSearchParams({ by: m }))}
+                onClick={() => {
+                  setErr('')
+                  setSp(new URLSearchParams({ by: m }))
+                }}
                 className={`min-h-[44px] rounded-lg text-[15px] font-semibold ${by === m ? 'bg-white text-ink shadow-[0_1px_2px_rgba(20,22,26,0.12)]' : 'text-muted hover:text-ink'}`}
               >
                 {m === 'train' ? 'A train' : 'A route'}
@@ -91,17 +100,17 @@ export function Lookup() {
             {by === 'train' ? (
               <div>
                 <label htmlFor="lk-train" className={label}>Train</label>
-                <input id="lk-train" value={train} onChange={(e) => setTrain(e.target.value)} placeholder="ICE 1103" autoComplete="off" className={input} />
+                <input id="lk-train" value={train} onChange={(e) => setTrain(e.target.value)} placeholder="e.g. ICE 1103" autoComplete="off" className={input} />
               </div>
             ) : (
               <>
                 <div>
                   <label htmlFor="lk-from" className={label}>From</label>
-                  <input id="lk-from" value={from} onChange={(e) => setFrom(e.target.value)} placeholder="Hamburg Hbf" autoComplete="off" className={input} />
+                  <input id="lk-from" value={from} onChange={(e) => setFrom(e.target.value)} placeholder="e.g. Hamburg Hbf" autoComplete="off" className={input} />
                 </div>
                 <div>
                   <label htmlFor="lk-to" className={label}>To</label>
-                  <input id="lk-to" value={to} onChange={(e) => setTo(e.target.value)} placeholder="München Hbf" autoComplete="off" className={input} />
+                  <input id="lk-to" value={to} onChange={(e) => setTo(e.target.value)} placeholder="e.g. München Hbf" autoComplete="off" className={input} />
                 </div>
               </>
             )}
@@ -114,6 +123,7 @@ export function Lookup() {
                 ))}
               </select>
             </div>
+            {err && <p className="text-[13px] font-semibold text-accent-text" role="alert">{err}</p>}
             <button type="submit" className="btn-primary mt-1 !min-h-[54px] !text-[16px]">
               <IconSearch size={20} /> Look up
             </button>

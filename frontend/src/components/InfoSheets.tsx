@@ -3,6 +3,7 @@ import { dateOnly } from '../format'
 import { useAsync } from '../hooks'
 import { useSheet } from '../sheets'
 import { ErrorState, Loading } from './States'
+import { HowItWorks } from './HowItWorks'
 
 const SOURCES = [
   ['Transitous', 'Routes, trains and live delays (open MOTIS service).'],
@@ -18,6 +19,8 @@ export function SourcesSheet() {
     bt.status === 'ok' ? `${dateOnly(bt.data.train_period.from)} to ${dateOnly(bt.data.test_period.to)}` : null
   return (
     <div className="flex flex-col gap-4 text-[14px] leading-snug lg:text-[16px]">
+      <HowItWorks />
+      <h3 className="mt-2 font-display text-[18px] font-bold lg:text-[20px]">Sources</h3>
       <p className="rounded-xl bg-surface p-3 font-semibold">
         Kurt is independent. It is not affiliated with Deutsche Bahn and does not sell or book tickets.
       </p>
@@ -35,8 +38,8 @@ export function SourcesSheet() {
         </p>
       )}
       <p className="text-muted">
-        Odds are base rates from past runs of the same train number, not forecasts. Train numbers change with the
-        timetable on 13 Dec 2026.
+        Odds count how often the same train number was late in the past. They are not forecasts. Train numbers
+        change with the timetable on 13 Dec 2026.
       </p>
       <button type="button" className="btn-ghost" onClick={() => open('backtest')}>
         How good is Kurt?
@@ -122,8 +125,8 @@ export function BacktestSheet() {
       </ul>
       {gap && <p className="rounded-xl bg-tint p-3 font-semibold">{gap}</p>}
       <p className="text-muted">
-        {b.runs.toLocaleString('en-GB')} runs scored. Odds are shrunk base rates from past runs of the same train at
-        the same stop and weekday, not a forecast. Connections with changes are estimates that assume the legs run
+        {b.runs.toLocaleString('en-GB')} runs scored. Odds count past runs of the same train at the same stop and
+        weekday, pulled toward the average when there are few runs. They are not a forecast. Connections with changes are estimates that assume the legs run
         independently.
       </p>
       <p className="text-[12px] text-muted lg:text-[14px]">Data: {b.source}.</p>
