@@ -48,30 +48,46 @@ def download(months=MONTHS) -> list[Path]:
     return paths
 
 
-def load_events(con: duckdb.DuckDBPyConnection, files: list[Path], start: str, end: str) -> None:
+def load_events(
+    con: duckdb.DuckDBPyConnection,
+    files: list[Path],
+    start: str,
+    end: str,
+    with_departures: bool = False,
+) -> None:
     """Create table `events`: one row per long-distance train arrival at a stop, deduplicated.
 
     delay_min = arrival_change_time - arrival_planned_time (delay_in_min is the departure delay where
     the train departs, see docs/odds.md). Replacement trains are dropped; their number is not the
-    scheduled train's.
+    scheduled train's. With `with_departures` the rows that only depart (a train's first stop) are kept
+    too, with a NULL `planned`; the arrival rows are the same as without (used by build_history.py).
     """
     types = ", ".join(f"'{t}'" for t in LONG_DISTANCE_TYPES)
     file_list = ", ".join(f"'{f}'" for f in files)
+    has_time = "(arrival_planned_time IS NOT NULL OR departure_planned_time IS NOT NULL)" if with_departures \
+        else "arrival_planned_time IS NOT NULL"
+    at = "coalesce(arrival_planned_time, departure_planned_time)"
     con.execute(f"""
         CREATE OR REPLACE TABLE events AS
         SELECT train_type, train_number, eva, station_name,
                arrival_planned_time AS planned,
                datediff('minute', arrival_planned_time, arrival_change_time) AS delay_min,
                coalesce(arrival_is_canceled, false) AS cancelled,
-               isodow(arrival_planned_time) - 1 AS weekday
+               isodow({at}) - 1 AS weekday,
+               {at} AS ts,
+               departure_planned_time AS dep_planned,
+               datediff('minute', departure_planned_time, departure_change_time) AS dep_delay_min,
+               coalesce(departure_is_canceled, false) AS dep_cancelled,
+               train_line_ride_id AS ride_id, train_line_station_num AS seq
         FROM read_parquet([{file_list}])
         WHERE train_type IN ({types})
           AND NOT coalesce(is_replacement_train, false)
-          AND arrival_planned_time IS NOT NULL
-          AND arrival_planned_time >= TIMESTAMP '{start}'
-          AND arrival_planned_time < TIMESTAMP '{end}' + INTERVAL 1 DAY
+          AND {has_time}
+          AND {at} >= TIMESTAMP '{start}'
+          AND {at} < TIMESTAMP '{end}' + INTERVAL 1 DAY
         QUALIFY row_number() OVER (
-            PARTITION BY train_type, train_number, eva, arrival_planned_time ORDER BY "time" DESC) = 1
+            PARTITION BY train_type, train_number, eva, arrival_planned_time IS NULL, {at}
+            ORDER BY "time" DESC) = 1
     """)
 
 

@@ -13,3 +13,4 @@ backend/var
 frontend/dist
 openspec/
 docs/
+data/history.*

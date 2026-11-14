@@ -34,6 +34,10 @@ def station_key(name: str) -> str:
     return " ".join(station_tokens(name))
 
 
+def type_family(train_type: str) -> set[str]:
+    return next((f for f in _FAMILIES if train_type in f), {train_type})
+
+
 def _pick_station(keys: list[str], stop_name: str) -> tuple[str | None, str]:
     key = station_key(stop_name)
     if key in keys:
@@ -60,7 +64,7 @@ def find_stats(
         (train_type, train_number),
     ).fetchall()
     if not rows:
-        family = next((f for f in _FAMILIES if train_type in f), {train_type}) - {train_type}
+        family = type_family(train_type) - {train_type}
         types = conn.execute(
             f"SELECT DISTINCT train_type FROM train_stop_stats WHERE train_number = ? "
             f"AND train_type IN ({','.join('?' * len(family)) or 'NULL'})",
