@@ -174,7 +174,17 @@ def message(row: dict, view: dict, kind: str) -> dict:
         pct, title = {"60": (25, "Cash back unlocked"), "120": (50, "Half your money back")}[kind]
         amount = amounts[int(kind)]
         money = f" ({amount:.2f} EUR)" if amount is not None else ""
-        body = f"+{n} min: {pct} % of your ticket comes back{money}."
+        # Compensation counts at the destination. Until the train is there, the money is conditional.
+        dest = legs[-1].get("to")
+        stop = view["at_stop"]
+        back = f"{pct} % of your ticket comes back{money}"
+        if view["finished"] or (stop and stop["name"] == dest):
+            where = f" at {stop['name']}" if stop else ""
+            body = f"+{n} min{where}: {back}."
+        elif stop:
+            body = f"+{n} min at {stop['name']}. If it reaches {dest} this late, {back}."
+        else:
+            body = f"+{n} min expected. If it arrives this late, {back}."
     if row["is_replay"]:
         title = f"Replay · {title}"
         body = f"{body} (replay of {row['replay_of']})"

@@ -32,10 +32,18 @@ function alertFor(prev: TripState, t: Trip): string | null {
     const a = t.thresholds.find((x) => x.at === at)?.amount_eur
     return a != null ? ` (${eur(a)})` : ''
   }
+  // Compensation counts at the destination. Until the train is there, the money is conditional.
+  const to = t.booked.legs[t.booked.legs.length - 1].to
+  const atDest = t.finished || t.at_stop?.name === to
+  const where = stop ? ` at ${stop}` : atDest ? '' : ' expected'
+  const back = (what: string, at: number) =>
+    atDest
+      ? `${d} min${where}: ${what} of your ticket comes back${money(at)}.`
+      : `${d} min${where}. If it ${stop ? `reaches ${stopName(to)}` : 'arrives'} this late, ${what} of your ticket comes back${money(at)}.`
   const msg = {
     unlocked: `It’s late. You win: ${d} min ${stop ? `at ${stop}` : 'expected'}. Ticket unlocked, ride any train.`,
-    cash25: `${d} min${stop ? ` at ${stop}` : ''}: 25 % of your ticket comes back${money(60)}.`,
-    cash50: `${d} min${stop ? ` at ${stop}` : ''}: half your ticket comes back${money(120)}.`,
+    cash25: back('25 %', 60),
+    cash50: back('half', 120),
     cancelled: 'Your train is cancelled. Ticket unlocked: ride any train, or get a full refund.',
     on_time: 'The expected delay dropped back under 20 minutes.',
   }[t.state]

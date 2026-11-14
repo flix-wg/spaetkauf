@@ -27,10 +27,13 @@ export function Late() {
           <>
             <section className={`${stale ? 'bg-surface' : 'bg-accent on-accent'} flex flex-col gap-1 rounded-[22px] p-4 lg:sticky lg:top-24 lg:gap-3 lg:rounded-[28px] lg:p-7`}>
               <h2 className="font-display text-[24px] font-bold leading-tight lg:text-[38px] lg:leading-[1.1]">
-                <span className="mono">{list.length}</span> of <span className="mono">{d.checked}</span> trains: ticket unlocked right now
+                <span className="mono">{list.length}</span> of <span className="mono">{d.checked}</span> trains are 20+ min late right now
               </h2>
               <p className="flex items-center gap-1.5 text-[13px] lg:text-[16px]">
                 <IconClock size={15} /> Checked {timeAgo(d.checked_at)} ({hhmm(d.checked_at)})
+              </p>
+              <p className="text-[13px] leading-snug lg:text-[16px]">
+                Late at this station. Your saver ticket unlocks if your train is 20+ min late at your destination.
               </p>
               {stale && (
                 <p className="rounded-lg bg-white px-3 py-2 text-[13px] font-semibold lg:text-[15px]" role="alert">

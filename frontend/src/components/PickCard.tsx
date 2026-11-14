@@ -17,7 +17,7 @@ export function oddsLine(p: Pick) {
   const counts = o.late !== null && o.n !== null ? `${o.late} of ${o.n} ${days}` : null
   if (o.basis === 'estimate') {
     const last = p.legs[p.legs.length - 1]?.train ?? 'Last train'
-    return counts ? `${last}: late ${counts}` : 'Missed change counts as late'
+    return counts ? `Counts a missed change. ${last} alone: late ${counts}` : 'Counts a missed change as late'
   }
   return `Late ${counts ?? days}`
 }
@@ -178,7 +178,7 @@ export function CompactPick({
                 ? `Not enough history · ${changesLabel(pick.changes)}`
                 : ride
                   ? `20+ min late? Take ${ride.times}`
-                  : `No other train gets you there sooner · ${meta(pick)}`}
+                  : `No backup train found · ${meta(pick)}`}
           </span>
         </span>
       </button>
