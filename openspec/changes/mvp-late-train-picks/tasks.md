@@ -57,9 +57,9 @@ Checkpoints (Helsinki time): core path on real data by Sat 14 Nov 10:00 · deplo
 
 ## 9. Integration and demo readiness
 
-- [ ] 9.1 Run the whole journey on the deployed site in a fresh browser profile: search, book, live, replay with notification, claim, late now; record what failed and fix it
-- [ ] 9.2 Confirm with server logs that no request went to a bahn.de host during 9.1
-- [ ] 9.3 Tag the working version and note the tag and the demo address in `README.md`
+- [x] 9.1 Run the whole journey on the deployed site in a fresh browser profile: search, book, live, replay with notification, claim, late now; record what failed and fix it
+- [x] 9.2 Confirm with server logs that no request went to a bahn.de host during 9.1
+- [x] 9.3 Tag the working version and note the tag and the demo address in `README.md`
 
 ## 10. Built after the plan
 

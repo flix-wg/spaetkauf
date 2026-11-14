@@ -6,6 +6,8 @@ A Deutsche Bahn saver ticket is bound to one train until that train is expected 
 
 Built at Junction 2026. Not affiliated with Deutsche Bahn. The app and the server never call bahn.de; you buy and claim there yourself. The optional Chrome extension in `extension/` shows the same odds on a bahn.de results page you have open: it reads that page and adds badges, and never clicks, fills or fetches anything on bahn.de. See [docs/extension.md](docs/extension.md).
 
+Live demo: https://65-108-33-75.sslip.io, tag `v0.1.0`. The server logs the host of every outbound call (`docker compose --env-file .env -f deploy/docker-compose.yml logs app | grep outbound`), so the no-bahn.de claim can be checked.
+
 - Plan and spec: `openspec/changes/mvp-late-train-picks/`
 - Working rules for contributors and agents: `AGENTS.md`
 
