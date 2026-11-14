@@ -8,7 +8,7 @@ import { IconChevron } from '../components/Icons'
 import { Kurt } from '../components/Kurt'
 import { CompactPick, KurtsPick, StrikeCall } from '../components/PickCard'
 import { ScreenHeader } from '../components/Shell'
-import { SignalsArea, StrikeLine } from '../components/Signals'
+import { disruptions, SignalsArea, StrikeLine } from '../components/Signals'
 import { Empty, ErrorState, Loading } from '../components/States'
 import { dayLabel, hhmm, shortStation } from '../format'
 import { useAsync } from '../hooks'
@@ -69,6 +69,7 @@ export function Picks() {
   if (!from || !to) return <Navigate to="/" replace />
 
   const sig = signals.status === 'ok' ? signals.data : null
+  const news = disruptions(sig)
   const res = picks.status === 'ok' ? picks.data : null
   const strike = res?.strike ?? null
   const call = res?.kurt_call
@@ -109,9 +110,9 @@ export function Picks() {
             <>
               {picks.data.picks.map((p) =>
                 !p.is_kurts_pick ? null : arrive ? (
-                  <ArriveKurtsPick key={p.id} pick={p} tz={picks.data.tz} by={by} strike={call === 'strike_unclear' ? strike : null} onBook={setBooking} onHistory={setHist} />
+                  <ArriveKurtsPick key={p.id} pick={p} tz={picks.data.tz} by={by} strike={call === 'strike_unclear' ? strike : null} news={news} onBook={setBooking} onHistory={setHist} />
                 ) : (
-                  <KurtsPick key={p.id} pick={p} tz={picks.data.tz} strike={call === 'strike_unclear' ? strike : null} onBook={setBooking} onHistory={setHist} />
+                  <KurtsPick key={p.id} pick={p} tz={picks.data.tz} strike={call === 'strike_unclear' ? strike : null} news={news} onBook={setBooking} onHistory={setHist} />
                 ),
               )}
               {strike && !strikeDay && call !== 'strike_unclear' && <StrikeLine s={strike} tone="plain" />}

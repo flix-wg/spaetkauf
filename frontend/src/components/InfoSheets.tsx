@@ -8,7 +8,7 @@ import { HowItWorks } from './HowItWorks'
 const SOURCES = [
   ['Transitous', 'Routes, trains and live delays (open MOTIS service).'],
   ['piebro/deutsche-bahn-data', 'Past arrival delays behind every percentage, licence CC BY 4.0.'],
-  ['Exa', 'Cited web signals such as strikes and track works for your day.'],
+  ['Exa', 'Cited news on strikes, closures and track works for your day. Kurt’s pick warns when past runs may not cover them.'],
   ['Context.dev', 'Watches strike announcement pages for changes.'],
 ]
 

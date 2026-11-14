@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import type { HistoryQuery, Pick, Strike } from '../api'
+import type { HistoryQuery, Pick, SignalItem, Strike } from '../api'
 import { duration, hhmm, pct, pctNum } from '../format'
 import { Kurt, Snails } from './Kurt'
 import { IconChevron } from './Icons'
 import { Actions, hasOdds, meta, OddsLine } from './PickCard'
-import { StrikeLine } from './Signals'
+import { NewsLine, StrikeLine } from './Signals'
 
 export function spareLine(p: Pick, by: string, short = false) {
   const s = p.spare_min ?? 0
@@ -29,7 +29,7 @@ export function LateBadges({ p }: { p: Pick }) {
 type CardProps = { pick: Pick; tz: string; by: string; onBook: (p: Pick) => void; onHistory: (q: HistoryQuery) => void }
 
 // `strike`: a strike with unclear dates, shown as a warning on the pick.
-export function ArriveKurtsPick({ pick, tz, by, strike, onBook, onHistory }: CardProps & { strike: Strike | null }) {
+export function ArriveKurtsPick({ pick, tz, by, strike, news = [], onBook, onHistory }: CardProps & { strike: Strike | null; news?: SignalItem[] }) {
   const o = pick.odds
   return (
     <section className="on-accent relative flex flex-col gap-3 rounded-[22px] bg-accent p-4 lg:gap-4 lg:rounded-[28px] lg:p-6" aria-label="Kurt's pick">
@@ -52,6 +52,7 @@ export function ArriveKurtsPick({ pick, tz, by, strike, onBook, onHistory }: Car
       </div>
       <OddsLine pick={pick} onHistory={onHistory} className="-mt-1 text-[13px] font-semibold lg:text-[16px] lg:leading-snug" />
       {strike && <StrikeLine s={strike} tone="card" />}
+      {!strike && news.length > 0 && <NewsLine items={news} />}
       <div className="flex flex-col gap-1 rounded-xl bg-white p-3 lg:gap-1.5 lg:rounded-2xl lg:p-4">
         <span className="tag text-accent-text lg:!text-[13px]">ARRIVE BY {by}</span>
         <span className="mono text-[20px] font-bold leading-tight lg:text-[28px]">{spareLine(pick, by, true)}</span>

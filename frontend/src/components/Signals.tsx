@@ -161,3 +161,31 @@ export function SignalsArea({
     </section>
   )
 }
+
+// News for this route and day that names long-distance trains. The odds come from past runs, which
+// may not include a closure or detour like this, so Kurt's pick says so.
+const longDistance = /\b(long[- ]distance|fernverkehr|ICEs?|intercity|high[- ]speed)\b/i
+export const disruptions = (s: SignalsResponse | null) =>
+  s?.status === 'ok' ? s.items.filter((it) => longDistance.test(it.reason) && !weak(it.reason)) : []
+
+export function NewsLine({ items }: { items: SignalItem[] }) {
+  const [first] = items
+  return (
+    <div role="note" className="flex items-start gap-2 rounded-xl bg-white p-3 text-[13px] leading-snug lg:gap-3 lg:rounded-2xl lg:p-4 lg:text-[15px]">
+      <IconAlert size={18} className="mt-0.5 shrink-0" />
+      <span className="flex min-w-0 flex-col gap-1">
+        <span>
+          <b>Disruption news for this day.</b> Past runs may not include it, so this chance may not hold.
+        </span>
+        <span className="line-clamp-2">{tidy(first.reason)}</span>
+        <span className="flex flex-wrap items-center gap-x-2 text-[12px] text-muted lg:text-[13px]">
+          <a href={first.url} target="_blank" rel="noopener noreferrer" className="-my-3 inline-flex min-h-[44px] items-center gap-1 underline">
+            {first.source}
+            {first.published ? ` · ${shortDate(first.published)}` : ''} <IconExternal size={12} />
+          </a>
+          {items.length > 1 && <span>{items.length - 1} more under News</span>}
+        </span>
+      </span>
+    </div>
+  )
+}

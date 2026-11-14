@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { HistoryQuery, Odds, Pick, Strike } from '../api'
+import type { HistoryQuery, Odds, Pick, SignalItem, Strike } from '../api'
 import { historyOf } from './HistorySheet'
 import { changesLabel, dayLabel, duration, hhmm, pct, pctNum, weekdayPlural } from '../format'
 import { Kurt, Snails } from './Kurt'
 import { IconChevron, IconExternal } from './Icons'
-import { StrikeLine, StrikeSource, TestTag } from './Signals'
+import { NewsLine, StrikeLine, StrikeSource, TestTag } from './Signals'
 
 export const hasOdds = (o: Odds | null): o is Odds & { p20: number } => !!o && o.basis !== 'none' && o.p20 !== null
 
@@ -77,12 +77,14 @@ export function KurtsPick({
   pick,
   tz,
   strike,
+  news = [],
   onBook,
   onHistory,
 }: {
   pick: Pick
   tz: string
   strike: Strike | null
+  news?: SignalItem[]
   onBook: (p: Pick) => void
   onHistory?: (q: HistoryQuery) => void
 }) {
@@ -116,6 +118,7 @@ export function KurtsPick({
       </div>
       <OddsLine pick={pick} onHistory={onHistory} className="-mt-1 text-[13px] font-semibold lg:text-[16px] lg:leading-snug" />
       {strike && <StrikeLine s={strike} tone="card" />}
+      {!strike && news.length > 0 && <NewsLine items={news} />}
       {ride ? (
         <div className="flex flex-col gap-0.5 rounded-xl bg-white p-3 lg:gap-1 lg:rounded-2xl lg:p-4">
           <span className="tag text-accent-text lg:!text-[13px]">IF YOURS IS 20+ MIN LATE, TAKE</span>
