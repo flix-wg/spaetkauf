@@ -7,15 +7,25 @@
   let lastKey = null;
   let lastResponse = null;
   let rendered = new Set();
-  const send = message => chrome.runtime.sendMessage(message);
+  // async: once the extension is reloaded, sendMessage throws instead of rejecting.
+  const send = async message => chrome.runtime.sendMessage(message);
+  // After a reload or update the old script stays on the page with no extension behind it.
+  const alive = () => Boolean(chrome.runtime?.id);
+  function stop() {
+    enabled = false;
+    clearTimeout(timer);
+    observer.disconnect();
+    removeEventListener('hashchange', schedule);
+  }
   function schedule() {
+    if (!alive()) return stop();
     generation++;
     clearTimeout(timer);
     if (enabled) {
       pendingSince ??= Date.now();
       timer = setTimeout(() => {
         pendingSince = null;
-        run(generation).catch(error => report({ path: 'none', count: 0, ldCount: 0, error: error.message }));
+        run(generation).catch(error => alive() ? report({ path: 'none', count: 0, ldCount: 0, error: error.message }) : stop());
       }, Math.max(0, Math.min(400, pendingSince + 2000 - Date.now())));
     }
   }
