@@ -77,6 +77,7 @@ def extension_odds(body: OddsRequest, request: Request):
         if row:
             stop = row[0]
     results = []
+    page = []  # the page's connections as ride-instead candidates
     for i, connection in enumerate(body.connections):
         day = connection.date or body.date
         dep = datetime.combine(day, time.fromisoformat(connection.dep), odds.BERLIN)
@@ -95,6 +96,12 @@ def extension_odds(body: OddsRequest, request: Request):
             "kurt": False,
         }
         trains = [parse_train(re.sub(r"(?<=[A-Za-z])(?=\d)", " ", t)) for t in connection.trains]
+        names = [" ".join(t) if t else raw for t, raw in zip(trains, connection.trains)]
+        page.append({
+            "id": i, "dep": dep.isoformat(), "arr": arr.isoformat(), "changes": len(names) - 1,
+            "cancelled": connection.posted,  # a posted delay is no safe backup either
+            "legs": [{"trip_id": f"{day}:{n}", "train": n, "from": "", "to": ""} for n in names],
+        })  # fmt: skip
         last = trains[-1] if trains else None
         if last and last[0] in LONG_DISTANCE_TYPES:
             train = " ".join(last)
@@ -118,6 +125,8 @@ def extension_odds(body: OddsRequest, request: Request):
         r for r in results
         if not body.connections[r["i"]].posted
         and r["p20"] is not None and r["p20"] >= picks.KURT_MIN_P20
+        # Same rule as the app: a pick needs another train on this page to switch to.
+        and picks.ride_instead(page[r["i"]], page)
     ]
     kurt = max(eligible, key=lambda r: r["p20"])["i"] if eligible else None
     if kurt is not None:

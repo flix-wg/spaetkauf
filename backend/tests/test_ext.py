@@ -98,12 +98,26 @@ def test_odds_overnight_eva_and_threshold(client):
     assert body["results"][0]["weekday"] == "Sunday"
     assert body["results"][0]["p20"] == 0.2 and body["kurt"] is None
     assert body["link"].startswith("/?")
-    next_day = post_odds(client, [journey("ICE 1", date="2026-11-21")]).json()
+    next_day = post_odds(
+        client, [journey("ICE 1", date="2026-11-21"), journey("RB 2", date="2026-11-21")]
+    ).json()
     assert next_day["kurt"] == 0
     assert parse_qs(urlsplit(next_day["link"]).query)["date"] == ["2026-11-21"]
-    body = post_odds(client, [journey("ICE 1", date="2026-11-15"), journey("ICE 1")]).json()
+    body = post_odds(
+        client, [journey("ICE 1", date="2026-11-15"), journey("ICE 1"), journey("RB 2")]
+    ).json()
     assert body["kurt"] == 1 and body["results"][1]["kurt"]
-    assert post_odds(client, [journey("ICE 1")], to_eva="9999999").json()["kurt"] == 0
+    assert (
+        post_odds(client, [journey("ICE 1"), journey("RB 2")], to_eva="9999999").json()["kurt"] == 0
+    )
+
+
+def test_kurt_needs_a_backup_on_the_page(client):
+    assert post_odds(client, [journey("ICE 1")]).json()["kurt"] is None
+    too_late = journey("RB 2", dep="10:30", arr="14:21")
+    shares_trip = journey("RE 4", "ICE 1", dep="10:30")
+    assert post_odds(client, [journey("ICE 1"), too_late, shares_trip]).json()["kurt"] is None
+    assert post_odds(client, [journey("ICE 1"), journey("RB 2", dep="12:00")]).json()["kurt"] == 0
 
 
 def test_odds_limits(client):
@@ -166,7 +180,7 @@ def test_adapt_pending_and_model_error(client, monkeypatch):
 
 
 def test_posted_connections_keep_odds_but_cannot_be_kurt(client):
-    connections = [journey("ICE 1"), journey("ICE 1", dep="11:00")]
+    connections = [journey("ICE 1"), journey("ICE 1", dep="11:00"), journey("RB 2", dep="11:30")]
     before = post_odds(client, connections).json()
     connections[0]["posted"] = True
     after = post_odds(client, connections).json()
