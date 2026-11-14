@@ -93,6 +93,14 @@ summary {
   }
 }
 
+/* 1024-1279 px (a small laptop or a 1024x768 projector): the 1280 px desktop layout, scaled down. */
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  .desk-fit {
+    zoom: 0.8;
+    height: 125dvh;
+  }
+}
+
 .scroll-y {
   overflow-y: auto;
   overscroll-behavior: contain;

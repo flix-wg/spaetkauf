@@ -138,7 +138,7 @@ export function Shell() {
   )
   if (desk)
     return (
-      <div className="relative flex h-dvh w-full overflow-hidden bg-white">
+      <div className="desk-fit relative flex h-dvh w-full overflow-hidden bg-white">
         <SideNav />
         <main className="scroll-y min-h-0 min-w-0 flex-1">
           <div className="mx-auto w-full max-w-[1680px]">
