@@ -2,29 +2,49 @@
 
 Buy the cheap ticket for the train that is usually late. Ride the better one.
 
-A Deutsche Bahn saver ticket is bound to one train until that train is expected to arrive 20+ minutes late; then any train will do. Kurt ranks connections by how often that happens, shows the train you would ride instead, and watches your trip live.
+A Deutsche Bahn saver ticket (Sparpreis) is bound to one train. Once that train is expected to reach your destination 20+ minutes late, the binding is lifted and you may take another train. At 60 minutes late you get 25 % of the fare back, at 120 minutes 50 %. Kurt ranks long-distance connections by how often that has happened before, suggests a backup train, watches your trip live and helps you fill in the claim.
 
-Built at Junction 2026. Not affiliated with Deutsche Bahn. The app and the server never call bahn.de; you buy and claim there yourself. The optional Chrome extension in `extension/` shows the same odds on a bahn.de results page you have open: it reads that page and adds badges, and never clicks, fills or fetches anything on bahn.de. See [docs/extension.md](docs/extension.md).
+Live demo: https://65-108-33-75.sslip.io. It runs for 7 days after launch or until its server credits run out, whichever comes first. After that, run it yourself (below).
 
-Live demo: https://65-108-33-75.sslip.io, tag `v0.1.0`. The server logs the host of every outbound call (`docker compose --env-file .env -f deploy/docker-compose.yml logs app | grep outbound`), so the no-bahn.de claim can be checked.
+Built at Junction 2026. Not affiliated with Deutsche Bahn. Kurt never calls bahn.de or any DB service: you buy tickets and claim refunds there yourself. Kurt's odds come from past data and are no promise that a train will be late.
 
-- Plan and spec: `openspec/changes/mvp-late-train-picks/`
-- Working rules for contributors and agents: `AGENTS.md`
+## What's in the repo
 
-Data: route and live data from Transitous/MOTIS; delay history from `piebro/deutsche-bahn-data` (CC BY 4.0).
+- `backend/`: FastAPI app, SQLite for saved trips, odds from `data/odds.sqlite`.
+- `frontend/`: React PWA (installable, Web Push alerts).
+- `extension/`: optional Chrome extension (load it unpacked) that shows Kurt's odds on a bahn.de results page you have open. It reads that page, asks your Kurt server for the odds and adds badges; it never clicks, fills or loads anything on bahn.de. See [docs/extension.md](docs/extension.md).
+- `deploy/`: Dockerfile, Docker Compose with Caddy (automatic HTTPS).
+- `scripts/`: rebuild the odds table and the history from the source data.
 
-## Run and restart
+## Run it locally
 
-- Local backend: `cd backend && uv sync --frozen && uv run uvicorn app.main:app --reload --port 8710`.
-- Local frontend (another terminal): `cd frontend && npm ci && npm run dev`; its API proxy targets port 8710.
-- Mock UI without a backend: `cd frontend && VITE_MOCK=1 npm run dev` (example data).
-- First deploy on a fresh VM: copy the repo to `/opt/spaetkauf`, `cp .env.example .env`, fill the keys, set `SITE_ADDRESS=<ip-with-dashes>.sslip.io`, then `docker compose --env-file .env -f deploy/docker-compose.yml up -d --build`. Caddy gets the certificate on the first request.
-- Deploy from the repo root: `deploy/ship.sh <user@host>` (optional git ref as second argument; default HEAD). It ships committed files over one SSH connection, checks the VM env file exists, and rebuilds with Compose. It then polls the public health URL for HTTP success, up to 18 attempts; this does not verify search or trip persistence.
-- The VM needs Docker/Compose, ports 80/443 open, and `/opt/spaetkauf/.env` already configured. Deployment preserves that file. Set `HEALTH_URL` for a different address; optional overrides: `DEPLOY_DIR`, `DEPLOY_COMPOSE`, `DEPLOY_ENV`.
-- Restart on the VM: `cd /opt/spaetkauf && docker compose --env-file .env -f deploy/docker-compose.yml restart`. Booked trips persist in the `appdata` volume at `/data/app.sqlite`; check a saved trip after restarting.
-- Reset trips on the VM: from `/opt/spaetkauf`, run `docker compose --env-file .env -f deploy/docker-compose.yml down`, then `docker volume rm deploy_appdata`, then `docker compose --env-file .env -f deploy/docker-compose.yml up -d`. This deletes trips and subscriptions, preserving Caddy certificates.
-- Configuration names only: `SITE_ADDRESS` for public HTTPS; `SPAETKAUF_CLIENT_NAME`, `SPAETKAUF_DB_PATH`, `SPAETKAUF_ODDS_PATH`, `SPAETKAUF_HISTORY_PATH`, `SPAETKAUF_PLAN_BUDGET`, `SPAETKAUF_LOOP` have defaults (Compose sets database paths).
-- Optional signals: `EXA_API_KEY`, `SPAETKAUF_EXA_BUDGET`, `CONTEXT_API_KEY`, `CONTEXT_WEBHOOK_SECRET`. Push requires `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`; `VAPID_SUBJECT` has a default. See `.env.example`; keep credentials out of Git.
-- Demo: `GET /api/demo/recordings` lists live recordings and history runs from `data/replays.json`. `POST /api/demo/replay` accepts an optional `recording` ID and returns a trip ID and secret. Playback uses normal tracking and alerts on a compressed clock with replay labels and the original date; see [docs/replays.md](docs/replays.md).
-- Per-run history (`data/history.duckdb`, 65 MB, not in git or the image) backs `GET /api/history`. Build it with `scripts/build_history.py`, ship it with `deploy/upload_history.sh user@host` to `/opt/spaetkauf/history` (mounted read-only, `SPAETKAUF_HISTORY_PATH`), then restart the app; see [docs/history.md](docs/history.md).
-- Odds and backtest files are baked into the image; rebuild after changing them. CI and deployment details: [docs/ci.md](docs/ci.md).
+You need Python 3.12 with [uv](https://docs.astral.sh/uv/) and Node 22+.
+
+```bash
+git clone https://github.com/flix-wg/spaetkauf.git && cd spaetkauf
+cd backend && uv sync --frozen && uv run uvicorn app.main:app --port 8710
+```
+
+In a second terminal:
+
+```bash
+cd frontend && npm ci && npm run dev
+```
+
+Open http://localhost:5710. The dev server sends `/api` to port 8710. No API keys are needed for search, odds, trips and live tracking. To try the UI without a backend, run `VITE_MOCK=1 npm run dev` (example data).
+
+Tests: `cd backend && uv run pytest`.
+
+## Self-host
+
+One small VM with Docker is enough. See [docs/self-hosting.md](docs/self-hosting.md).
+
+## Data and credits
+
+- Delay history: Deutsche Bahn (DB InfraGO Timetables API), collected by [piebro/deutsche-bahn-data](https://github.com/piebro/deutsche-bahn-data), licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). `data/odds.sqlite` and `data/backtest.json` are derived from it: Kurt aggregated arrival delays from December 2025 to October 2026 into late rates per train and route. These derived files are also under CC BY 4.0.
+- Routes and live delays: [Transitous](https://transitous.org) ([data sources](https://transitous.org/sources/)), map data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors. Transitous is free for open-source, non-commercial use; please keep your instance light on its API.
+- Optional, each with your own API key: news signals from [Exa](https://exa.ai), strike monitors from [Context.dev](https://context.dev), and an [Anthropic](https://www.anthropic.com) model that helps the extension when bahn.de changes its page layout.
+
+## License
+
+Code: [MIT](LICENSE). Data files in `data/`: CC BY 4.0, see above.
