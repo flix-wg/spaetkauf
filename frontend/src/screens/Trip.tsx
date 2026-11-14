@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, ApiError, type Trip, type TripRef, type TripState } from '../api'
 import { IconBack, IconBell, IconClose, IconTrash } from '../components/Icons'
@@ -274,6 +275,7 @@ function TripView({
             <p className="text-[14px] font-semibold leading-snug lg:text-[18px]">Unlocked, but under 60 late pays nothing back.</p>
           )}
         </section>
+        {wonUnlocked && !done && !t.is_replay && <Zugbindung t={t} dest={dest} />}
       </div>
 
       <div className="contents lg:flex lg:flex-col lg:gap-4">
@@ -306,20 +308,66 @@ function TripView({
           </Link>
         )}
 
-        {wonUnlocked && !done && !t.is_replay && (
-          <div className="flex items-end gap-2">
-            <Kurt width={44} className="shrink-0" />
-            <span className="rounded-2xl rounded-bl border-2 border-ink px-3 py-2.5 text-[14px] font-semibold leading-snug lg:text-[17px]">
-              Show your ticket as usual. Your train is 20+ min late, so it’s valid on this one.
-            </span>
-          </div>
-        )}
-
         {!done && !t.is_replay && <BannerLoader t={t} />}
         {!done && <PushButton ref_={ref_} />}
         <DeleteButton onDelete={onDelete} />
       </div>
     </div>
+  )
+}
+
+const DE_DAY = new Intl.DateTimeFormat('de-DE', {
+  weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Berlin',
+})
+
+// The 20-minute forecast is the rule's trigger, but it is Transitous' figure, not DB's: say whose it is.
+function Zugbindung({ t, dest }: { t: Trip; dest: string }) {
+  const [full, setFull] = useState(false)
+  const b = t.booked
+  const trains = b.legs.map((l) => l.train).join(' + ')
+  const cancelled = t.state === 'cancelled'
+  const d = t.delay_min ?? 0
+  const asOf = t.updated_at ? hhmm(t.updated_at) : null
+  useEffect(() => {
+    if (!full) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setFull(false)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [full])
+  return (
+    <section aria-label="Zugbindung" className="flex flex-col gap-2 rounded-2xl border-2 border-ink bg-white p-3.5 lg:p-5">
+      <span className="tag">ZUGBINDUNG AUFGEHOBEN</span>
+      <p className="text-[14px] font-semibold leading-snug lg:text-[17px]">
+        {cancelled
+          ? 'Your train is cancelled: under DB’s rule 9.1.1 (BB Personenverkehr) your Zugbindung is lifted.'
+          : `Expected +${d} min at ${dest}: under DB’s rule 9.1.1 (BB Personenverkehr) your Zugbindung is lifted.`}
+      </p>
+      <p className="mono text-[13px]">
+        {trains} · due {hhmm(b.arr)}{t.expected_arr && !cancelled ? ` · expected ${hhmm(t.expected_arr)}` : ''}
+      </p>
+      <p className="text-[12px] text-muted">
+        {asOf ? `As of ${asOf}. ` : ''}Transitous real-time data, not DB’s own. If DB Navigator shows less, the conductor goes by DB.
+      </p>
+      <button type="button" className="btn-primary" onClick={() => setFull(true)}>Show to conductor</button>
+      {full && createPortal(
+        <div role="dialog" aria-modal="true" aria-label="Zugbindung aufgehoben" className="fixed inset-0 z-50 flex flex-col gap-5 overflow-y-auto bg-white p-6 text-black">
+          <p className="font-display text-[34px] font-bold leading-tight">Zugbindung aufgehoben</p>
+          <p className="text-[18px] font-semibold">BB Personenverkehr 9.1.1</p>
+          <div className="flex flex-col gap-1 border-y-4 border-black py-4">
+            <p className="mono text-[26px] font-bold">{trains}</p>
+            <p className="text-[18px]">{stopName(b.legs[0].from)} → {dest}</p>
+            <p className="text-[18px]">{DE_DAY.format(new Date(b.arr))}</p>
+          </div>
+          <p className="mono text-[22px] leading-snug">
+            Ankunft planmäßig {hhmm(b.arr)}
+            {cancelled ? <><br />Zug fällt aus</> : t.expected_arr && <><br />erwartet {hhmm(t.expected_arr)} (+{d} Min.)</>}
+          </p>
+          <p className="text-[15px]">{asOf ? `Stand ${asOf} Uhr · ` : ''}Echtzeitdaten von Transitous</p>
+          <button type="button" className="btn-primary mt-auto !min-h-[56px]" onClick={() => setFull(false)}>Close</button>
+        </div>,
+        document.body,
+      )}
+    </section>
   )
 }
 
