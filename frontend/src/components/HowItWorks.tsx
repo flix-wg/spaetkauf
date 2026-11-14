@@ -2,18 +2,19 @@ import { Snails } from './Kurt'
 
 const STEPS = [
   'Search your route. Kurt shows how often each train arrived 20+ min late in the past.',
-  'Book the cheap saver ticket for one of those trains on bahn.de.',
+  'Book the cheapest ticket bound to that train on bahn.de: a Super Sparpreis or Sparpreis.',
   'Kurt watches it live and tells you what the delay gets you.',
 ]
 
+// Checked against bahn.de/fahrgastrechte on 2026-11-14 (national trips).
 const RULES = [
-  ['20+ min', 'Take any other train there, or don’t go at all: full fare back'],
-  ['60+ min', '25 % of the fare back'],
+  ['20+ min', 'Your saver ticket is valid on other trains there, except reservation-only ones'],
+  ['60+ min', '25 % of the fare back. Known before you set off? Skip the trip and get the full fare back'],
   ['120+ min', '50 % of the fare back'],
 ]
 
-// What a delay at your destination gets you under DB passenger rights.
-export function Rules({ big }: { big?: boolean }) {
+// `full` adds the exceptions; the short version links to them instead.
+export function Rules({ big, full }: { big?: boolean; full?: boolean }) {
   return (
     <div className="flex flex-col gap-1.5">
       <p className={`text-[13px] font-bold ${big ? "lg:text-[16px]" : ""}`}>What a delay gets you</p>
@@ -26,7 +27,9 @@ export function Rules({ big }: { big?: boolean }) {
         ))}
       </ul>
       <p className={`text-[12px] leading-snug text-muted ${big ? 'lg:text-[14px]' : ''}`}>
-        Late means at your destination. A delay already announced when you book doesn’t count.
+        Late means expected or actual at your destination.
+        {full &&
+          ' Amounts under 4 € are not paid. No money back when the delay comes from outside the railway, such as people on the tracks, cable theft or police operations. Strikes do count. A delay already announced when you book doesn’t count.'}
       </p>
     </div>
   )
@@ -45,7 +48,11 @@ export function HowItWorks({ big }: { big?: boolean }) {
           </li>
         ))}
       </ol>
-      <Rules big={big} />
+      <p className={`rounded-xl bg-tint p-3 text-[13px] font-semibold leading-snug ${big ? 'lg:text-[16px]' : ''}`}>
+        Skip the Flexpreis. It costs more and already lets you take any train, so a delay gains you little. The
+        cheaper the train-bound ticket, the bigger the win.
+      </p>
+      <Rules big={big} full />
       <div className="flex items-center gap-2.5">
         <Snails p20={0.6} />
         <span className={`text-[13px] leading-snug text-muted ${big ? 'lg:text-[15px]' : ''}`}>More snails: more often 20+ min late. Good for you.</span>

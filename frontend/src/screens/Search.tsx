@@ -187,7 +187,7 @@ export function Search() {
             <div className="flex flex-col gap-2 lg:hidden">
               <Rules />
               <button type="button" onClick={() => open('sources')} className="min-h-[36px] self-start text-[14px] font-semibold text-accent-text underline">
-                How it works
+                How it works, and exceptions
               </button>
             </div>
         </div>
