@@ -133,6 +133,10 @@ export function claimFor(delay: number, price: number | null): Claim {
   const amount = price === null || !pct ? null : Math.ceil(price * (pct / 100) * 20) / 20
   const due = pct > 0 && (price === null || (amount !== null && amount >= 4))
   return {
+    switched: false,
+    provisional: false,
+    is_replay: false,
+    replay_of: null,
     due,
     pct,
     amount_eur: due ? amount : null,

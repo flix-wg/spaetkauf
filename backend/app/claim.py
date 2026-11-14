@@ -23,16 +23,26 @@ def claim_amount(price: Decimal, pct: int) -> Decimal:
 
 def compute_claim(price: Decimal | None, delay_min: int | None, switched: bool) -> dict:
     """Return {due, pct, amount_eur, reason}."""
+    if switched:
+        return {
+            "due": False,
+            "pct": 0,
+            "amount_eur": None,
+            "reason": (
+                "You switched trains: compensation depends on your actual arrival on the train "
+                "you took. If you arrived under 60 minutes late, nothing is owed; "
+                "60–119 minutes gives 25 % of the ticket price, 120+ gives 50 % "
+                "(minimum payout 4 EUR). Fill in your actual arrival yourself."
+            ),
+        }
     pct = claim_pct(delay_min)
     if delay_min is None:
         return {"due": False, "pct": 0, "amount_eur": None, "reason": "No delay recorded yet."}
     if pct == 0:
-        why = (
-            "You switched trains and arrived under 60 minutes late, so nothing is owed."
-            if switched
-            else f"Under 60 minutes late ({delay_min} min): no compensation is due."
-        )
-        return {"due": False, "pct": 0, "amount_eur": None, "reason": why}
+        return {
+            "due": False, "pct": 0, "amount_eur": None,
+            "reason": f"Under 60 minutes late ({delay_min} min): no compensation is due.",
+        }
     if price is None:
         return {
             "due": True,

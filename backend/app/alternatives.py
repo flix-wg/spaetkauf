@@ -125,7 +125,8 @@ def alternatives_view(
                 "forfeits_compensation": forfeits,
                 "compensation_eur": 0.0
                 if forfeits
-                else compute_claim(price, late, True)["amount_eur"],
+                # This estimate uses the alternative's own arrival delay.
+                else compute_claim(price, late, switched=False)["amount_eur"],
             }
         )
         if len(out) == SHOW:

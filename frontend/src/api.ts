@@ -198,6 +198,10 @@ export interface Recording {
   crosses_60: boolean
 }
 export interface Claim {
+  switched: boolean
+  provisional: boolean
+  is_replay: boolean
+  replay_of: string | null
   due: boolean
   pct: number
   amount_eur: number | null

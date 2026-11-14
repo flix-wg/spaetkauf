@@ -172,7 +172,11 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
     const id = decodeURIComponent(m[1])
     if (m[2]) {
       const t = trip(id)
-      return out(claimFor(t.final_delay_min ?? t.delay_min ?? 0, t.price_eur))
+      const claim = claimFor(t.final_delay_min ?? t.delay_min ?? 0, t.price_eur)
+      return out({
+        ...claim, is_replay: t.is_replay, replay_of: t.replay_of, provisional: !t.finished,
+        fields: claim.fields.map((f) => !t.finished && f.label === 'Actual arrival' ? { ...f, label: 'Expected arrival' } : f),
+      })
     }
     if (method === 'GET') return out(trip(id))
     return out(undefined)

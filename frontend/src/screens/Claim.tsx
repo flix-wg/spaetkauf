@@ -72,20 +72,22 @@ export function ClaimScreen() {
         {c && (
           <>
             <div className="contents lg:flex lg:flex-col lg:gap-3">
+              {c.is_replay && <p className="tag">Replay of {c.replay_of} · Historical demo, no claim to file</p>}
               <section
                 className={`${noPayout ? 'bg-surface' : 'bg-accent on-accent'} flex items-center gap-3 rounded-[22px] p-4 lg:rounded-[28px] lg:p-7`}
                 aria-label="Compensation"
               >
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="tag lg:!text-[15px]">{noPayout ? 'NO PAYOUT DUE' : needsPrice ? `${c.pct} % OWED` : 'CASH BACK'}</span>
+                  <span className="tag lg:!text-[15px]">{c.switched ? 'ACTUAL ARRIVAL NEEDED' : c.provisional ? 'COMPENSATION FORECAST' : noPayout ? 'NO PAYOUT DUE' : needsPrice ? `${c.pct} % OWED` : 'CASH BACK'}</span>
                   {c.amount_eur !== null && !noPayout ? (
                     <span className="mono text-[42px] font-bold leading-[1.1] lg:text-[64px]">{eur(c.amount_eur)}</span>
                   ) : needsPrice ? (
                     <span className="mono text-[42px] font-bold leading-[1.1] lg:text-[64px]">{c.pct} %</span>
                   ) : (
-                    <span className="font-display text-[24px] font-bold leading-tight">Nothing to claim</span>
+                    <span className="font-display text-[24px] font-bold leading-tight">{c.switched ? 'Check your arrival' : c.provisional ? 'No payout forecast' : 'Nothing to claim'}</span>
                   )}
                   <span className="text-[13px] leading-snug lg:text-[16px]">{c.reason}</span>
+                  {c.provisional && !c.switched && <p className="mt-2 text-[13px]">This amount is a forecast and is final only once the train arrives. Reload after arrival to update it.</p>}
                 </div>
                 <Kurt width={72} shell="#FFFFFF" className="shrink-0" />
               </section>
@@ -105,12 +107,13 @@ export function ClaimScreen() {
             </div>
 
             <div className="contents lg:flex lg:flex-col lg:gap-3">
-              {c.due && (
+              {(c.due || c.switched) && (
                 <ul className="flex flex-col" aria-label="Details to paste into the claim form">
-                  {c.fields.filter((f) => f.value).map((f) => ({ ...f, value: pasteable(f.value) })).map((f) => (
+                  {c.fields.filter((f) => f.value || (c.switched && f.label === 'Actual arrival')).map((f) => ({ ...f, value: pasteable(f.value) })).map((f) => (
                     <li key={f.label} className="border-b border-line">
                       <button
                         type="button"
+                        disabled={!f.value}
                         onClick={async () => {
                           await copyText(f.value)
                           setCopied(f.label)
@@ -121,12 +124,12 @@ export function ClaimScreen() {
                       >
                         <span className="flex min-w-0 flex-col">
                           <span className="text-[12px] text-muted">{f.label}</span>
-                          <span className="text-[15px] font-semibold leading-snug">{f.value}</span>
+                          <span className="text-[15px] font-semibold leading-snug">{f.value || 'Fill in your actual arrival'}</span>
                         </span>
                         <span
                           className={`flex min-h-[44px] min-w-[76px] shrink-0 items-center justify-center gap-1 rounded-[10px] border-[1.5px] border-ink px-2 text-[13px] font-semibold ${copied === f.label ? 'bg-ink text-white' : 'bg-white'}`}
                         >
-                          {copied === f.label ? <><IconCheck size={16} /> Copied</> : <><IconCopy size={16} /> Copy</>}
+                          {!f.value ? 'Fill in' : copied === f.label ? <><IconCheck size={16} /> Copied</> : <><IconCopy size={16} /> Copy</>}
                         </span>
                       </button>
                     </li>
@@ -138,7 +141,7 @@ export function ClaimScreen() {
               <div className="flex flex-col gap-2 rounded-2xl bg-surface p-3.5">
                 <h2 className="font-display text-[16px] font-bold lg:text-[20px]">Where to file</h2>
                 <p className="text-[13px] leading-snug lg:text-[15px]">{c.where}</p>
-                {c.due && (
+                {c.due && !c.is_replay && (
                   <a href="https://www.bahn.de/service/fahrgastrechte" target="_blank" rel="noopener noreferrer" className="btn-primary mt-1">
                     Open DB’s refund page <IconExternal size={18} />
                   </a>

@@ -32,7 +32,7 @@ def test_state(delay, cancelled, state):
      ("34.99", 45, False, False, None),
      (None, 90, False, True, None),
      ("34.99", 40, True, False, None),
-     ("34.99", 130, True, True, 17.5)],
+     ("34.99", 130, True, False, None)],
 )  # fmt: skip
 def test_claim_rules(price, delay, switched, due, amount):
     got = compute_claim(Decimal(price) if price else None, delay, switched)
@@ -84,3 +84,56 @@ def test_trip_round_trip_and_secrets(client, settings):
 
     conn = connect(settings.db_path)
     assert conn.execute("SELECT COUNT(*) FROM trips").fetchone()[0] == 0
+
+
+def test_switched_claim_uses_no_booked_arrival(client, settings):
+    from app.db import connect
+
+    saved = client.post("/api/trips", json={"pick": PICK, "price_eur": 34.99}).json()
+    tid, secret = saved["trip_id"], saved["secret"]
+    conn = connect(settings.db_path)
+    conn.execute(
+        "INSERT INTO trip_snapshots(trip_id, at, delay_min, expected_arr) VALUES (?,?,?,?)",
+        (tid, "2026-11-14T12:00:00Z", 71, "2026-11-14T13:11:00Z"),
+    )
+    conn.commit()
+    conn.close()
+    client.patch(f"/api/trips/{tid}", params={"secret": secret}, json={"switched": True})
+    claim = client.get(f"/api/trips/{tid}/claim", params={"secret": secret}).json()
+    assert (claim["due"], claim["pct"], claim["amount_eur"]) == (False, 0, None)
+    assert {f["label"]: f["value"] for f in claim["fields"]}["Actual arrival"] == ""
+    assert all(text in claim["reason"] for text in ("actual arrival", "under 60", "25 %", "50 %"))
+
+
+def test_claim_forecast_until_arrival(client, settings, monkeypatch):
+    from datetime import datetime
+
+    from app.db import connect
+
+    saved = client.post("/api/trips", json={"pick": PICK, "price_eur": 34.99}).json()
+    tid, secret = saved["trip_id"], saved["secret"]
+    url = f"/api/trips/{tid}/claim"
+    monkeypatch.setattr("app.trips._now", lambda: datetime.fromisoformat("2026-11-14T13:00:00Z"))
+    assert client.get(url, params={"secret": secret}).json()["provisional"] is True
+    conn = connect(settings.db_path)
+    conn.execute(
+        "INSERT INTO trip_snapshots(trip_id, at, delay_min, expected_arr) VALUES (?,?,?,?)",
+        (tid, "2026-11-14T13:00:00Z", 71, "2026-11-14T13:11:00Z"),
+    )
+    conn.commit()
+    conn.close()
+    claim = client.get(url, params={"secret": secret}).json()
+    assert claim["provisional"] is True and claim["amount_eur"] == 8.75
+    assert "Expected arrival" in [f["label"] for f in claim["fields"]]
+    monkeypatch.setattr("app.trips._now", lambda: datetime.fromisoformat("2026-11-14T13:11:00Z"))
+    claim = client.get(url, params={"secret": secret}).json()
+    assert claim["provisional"] is False and claim["amount_eur"] == 8.75
+    assert "Actual arrival" in [f["label"] for f in claim["fields"]]
+
+
+def test_claim_preserves_replay_identity(client, settings):
+    from app.trips import create_trip
+
+    tid, secret = create_trip(settings.db_path, PICK, Decimal("34.99"), replay_of="2026-10-23")
+    claim = client.get(f"/api/trips/{tid}/claim", params={"secret": secret}).json()
+    assert claim["is_replay"] is True and claim["replay_of"] == "2026-10-23"

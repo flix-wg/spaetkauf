@@ -300,14 +300,26 @@ def get_claim(
     legs = pick.get("legs") or [{}]
     first, last = legs[0], legs[-1]
     dep = pick.get("dep") or first.get("dep") or ""
-    delay = view["delay_min"]
+    switched = bool(row["switched"])
+    expected = view["expected_arr"]
+    provisional = not expected or _now() < _parse(expected)
+    if row["is_replay"]:
+        provisional = not view["finished"] or not expected
+    delay = None if switched else view["delay_min"]
     fields = [
         {"label": "Date", "value": dep[:10]},
         {"label": "Train", "value": ", ".join(leg.get("train", "") for leg in legs)},
         {"label": "From", "value": _name(first.get("from"))},
         {"label": "To", "value": _name(last.get("to"))},
         {"label": "Scheduled arrival", "value": pick.get("arr") or ""},
-        {"label": "Actual arrival", "value": view["expected_arr"] or ""},
+        {
+            "label": "Expected arrival" if provisional and not switched else "Actual arrival",
+            "value": "" if switched else expected or "",
+        },
         {"label": "Delay", "value": f"{delay} min" if delay is not None else ""},
     ]
-    return {**result, "fields": fields, "where": WHERE}
+    return {
+        **result, "fields": fields, "where": WHERE,
+        "switched": switched, "provisional": bool(provisional),
+        "is_replay": view["is_replay"], "replay_of": view["replay_of"],
+    }
