@@ -11,6 +11,9 @@ test('odds text, Kurt, changes and missing history', () => {
   assert.equal(text({ ...result, kurt: true }, card).line, 'Kurt: 41 % 20+ late (14 of 34 Saturdays)');
   assert.equal(text({ ...result, p20: 0.416, basis: 'last_train' }, card).line, '42 % last train 20+ late (14 of 34 Saturdays)');
   assert.equal(text({ ...result, p20: null, basis: 'none', train: 'ICE 599' }, card).line, 'No history for this train yet');
+  assert.deepEqual(text({ ...result, kurt: true }, { ...card, posted: true }), { line: 'Delay already posted: won’t count · 41 % 20+ late (14 of 34 Saturdays)', kurt: false });
+  for (const s of ['Verspätung aus vorheriger Fahrt', 'Zug fällt aus', 'Halt entfällt', 'Delayed by 12 min']) assert.ok(globalThis.SpkParse.posted(s), s);
+  for (const s of ['Es liegen Meldungen vor.', 'Sitzplätze ausgebucht (1. Klasse)', 'Hohe Auslastung erwartet']) assert.ok(!globalThis.SpkParse.posted(s), s);
   assert.equal(text({ ...result, p20: NaN }, { trains: ['ICE 599', 'RE 4'] }).line, 'No odds: last leg is a regional train');
 });
 test('closed badge stays outside interactive controls and clears after removal', () => {

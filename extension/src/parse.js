@@ -30,13 +30,16 @@
     if(m) return +m[1]*60 + +(m[2]||0);
     m=text.match(/\b(\d+)\s*(?:Minuten?|minutes?|min)\b/i); return m ? +m[1] : null;
   }
+  // A delay or cancellation bahn.de already shows on the card. Seat and occupancy notices don't match.
+  const POSTED = /verspät|fällt aus|zugausfall|teilausfall|\bausfall|halt entfällt|\bdelay|\bcancel/i;
+  function posted(text) { return POSTED.test(text); }
   function minutes(t) { const [h,m]=t.split(':').map(Number); return h*60+m; }
   function common(nodes, limit) { let n=nodes[0]||limit; while(n && !nodes.every(x=>contains(n,x))) n=parent(n); return n && n.nodeType===1 ? n : limit; }
   function card(el, core) {
     const s=scan(core), times=s.times.map(x=>x.value).filter((x,i,a)=>!i||x!==a[i-1]);
     const dep=times[0], d=duration(s.text), target=d===null?null:(minutes(dep||'00:00')+d)%1440;
     const arr=times.find((t,i)=>i>0 && minutes(t)===target) || (times.length===4?times[2]:times[times.length-1]);
-    const trains=unique(s.trains.map(x=>x.value)); return {el,core,dep,arr,trains,ldTrains:trains.filter(isLongDistance),date:null};
+    const trains=unique(s.trains.map(x=>x.value)); return {el,core,dep,arr,trains,ldTrains:trains.filter(isLongDistance),date:null,posted:posted(scan(el).text)};
   }
   function isLongDistance(t) { const n=normTrain(t); return !!n && LD_TYPES.includes(n.split(' ')[0]); }
   function parseCards(rootNode) {
@@ -89,6 +92,6 @@
     let date=fallbackDate, previous=null;
     for(const c of cards) { const pos=s.ranges.find(r=>r.el===c.el)?.start??0; const h=headings.filter(h=>(s.ranges.find(r=>r.el===h.el)?.start??Infinity)<=pos).pop(); if(h)date=h.date; else if(date && previous && minutes(previous)-minutes(c.dep)>360)date=new Date(Date.parse(date+'T12:00:00Z')+86400000).toISOString().slice(0,10); c.date=date||null; previous=c.dep; } return cards;
   }
-  const SpkParse={LD_TYPES,REGIONAL_TYPES,normTrain,isLongDistance,parseCards,applySpec,pageContext,assignDates,scan,skip,children,parent,contains,trainSource,timeSource};
+  const SpkParse={posted,LD_TYPES,REGIONAL_TYPES,normTrain,isLongDistance,parseCards,applySpec,pageContext,assignDates,scan,skip,children,parent,contains,trainSource,timeSource};
   root.SpkParse=SpkParse; if(typeof module!=='undefined')module.exports=SpkParse;
 })(typeof globalThis!=='undefined'?globalThis:this);
