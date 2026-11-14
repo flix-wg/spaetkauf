@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import type { Odds, Pick } from '../api'
-import { changesLabel, duration, hhmm, pct, pctNum, weekdayPlural } from '../format'
+import { Link } from 'react-router-dom'
+import type { Odds, Pick, Strike } from '../api'
+import { changesLabel, dayLabel, duration, hhmm, pct, pctNum, weekdayPlural } from '../format'
 import { Kurt, Snails } from './Kurt'
 import { IconChevron, IconExternal } from './Icons'
+import { StrikeLine, StrikeSource, TestTag } from './Signals'
 
 export const hasOdds = (o: Odds | null): o is Odds & { p20: number } => !!o && o.basis !== 'none' && o.p20 !== null
 
@@ -58,7 +60,8 @@ export function Actions({
   )
 }
 
-export function KurtsPick({ pick, tz, strike, onBook }: { pick: Pick; tz: string; strike: boolean; onBook: (p: Pick) => void }) {
+// `strike`: a strike with unclear dates, shown as a warning on the pick.
+export function KurtsPick({ pick, tz, strike, onBook }: { pick: Pick; tz: string; strike: Strike | null; onBook: (p: Pick) => void }) {
   const ride = rideLine(pick, tz)
   const o = pick.odds
   const has = hasOdds(o)
@@ -68,7 +71,6 @@ export function KurtsPick({ pick, tz, strike, onBook }: { pick: Pick; tz: string
         <span className="tag inline-flex items-center gap-1.5 rounded-md bg-ink px-2 py-1 text-white lg:!text-[13px]">
           <Kurt width={16} shell="#FD4F00" body="#FFFFFF" /> KURT’S PICK
         </span>
-        {strike && <span className="tag rounded-md bg-white px-2 py-1 text-accent-text">STRIKE WATCH</span>}
       </div>
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
@@ -93,6 +95,7 @@ export function KurtsPick({ pick, tz, strike, onBook }: { pick: Pick; tz: string
         </div>
       </div>
       <p className="-mt-1 text-[13px] font-semibold lg:text-[16px] lg:leading-snug">{oddsLine(pick)}</p>
+      {strike && <StrikeLine s={strike} tone="card" />}
       {ride ? (
         <div className="flex flex-col gap-0.5 rounded-xl bg-white p-3 lg:gap-1 lg:rounded-2xl lg:p-4">
           <span className="tag text-accent-text lg:!text-[13px]">IF IT’S LATE, YOU’D RIDE</span>
@@ -111,7 +114,7 @@ export function KurtsPick({ pick, tz, strike, onBook }: { pick: Pick; tz: string
   )
 }
 
-export function CompactPick({ pick, tz, strike, onBook }: { pick: Pick; tz: string; strike: boolean; onBook: (p: Pick) => void }) {
+export function CompactPick({ pick, tz, onBook }: { pick: Pick; tz: string; onBook: (p: Pick) => void }) {
   const [open, setOpen] = useState(false)
   const ride = rideLine(pick, tz)
   const o = pick.odds
@@ -152,7 +155,6 @@ export function CompactPick({ pick, tz, strike, onBook }: { pick: Pick; tz: stri
                   ? `You’d ride ${ride.times}`
                   : `${changesLabel(pick.changes)} · ${pick.legs.map((l) => l.train).join(' + ')}`}
           </span>
-          {strike && !dead && <span className="tag rounded bg-tint px-1.5 py-0.5 text-accent-text">STRIKE WATCH</span>}
         </span>
       </button>
       {open && (
@@ -175,5 +177,37 @@ export function CompactPick({ pick, tz, strike, onBook }: { pick: Pick; tz: stri
         </div>
       )}
     </article>
+  )
+}
+
+// Kurt's call when an announced strike covers the travel day: no pick, the reason, the source, another day.
+export function StrikeCall({ s, day, tryHref }: { s: Strike; day: string; tryHref: string | null }) {
+  return (
+    <section className="on-ink flex flex-col gap-3 rounded-[22px] bg-ink p-4 text-white lg:gap-4 lg:rounded-[28px] lg:p-6" aria-label="Kurt's call">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="tag inline-flex items-center gap-1.5 rounded-md bg-accent px-2 py-1 text-white lg:!text-[13px]">
+          <Kurt width={16} shell="#FFFFFF" body="#14161A" /> KURT’S CALL · STRIKE DAY
+        </span>
+        {s.test && <TestTag className="lg:!text-[13px]" />}
+      </div>
+      <div className="flex items-start gap-3 lg:gap-4">
+        <Kurt width={56} shell="#FD4F00" body="#FFFFFF" className="mt-1 shrink-0" />
+        <span className="flex min-w-0 flex-col gap-1.5">
+          <span className="font-display text-[22px] font-bold leading-tight lg:text-[30px]">No pick for {day}</span>
+          <span className="text-[14px] leading-snug lg:text-[17px]">{s.note}</span>
+        </span>
+      </div>
+      <div className="flex flex-col gap-0.5 rounded-xl bg-white/10 p-3 lg:rounded-2xl lg:p-4">
+        <span className="tag opacity-70 lg:!text-[13px]">SOURCE</span>
+        <span className="text-[14px] font-semibold leading-snug lg:text-[17px]">{s.title}</span>
+        <StrikeSource s={s} when className="mt-1 text-[12px] opacity-80 lg:text-[14px]" />
+      </div>
+      {tryHref && s.try_date && (
+        <Link to={tryHref} className="btn-light !bg-white">
+          Try {dayLabel(`${s.try_date}T12:00:00Z`)}
+        </Link>
+      )}
+      <p className="text-[12px] leading-snug opacity-80 lg:text-[14px]">All trains and their odds are still listed. The odds come from past runs.</p>
+    </section>
   )
 }

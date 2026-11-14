@@ -5,11 +5,12 @@ import { IconBack, IconBell, IconClose, IconTrash } from '../components/Icons'
 import { Flap } from '../components/Flap'
 import { Kurt } from '../components/Kurt'
 import { Meter } from '../components/Meter'
+import { hasOdds } from '../components/PickCard'
 import { InlinePrice } from '../components/PriceForm'
 import { ScreenHeader } from '../components/Shell'
 import { Banners } from '../components/Signals'
 import { Empty, ErrorState, Loading } from '../components/States'
-import { changesLabel, dayLabel, eur, hhmm, longDate, stopName, timeAgo } from '../format'
+import { changesLabel, dayLabel, eur, hhmm, longDate, minLabel, pctNum, signedMin, stopName, timeAgo } from '../format'
 import { useAsync } from '../hooks'
 import { enablePush, pushSupported } from '../push'
 import { findTrip, removeTrip } from '../store'
@@ -139,7 +140,7 @@ function TripView({
   const finalDelay = t.final_delay_min ?? delay
   const wonUnlocked = t.state !== 'on_time'
   const doneOk = done && finalDelay < 20 && t.state !== 'cancelled'
-  const card = doneOk ? 'bg-ok-tint' : wonUnlocked ? 'bg-accent on-accent' : 'bg-surface'
+  const card = wonUnlocked && !doneOk ? 'bg-accent on-accent' : 'bg-surface'
   const cancelled = t.state === 'cancelled'
   const showClaim = !doneOk && (done || delay >= 60)
   const showSwitch = !done && wonUnlocked && !t.switched
@@ -202,7 +203,7 @@ function TripView({
               <span className="tag lg:!text-[16px]">{doneOk ? 'ARRIVED · ON TIME' : done ? `ARRIVED · ${LABEL[t.state]}` : waiting ? (t.is_replay ? 'REPLAY STARTING' : 'WAITING FOR LIVE DATA') : LABEL[t.state]}</span>
               <span className="text-[13px] lg:text-[18px] lg:leading-snug">
                 {done
-                  ? `Final delay at ${dest}`
+                  ? finalDelay < 0 ? `Arrived ${-finalDelay} min early at ${dest}` : `Final delay at ${dest}`
                   : atStop
                     ? stop ? `Delay measured at ${stop}` : 'Delay measured at the last stop'
                     : `Expected delay at ${dest}`}
@@ -213,7 +214,7 @@ function TripView({
             ) : t.state === 'cancelled' ? (
               <span className="font-display text-[22px] font-bold lg:text-[40px]">Cancelled</span>
             ) : (
-              <Flap text={`+${done ? finalDelay : delay}`} label={`plus ${done ? finalDelay : delay} minutes`} />
+              <Flap text={signedMin(done ? finalDelay : delay)} label={minLabel(done ? finalDelay : delay)} />
             )}
           </div>
           {waiting ? (
@@ -245,11 +246,7 @@ function TripView({
               {t.expected_arr && !done ? ` · now expected ${hhmm(t.expected_arr)}` : ''}
             </p>
           )}
-          {doneOk && (
-            <p className="flex items-center gap-2 text-[15px] font-bold leading-snug lg:text-[20px]">
-              <Kurt width={44} shell="#E9F5EC" className="shrink-0" /> Nothing lost. You rode the cheap ticket.
-            </p>
-          )}
+          {doneOk && <OnTime t={t} />}
           {done && !doneOk && finalDelay < 60 && (
             <p className="text-[14px] font-semibold leading-snug lg:text-[18px]">The ticket unlocked, but under 60 minutes late pays nothing back.</p>
           )}
@@ -450,5 +447,29 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
     <button type="button" onClick={() => setSure(true)} className="flex min-h-[44px] items-center justify-center gap-1.5 text-[14px] font-semibold text-muted">
       <IconTrash size={16} /> Delete trip
     </button>
+  )
+}
+
+// A finished trip under +20: the ticket stayed bound and nothing comes back. For a replay or one of
+// Kurt's picks, that is a miss; say so, and how often his odds expected it.
+function OnTime({ t }: { t: Trip }) {
+  const kurts = t.is_replay || t.booked.is_kurts_pick
+  const o = t.booked.odds ?? null
+  const p = hasOdds(o) ? pctNum(o.p20) : null
+  const onTime = p === null ? 0 : Math.round((100 - p) / 10)
+  return (
+    <div className="flex items-start gap-2.5 lg:gap-3.5">
+      <Kurt width={44} className="mt-0.5 shrink-0" />
+      <div className="flex flex-col gap-1 lg:gap-1.5">
+        <p className="text-[15px] font-bold leading-snug lg:text-[20px]">
+          Arrived on time.{kurts && ' Kurt was wrong on this one.'}
+        </p>
+        <p className="text-[13px] leading-snug lg:text-[17px]">
+          The ticket stayed bound to this train and nothing comes back.
+          {kurts && p !== null &&
+            ` Kurt’s odds for this train were ${p} %; about ${onTime < 1 ? 'fewer than 1' : onTime} in 10 such picks run on time.`}
+        </p>
+      </div>
+    </div>
   )
 }

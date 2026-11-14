@@ -65,3 +65,7 @@ export function stopName(n: string | null | undefined) {
 
 export const shortStation = (n: string | null | undefined) =>
   stopName(n).replace(/ Hbf$/, '').replace(/\(Main\)Hbf$/, '')
+
+// Delay for display: early arrivals (past runs) are negative.
+export const signedMin = (d: number) => (d < 0 ? `−${-d}` : `+${d}`)
+export const minLabel = (d: number) => (d < 0 ? `${-d} minutes early` : `plus ${d} minutes`)

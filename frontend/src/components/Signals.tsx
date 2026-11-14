@@ -1,20 +1,64 @@
 import { useState } from 'react'
-import type { SignalItem, SignalsResponse } from '../api'
+import type { Banner, SignalItem, SignalsResponse, Strike } from '../api'
 import { dayLabel, hhmm } from '../format'
-import { IconAlert, IconExternal } from './Icons'
+import { IconAlert, IconExternal, IconInfo } from './Icons'
 
 const SHOW = 3
-// The per-article kind is unreliable (track works come back as "strike"), so only a change on a
-// watched union page counts as a strike signal, and articles get no kind label.
-export const strikeSignal = (s: SignalsResponse | null) => !!s && s.banners.length > 0
+// Only a change on a watched union page counts as a strike signal (Strike, banners); the per-article
+// kind is unreliable (track works come back as "strike"), so articles get no kind label.
 // Summaries that say the article does not concern long-distance trains go last.
 const weak = (r: string) => /\b(not|no|does not|doesn't)\b[^.;]{0,40}\b(long-distance|mention|strike|report|affect)/i.test(r)
 
-export function Banners({ s }: { s: SignalsResponse | null }) {
-  if (!s || s.banners.length === 0) return null
+export const TestTag = ({ className = '' }: { className?: string }) => (
+  <span className={`tag rounded bg-white px-1.5 py-0.5 text-ink ring-1 ring-ink ${className}`}>TEST</span>
+)
+
+// Where a strike announcement came from; `when` adds the time the page changed.
+export function StrikeSource({ s, when = false, className = '' }: { s: Strike; when?: boolean; className?: string }) {
+  return (
+    <span className={`flex flex-wrap items-center gap-x-1 ${className}`}>
+      <a
+        href={s.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="-my-3 inline-flex min-h-[44px] items-center gap-1 font-semibold underline"
+      >
+        {s.source} <IconExternal size={12} />
+      </a>
+      <span>via Context.dev page monitor{when && `, changed ${dayLabel(s.changed_at)} ${hhmm(s.changed_at)}`}</span>
+    </span>
+  )
+}
+
+// A compact line: a strike with unclear dates (on Kurt's pick) or one on other days (under the pick).
+export function StrikeLine({ s, tone }: { s: Strike; tone: 'card' | 'plain' }) {
+  const unclear = s.dates === null
+  return (
+    <div
+      role="note"
+      className={`flex items-start gap-2 rounded-xl p-3 text-[13px] leading-snug lg:gap-3 lg:rounded-2xl lg:p-4 lg:text-[15px] ${tone === 'card' ? 'bg-white' : 'bg-surface'}`}
+    >
+      {unclear ? <IconAlert size={18} className="mt-0.5 shrink-0" /> : <IconInfo size={18} className="mt-0.5 shrink-0" />}
+      <span className="flex min-w-0 flex-col gap-1">
+        <span className={unclear ? 'font-semibold' : ''}>
+          {s.test && <TestTag className="mr-1.5" />}
+          {s.note}
+        </span>
+        <StrikeSource s={s} className="text-[12px] text-muted lg:text-[13px]" />
+      </span>
+    </div>
+  )
+}
+
+const sameChange = (b: Banner, s: Strike | null | undefined) => !!s && b.url === s.url && b.changed_at === s.changed_at
+
+// Watched-page changes. `shown` is a strike the screen already explains, so it is not repeated here.
+export function Banners({ s, shown }: { s: SignalsResponse | null; shown?: Strike | null }) {
+  const list = s ? s.banners.filter((b) => !sameChange(b, shown)) : []
+  if (list.length === 0) return null
   return (
     <>
-      {s.banners.map((b) => (
+      {list.map((b) => (
         <a
           key={b.url + b.changed_at}
           href={b.url}
@@ -24,7 +68,9 @@ export function Banners({ s }: { s: SignalsResponse | null }) {
         >
           <IconAlert size={20} className="mt-0.5 shrink-0" />
           <span>
-            <b>Strike watch:</b> {b.source} changed at {hhmm(b.changed_at)} on {dayLabel(b.changed_at)}. Open the page{' '}
+            {b.test && <TestTag className="mr-1.5" />}
+            <b>{b.is_strike ? 'Strike watch:' : 'Page watch:'}</b> {b.is_strike && b.title ? `${b.title}. ` : ''}
+            {b.source} changed at {hhmm(b.changed_at)} on {dayLabel(b.changed_at)}. Open the page{' '}
             <IconExternal size={13} className="inline" />
           </span>
         </a>
@@ -58,7 +104,11 @@ function Item({ it }: { it: SignalItem }) {
   )
 }
 
-export function SignalsArea({ s, loading, date }: { s: SignalsResponse | null; loading: boolean; date: string }) {
+export function SignalsArea({
+  s, loading, date, shown,
+}: {
+  s: SignalsResponse | null; loading: boolean; date: string; shown?: Strike | null
+}) {
   const [all, setAll] = useState(false)
   const day = date ? dayLabel(`${date}T12:00:00Z`) : 'this day'
   let body
@@ -107,7 +157,7 @@ export function SignalsArea({ s, loading, date }: { s: SignalsResponse | null; l
   return (
     <section aria-label="News for this route" className="flex flex-col gap-2">
       <h2 className="font-display text-[18px] font-bold">News around {day}</h2>
-      <Banners s={s} />
+      <Banners s={s} shown={shown} />
       {body}
     </section>
   )

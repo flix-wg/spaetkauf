@@ -4,9 +4,9 @@ import { api, ApiError, type Pick } from '../api'
 import { BookSheet } from '../components/BookSheet'
 import { IconChevron } from '../components/Icons'
 import { Kurt } from '../components/Kurt'
-import { CompactPick, KurtsPick } from '../components/PickCard'
+import { CompactPick, KurtsPick, StrikeCall } from '../components/PickCard'
 import { ScreenHeader } from '../components/Shell'
-import { SignalsArea, strikeSignal } from '../components/Signals'
+import { SignalsArea, StrikeLine } from '../components/Signals'
 import { Empty, ErrorState, Loading } from '../components/States'
 import { dayLabel, shortStation } from '../format'
 import { useAsync } from '../hooks'
@@ -40,8 +40,15 @@ export function Picks() {
   if (!from || !to) return <Navigate to="/" replace />
 
   const sig = signals.status === 'ok' ? signals.data : null
-  const strike = strikeSignal(sig)
-  const hasKurts = picks.status === 'ok' && picks.data.picks.some((p) => p.is_kurts_pick)
+  const res = picks.status === 'ok' ? picks.data : null
+  const strike = res?.strike ?? null
+  const call = res?.kurt_call
+  const strikeDay = call === 'strike'
+  const hasKurts = !!res && res.picks.some((p) => p.is_kurts_pick)
+  const tryQ = new URLSearchParams(sp)
+  tryQ.delete('sheet')
+  if (strike?.try_date) tryQ.set('date', strike.try_date)
+  const tryHref = strike?.try_date ? `/picks?${tryQ}` : null
   const back = `/?${new URLSearchParams({ fn: sp.get('fn') ?? '', tn: sp.get('tn') ?? '', date, time })}`
 
   return (
@@ -64,10 +71,14 @@ export function Picks() {
             <>
               {picks.data.picks.map((p) =>
                 p.is_kurts_pick ? (
-                  <KurtsPick key={p.id} pick={p} tz={picks.data.tz} strike={strike} onBook={setBooking} />
+                  <KurtsPick key={p.id} pick={p} tz={picks.data.tz} strike={call === 'strike_unclear' ? strike : null} onBook={setBooking} />
                 ) : null,
               )}
-              {!hasKurts && (
+              {strikeDay && strike && (
+                <StrikeCall s={strike} day={date ? dayLabel(`${date}T12:00:00Z`) : 'this day'} tryHref={tryHref} />
+              )}
+              {strike && !strikeDay && call !== 'strike_unclear' && <StrikeLine s={strike} tone="plain" />}
+              {!hasKurts && !strikeDay && (
                 <section className="flex items-start gap-3 rounded-[22px] bg-surface p-4 lg:gap-4 lg:p-6" aria-label="No pick">
                   <Kurt width={56} className="mt-0.5 shrink-0" />
                   <span className="flex flex-col gap-1">
@@ -126,7 +137,7 @@ export function Picks() {
               {picks.data.picks
                 .filter((p) => !p.is_kurts_pick)
                 .map((p) => (
-                  <CompactPick key={p.id} pick={p} tz={picks.data.tz} strike={strike} onBook={setBooking} />
+                  <CompactPick key={p.id} pick={p} tz={picks.data.tz} onBook={setBooking} />
                 ))}
               {picks.data.note && <p className="px-1 text-[12px] text-muted lg:text-[14px]">{picks.data.note}</p>}
             </>
@@ -134,7 +145,7 @@ export function Picks() {
           {/* Below the picks only once they are in, so nothing above jumps. */}
           {picks.status === 'ok' && (
             <div className="contents lg:mt-6 lg:block">
-              <SignalsArea s={sig} loading={signals.status === 'loading'} date={date} />
+              <SignalsArea s={sig} loading={signals.status === 'loading'} date={date} shown={res && res.picks.length > 0 ? strike : null} />
             </div>
           )}
         </div>

@@ -1,4 +1,4 @@
-import { ApiError, type Created, type Recording } from '../api'
+import { ApiError, type Banner, type Created, type KurtCall, type Recording, type Strike } from '../api'
 import { BACKTEST, STATIONS, claimFor, lateNow, picksFor, tripAt } from './fixtures'
 
 const flag = (k: string) => {
@@ -9,6 +9,34 @@ const flag = (k: string) => {
   }
 }
 const DATE = '2026-11-20'
+
+// mock.strike=day|unclear|other: a TEST strike change on the GDL page, as send_test_change.py posts it.
+function mockStrike(date: string): Strike | null {
+  const mode = flag('strike')
+  if (!mode) return null
+  const d = new Date(`${date}T12:00:00Z`)
+  const shift = (n: number) => new Date(d.getTime() + n * 86400000).toISOString().slice(0, 10)
+  const human = (iso: string) => new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${iso}T12:00:00Z`))
+  const day = mode === 'other' ? shift(1) : date
+  const base = {
+    title: `TEST: GDL ruft zum Streik im Personenverkehr am ${human(day)} auf`,
+    url: 'https://www.gdl.de/presse/newsarchiv',
+    source: 'gdl.de',
+    changed_at: STRIKE_AT,
+    test: true,
+  }
+  if (mode === 'unclear')
+    return { ...base, title: 'TEST: GDL kündigt Streik im Personenverkehr an', dates: null, covers_date: false, try_date: null, note: 'A strike was announced but its dates are unclear. If it falls on this day, past-run odds do not cover strike days.' }
+  if (mode === 'other')
+    return { ...base, dates: [day], covers_date: false, try_date: null, note: `A strike is announced for ${human(day)}, not for this day.` }
+  const tryDate = shift(-1)
+  return {
+    ...base, dates: [day], covers_date: true, try_date: tryDate,
+    note: `A strike is announced for this day; past-run odds do not cover strike days, so Kurt makes no pick for it. No strike is announced for ${human(tryDate)}.`,
+  }
+}
+// Fixed, so picks and signals name the same change.
+const STRIKE_AT = new Date(Date.now() - 50 * 60000).toISOString()
 const started = new Map<string, number>()
 let seq = 0
 
@@ -24,14 +52,21 @@ const STOPS: [string, string, number][] = [
   ['Hannover Hbf', '11:24', 4], ['Göttingen', '11:58', 9], ['Kassel-Wilhelmshöhe', '12:18', 24],
   ['Fulda', '12:50', 31], ['Frankfurt(Main)Hbf', '13:40', 66], ['Nürnberg Hbf', '15:48', 58], ['München Hbf', '17:02', 71],
 ]
+// An on-time run: Kurt's pick that never reached +20.
+const STOPS_OK: [string, string, number][] = [
+  ['Hannover Hbf', '11:24', 6], ['Göttingen', '11:58', 12], ['Kassel-Wilhelmshöhe', '12:18', 9],
+  ['Fulda', '12:50', 4], ['Frankfurt(Main)Hbf', '13:40', 2], ['Nürnberg Hbf', '15:48', 0], ['München Hbf', '17:02', -5],
+]
 function historyTrip(id: string) {
+  const ok = id.includes('-ok-')
+  const stops = ok ? STOPS_OK : STOPS
   const t0 = started.get(id) ?? Date.now()
-  const i = Math.min(STOPS.length - 1, Math.floor((Date.now() - t0) / 8000))
-  const [name, hm, delay] = STOPS[i]
-  const day = '2026-10-30'
+  const i = Math.min(stops.length - 1, Math.floor((Date.now() - t0) / 8000))
+  const [name, hm, delay] = stops[i]
+  const day = ok ? '2026-10-24' : '2026-10-30'
   const planned = `${day}T${hm}:00Z`
   const actual = new Date(new Date(planned).getTime() + delay * 60000).toISOString()
-  const last = i === STOPS.length - 1
+  const last = i === stops.length - 1
   return tripAt(DATE, {
     delay, is_replay: true, replay_of: day, delay_basis: 'at_stop', at_stop: { name, planned_arr: planned, actual_arr: actual },
     expected_arr: last ? actual : null, finished: last, final_delay_min: last ? delay : null, alternatives: [],
@@ -39,9 +74,10 @@ function historyTrip(id: string) {
 }
 
 const RECORDINGS: Recording[] = [
-  { id: 'history:ice611-2026-10-30', source: 'history', delay_basis: 'at_stop', train: 'ICE 611', from: 'Hamburg Hbf', to: 'München Hbf', date: '2026-10-30', frames: 7, finished: true, max_delay_min: 71, crosses_20: true, crosses_60: true },
-  { id: 'history:ice519-2026-10-30', source: 'history', delay_basis: 'at_stop', train: 'ICE 519', from: 'Hamburg Hbf', to: 'München Hbf', date: '2026-10-30', frames: 7, finished: true, max_delay_min: 45, crosses_20: true, crosses_60: false },
-  { id: 'live:demo', source: 'live', delay_basis: 'destination_forecast', train: 'ICE 1583', from: 'Hamburg Hbf', to: 'München Hbf', date: '2026-10-23', frames: 16, finished: true, max_delay_min: 63, crosses_20: true, crosses_60: true },
+  { id: 'history:ice611-2026-10-30', source: 'history', delay_basis: 'at_stop', train: 'ICE 611', from: 'Hamburg Hbf', to: 'München Hbf', date: '2026-10-30', frames: 7, finished: true, max_delay_min: 71, outcome: 'cash25', crosses_20: true, crosses_60: true },
+  { id: 'history:ice611-2026-10-24', source: 'history', delay_basis: 'at_stop', train: 'ICE 611', from: 'Hamburg Hbf', to: 'München Hbf', date: '2026-10-24', frames: 7, finished: true, max_delay_min: 12, outcome: 'on_time', crosses_20: false, crosses_60: false },
+  { id: 'history:ice519-2026-10-30', source: 'history', delay_basis: 'at_stop', train: 'ICE 519', from: 'Hamburg Hbf', to: 'München Hbf', date: '2026-10-30', frames: 7, finished: true, max_delay_min: 45, outcome: 'unlocked', crosses_20: true, crosses_60: false },
+  { id: 'live:demo', source: 'live', delay_basis: 'destination_forecast', train: 'ICE 1583', from: 'Hamburg Hbf', to: 'München Hbf', date: '2026-10-23', frames: 16, finished: true, max_delay_min: 63, outcome: 'cash25', crosses_20: true, crosses_60: true },
 ]
 
 function trip(id: string) {
@@ -83,22 +119,34 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
     if (flag('picks') === 'budget') throw new ApiError(429, 'Kurt has used up today’s route searches.')
     if (flag('picks') === 'none') return out({ from: fn, to: tn, date, tz: 'Europe/Berlin', picks: [], note: '' })
     // mock.picks=nopick: the backend flags no Kurt's pick (none at 30 %+ with a ride-instead).
-    const list = picksFor(date, fn, tn).map((x) => (flag('picks') !== 'nopick' ? x : {
-      ...x, is_kurts_pick: false, odds: x.odds && { ...x.odds, p20: x.odds.p20 === null ? null : Math.min(x.odds.p20, 0.24) },
+    const strike = mockStrike(date)
+    const list = picksFor(date, fn, tn).map((x) => (flag('picks') !== 'nopick' && !strike?.covers_date ? x : {
+      ...x, is_kurts_pick: false, odds: flag('picks') !== 'nopick' ? x.odds : x.odds && { ...x.odds, p20: x.odds.p20 === null ? null : Math.min(x.odds.p20, 0.24) },
     }))
+    const kurt_call: KurtCall = strike?.covers_date
+      ? 'strike'
+      : !list.some((x) => x.is_kurts_pick) ? 'none' : strike?.dates === null ? 'strike_unclear' : 'pick'
     return out({
       from: fn, to: tn, date, tz: 'Europe/Berlin', picks: list,
-      note: 'A delay already posted when you buy does not count.',
+      note: 'A delay already posted when you buy does not count.', kurt_call, strike,
     })
   }
   if (p === '/api/signals') {
     const mode = flag('signals') || 'ok'
     const checked_at = new Date(Date.now() - 4 * 60000).toISOString()
-    const banners = flag('banner') === '0' ? [] : [{ source: 'GDL press page', url: 'https://www.gdl.de/', changed_at: new Date(Date.now() - 2 * 3600000).toISOString() }]
-    if (mode === 'unavailable') return out({ status: 'unavailable', checked_at, items: [], banners: [] })
-    if (mode === 'empty') return out({ status: 'empty', checked_at, items: [], banners })
+    const strike = mockStrike(q.get('date') || DATE)
+    const page: Banner = {
+      source: 'GDL press page', url: 'https://www.gdl.de/', changed_at: new Date(Date.now() - 2 * 3600000).toISOString(),
+      title: 'Pressemitteilungen', test: false, is_strike: false, dates: null, covers_date: false,
+    }
+    const banners: Banner[] = [
+      ...(strike ? [{ source: strike.source, url: strike.url, changed_at: strike.changed_at, title: strike.title, test: true, is_strike: true, dates: strike.dates, covers_date: strike.covers_date }] : []),
+      ...(flag('banner') === '0' ? [] : [page]),
+    ]
+    if (mode === 'unavailable') return out({ status: 'unavailable', checked_at, items: [], banners: [], strike })
+    if (mode === 'empty') return out({ status: 'empty', checked_at, items: [], banners, strike })
     return out({
-      status: 'ok', checked_at, banners,
+      status: 'ok', checked_at, banners, strike,
       items: [
         { kind: 'event', reason: 'Construction work closes the line between Hamburg Hbf and Harburg for four weeks; some long-distance trains are diverted.', source: 'ndr.de', published: '2026-10-26', url: 'https://www.ndr.de/' },
         { kind: 'event', reason: 'The high-speed line between Nürnberg and Ingolstadt is closed for renovation until 12 December; ICEs run via Augsburg.', source: 'augsburger-allgemeine.de', published: '2026-11-07', url: 'https://www.augsburger-allgemeine.de/' },
@@ -129,7 +177,7 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
   if (p === '/api/demo/replay') {
     if (flag('replay') === 'off') throw new ApiError(404, 'No recording yet.')
     const rec = RECORDINGS.find((r) => r.id === (body as { recording?: string } | undefined)?.recording) ?? RECORDINGS[0]
-    const id = `replay-${rec.source === 'history' ? 'hist-' : ''}${++seq}`
+    const id = `replay-${rec.source === 'history' ? 'hist-' : ''}${rec.outcome === 'on_time' ? 'ok-' : ''}${++seq}`
     started.set(id, Date.now())
     return out({ trip_id: id, secret: 'mock', recording: rec })
   }

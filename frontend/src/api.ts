@@ -45,6 +45,19 @@ export interface Pick {
   ride_instead: RideInstead | null
   bahn_url: string
 }
+// A Context.dev change that announces a strike (D11). dates null: the dates could not be read.
+export interface Strike {
+  title: string
+  url: string
+  source: string
+  changed_at: string
+  dates: string[] | null
+  test: boolean
+  covers_date: boolean
+  try_date: string | null
+  note: string
+}
+export type KurtCall = 'pick' | 'none' | 'strike' | 'strike_unclear'
 export interface PicksResponse {
   from: string
   to: string
@@ -52,6 +65,8 @@ export interface PicksResponse {
   tz: string
   picks: Pick[]
   note: string
+  kurt_call: KurtCall
+  strike: Strike | null
 }
 export interface SignalItem {
   kind: string
@@ -64,7 +79,18 @@ export interface SignalsResponse {
   status: 'ok' | 'empty' | 'unavailable'
   checked_at: string
   items: SignalItem[]
-  banners: { source: string; url: string; changed_at: string }[]
+  banners: Banner[]
+  strike: Strike | null
+}
+export interface Banner {
+  source: string
+  url: string
+  changed_at: string
+  title: string
+  test: boolean
+  is_strike: boolean
+  dates: string[] | null
+  covers_date: boolean
 }
 export interface Threshold {
   at: 20 | 60 | 120
@@ -115,6 +141,7 @@ export interface Recording {
   frames: number
   finished: boolean
   max_delay_min: number
+  outcome: TripState
   crosses_20: boolean
   crosses_60: boolean
 }

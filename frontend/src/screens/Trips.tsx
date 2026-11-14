@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { api, ApiError, type Recording, type TripRef } from '../api'
+import { api, ApiError, type Recording, type TripRef, type TripState } from '../api'
 import { Flap } from '../components/Flap'
 import { IconChevron } from '../components/Icons'
 import { ScreenHeader } from '../components/Shell'
 import { Empty } from '../components/States'
-import { changesLabel, dayLabel, hhmm, shortStation } from '../format'
+import { changesLabel, dayLabel, hhmm, minLabel, shortStation, signedMin } from '../format'
 import { useAsync } from '../hooks'
 import { addTrip, loadTrips, removeTrip } from '../store'
 
@@ -48,7 +48,7 @@ function Row({ r }: { r: TripRef }) {
       <span className="flex shrink-0 items-center gap-1.5">
         {t && d !== null ? (
           <span className="flex flex-col items-end gap-1">
-            <Flap size="sm" text={`+${d}`} label={`plus ${d} minutes`} />
+            <Flap size="sm" text={signedMin(d)} label={minLabel(d)} />
             <span className="text-[11px] font-semibold text-muted lg:text-[14px]">
               {t.state === 'on_time' ? (t.finished ? 'finished' : 'on time') : t.state === 'unlocked' ? 'unlocked' : t.state === 'cancelled' ? 'cancelled' : t.state === 'cash25' ? '25 % back' : '50 % back'}
             </span>
@@ -71,6 +71,24 @@ const crossing = (r: Recording) =>
         ? 'already +20 at the start'
         : 'stays under +20'
 
+// How the run ended, in money. An on-time finish is a pick that did not pay: say so.
+const OUTCOME: Record<TripState, string> = {
+  on_time: 'Ran on time · Kurt was wrong',
+  unlocked: 'Ticket unlocked · no cash back',
+  cash25: '25 % of the ticket back',
+  cash50: '50 % of the ticket back',
+  cancelled: 'Cancelled · ticket unlocked',
+}
+const HEADLINE = 'history:ice611-2026-10-30'
+
+// The headline run first, then an on-time run so a miss is always in view, then the rest as the server sends them.
+function replayOrder(recs: Recording[]) {
+  const head = recs.find((r) => r.id === HEADLINE) ?? recs[0]
+  const done = (r: Recording) => r.outcome === 'on_time' && r.finished
+  const miss = recs.find((r) => r !== head && done(r) && r.source === 'history') ?? recs.find((r) => r !== head && done(r))
+  return [head, ...(miss ? [miss] : []), ...recs.filter((r) => r !== head && r !== miss)]
+}
+
 function RecordingRow({ r, busy, onPlay }: { r: Recording; busy: boolean; onPlay: () => void }) {
   const past = r.source === 'history'
   return (
@@ -87,6 +105,9 @@ function RecordingRow({ r, busy, onPlay }: { r: Recording; busy: boolean; onPlay
         </span>
         <span className="truncate text-[12px] text-muted lg:text-[15px]">
           {shortStation(r.from) || '…'} → {shortStation(r.to)} · {crossing(r)}
+        </span>
+        <span className="text-[13px] font-semibold leading-snug lg:text-[16px]">
+          {r.finished ? OUTCOME[r.outcome] : r.outcome === 'on_time' ? 'Still recording · under +20 so far' : `Still recording · ${OUTCOME[r.outcome]}`}
         </span>
         <span className={`tag w-fit rounded px-1.5 py-0.5 ${past ? 'bg-ink text-white' : 'bg-tint text-accent-text'}`}>
           {past ? 'PAST RUN · DB DELAY DATA' : 'RECORDED LIVE'}
@@ -107,7 +128,8 @@ function Replays() {
   const [busy, setBusy] = useState('')
   const [err, setErr] = useState('')
   if (recs.status !== 'ok' || recs.data.length === 0) return null
-  const list = all ? recs.data : recs.data.slice(0, 4)
+  const ordered = replayOrder(recs.data)
+  const list = all ? ordered : ordered.slice(0, 4)
 
   async function play(id: string) {
     setBusy(id)
@@ -126,7 +148,7 @@ function Replays() {
     <section className="mt-3 flex flex-col gap-2 lg:mt-0 lg:gap-3" aria-label="Replays">
       <h2 className="font-display text-[18px] font-bold lg:text-[26px]">Watch a replay</h2>
       <p className="-mt-1 text-[12px] leading-snug text-muted lg:text-[15px]">
-        Real late trains, played back in about a minute and labelled as replays. Past runs show the delay measured at
+        Real trains, late and on time, played back in about a minute and labelled as replays. Past runs show the delay measured at
         each stop; live recordings show the forecast Kurt saw for the destination.
       </p>
       {list.map((r) => (
