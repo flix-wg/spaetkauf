@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, type Pick } from '../api'
-import { hhmm } from '../format'
+import { eur, hhmm } from '../format'
+import { MIN_PAYOUT, payout } from '../payout'
 import { addTrip } from '../store'
 import { Sheet } from './Sheet'
 import { PriceInput, parsePrice } from './PriceForm'
@@ -12,6 +13,7 @@ export function BookSheet({ pick, tz, onClose }: { pick: Pick; tz: string; onClo
   const [err, setErr] = useState('')
   const nav = useNavigate()
   const parsed = parsePrice(price)
+  const even120 = parsed !== null && payout(parsed, 50) < MIN_PAYOUT
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -40,6 +42,12 @@ export function BookSheet({ pick, tz, onClose }: { pick: Pick; tz: string; onClo
             Price you paid <span className="font-normal text-muted">(optional, shows cash amounts)</span>
           </label>
           <PriceInput id="price" value={price} onChange={setPrice} />
+          {parsed !== null && payout(parsed, 25) < MIN_PAYOUT && (
+            <p className="text-[13px] leading-snug text-muted">
+              At {eur(parsed)} {even120 ? 'even a 120-minute' : 'a 60-minute'} delay pays nothing in cash ({even120 ? 50 : 25} % ={' '}
+              {eur(payout(parsed, even120 ? 50 : 25))}, DB’s minimum is €4). A lifted Zugbindung and the full refund at 60+ min still apply.
+            </p>
+          )}
         </div>
         {err && <p className="text-[13px] text-accent-text" role="alert">{err}</p>}
         <button type="submit" disabled={busy} className="btn-primary">
