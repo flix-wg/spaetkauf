@@ -1,7 +1,10 @@
 import hashlib
 import hmac
+import importlib.util
 import json
 import time
+from datetime import date, datetime, timedelta
+from pathlib import Path
 
 import httpx
 import pytest
@@ -9,8 +12,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.config import Settings
-from app.db import init_db
-from app.signals import router
+from app.db import connect, init_db
+from app.signals import BERLIN, announces_strike, parse_strike_dates, router
 
 PARAMS = {"from": "Hamburg Hbf", "to": "Berlin Hbf", "date": "2026-11-15"}
 
@@ -133,6 +136,11 @@ def test_webhook_stores_signed_and_rejects_forged(tmp_path, monkeypatch):
             "source": "gdl.de",
             "url": "https://www.gdl.de/presse/x",
             "changed_at": "2026-11-14T10:00:00+00:00",
+            "title": "Warnstreik",
+            "test": False,
+            "is_strike": True,
+            "dates": None,
+            "covers_date": False,
         }
     ]
 
@@ -161,3 +169,93 @@ def test_exa_daily_budget_caps_paid_calls(tmp_path, monkeypatch):
         for d in (15, 16, 17)
     ]
     assert answers == ["empty", "empty", "unavailable"] and len(exa.bodies) == 2
+
+
+REF = date(2026, 11, 14)
+
+
+@pytest.mark.parametrize(
+    "text, want",
+    [
+        ("Streik am 16. November", ["2026-11-16"]),
+        ("Warnstreik am 16.11.", ["2026-11-16"]),
+        ("Streik am 16.11.2026 ab 2 Uhr", ["2026-11-16"]),
+        ("Streik vom 16. bis 18. November", ["2026-11-16", "2026-11-17", "2026-11-18"]),
+        ("Streik 16.–18.11.", ["2026-11-16", "2026-11-17", "2026-11-18"]),
+        ("Streik vom 16.11. bis zum 17.11.2026", ["2026-11-16", "2026-11-17"]),
+        ("GDL: Montag, 16. November, Streik", ["2026-11-16"]),
+        ("Rail strike on 16 November", ["2026-11-16"]),
+        ("Rail strike on November 16th, 2026", ["2026-11-16"]),
+        ("strike from 16 to 18 November", ["2026-11-16", "2026-11-17", "2026-11-18"]),
+        ("Streik am 16. und 18. Nov.", ["2026-11-16", "2026-11-18"]),
+        ("Streik 30. November bis 1. Dezember", ["2026-11-30", "2026-12-01"]),
+        ("Streik am 5. Januar", ["2027-01-05"]),
+        ("Streik ab 16.00 Uhr, Termin offen", None),
+        ("GDL kündigt Streiks an", None),
+    ],
+)
+def test_parse_strike_dates(text, want):
+    assert parse_strike_dates(text, REF) == want
+
+
+def test_announces_strike():
+    assert announces_strike("Keine Einigung: GDL ruft zum Warnstreik auf")
+    assert announces_strike("EVG calls a strike")
+    assert not announces_strike("Kein neuer Streik vor Weihnachten")
+    assert not announces_strike("Tarifverhandlungen werden fortgesetzt")
+
+
+def load_script():
+    path = Path(__file__).parents[1] / "scripts" / "send_test_change.py"
+    spec = importlib.util.spec_from_file_location("send_test_change", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_signed_test_change_round_trip(tmp_path, monkeypatch):
+    monkeypatch.setenv("CONTEXT_WEBHOOK_SECRET", "whsec_other,whsec_test")
+    script = load_script()
+    day = datetime.now(BERLIN).date() + timedelta(days=2)
+    c = make_client(tmp_path, None, key="")
+    sent = []
+
+    async def notify(db_path, row, payload):
+        sent.append((row["id"], payload))
+
+    c.app.state.notify = notify
+    db = c.app.state.settings.db_path
+    pick = {"dep": f"{day}T08:00:00Z", "arr": f"{day}T12:00:00Z", "legs": []}
+    conn = connect(db)
+    with conn:
+        conn.execute(
+            "INSERT INTO trips(id, pick, created_at) VALUES ('t1', ?, '2026-11-14T00:00:00Z')",
+            (json.dumps(pick),),
+        )
+    conn.close()
+
+    for _ in range(2):  # the second change does not alert the trip again
+        raw, headers = script.signed(script.sample_change(day), "whsec_test")
+        assert c.post("/hooks/context", content=raw, headers=headers).status_code == 204
+    body = c.get("/api/signals", params={**PARAMS, "date": day.isoformat()}).json()
+    strike = body["strike"]
+    assert strike["title"].startswith("TEST: GDL ruft zum Streik")
+    assert (strike["dates"], strike["covers_date"], strike["test"]) == (
+        [day.isoformat()],
+        True,
+        True,
+    )
+    assert body["banners"][0]["test"] and body["banners"][0]["covers_date"]
+    assert [(tid, p["body"]) for tid, p in sent] == [
+        ("t1", f"Strike announced for your travel day: {strike['title']}")
+    ]
+
+    raw, headers = script.signed(script.clear_event(), "whsec_wrong")
+    assert c.post("/hooks/context", content=raw, headers=headers).status_code == 401
+    raw, headers = script.signed(script.clear_event(), "whsec_test")
+    assert c.post("/hooks/context", content=raw, headers=headers).status_code == 204
+    body = c.get("/api/signals", params={**PARAMS, "date": day.isoformat()}).json()
+    assert body["strike"] is None and body["banners"] == []
+    conn = connect(db)
+    assert conn.execute("SELECT COUNT(*) FROM trip_alerts").fetchone()[0] == 0
+    conn.close()

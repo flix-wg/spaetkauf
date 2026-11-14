@@ -77,21 +77,24 @@ Web Push with VAPID keys generated at deploy time and kept in the environment. T
 
 ### D11. Signals
 - Exa: one search per route corridor and date (origin city, destination city, date, German keywords for strike, closure, track works, storm), news and notice pages from the last 21 days, with a structured summary per result (kind, affected date range, one-line reason, relevant yes/no). Cached 6 h per corridor and date. The exact request shape is taken from Exa's current docs in task 5.1; if structured summaries are not available, kind is derived from keywords and the summary is Exa's own.
-- Context.dev: a page monitor on a fixed list of union pages (GDL and EVG press pages) with a signed webhook to `/hooks/context`. Changes are stored and shown as a banner. Monitor creation is a one-off script; endpoint and signature scheme come from `docs.context.dev` in task 5.3.
-- Signals are display only (see risk-signals spec). No DB-owned page is fetched.
+- Context.dev: page monitors on the GDL and EVG press pages and a strike-news search, with a signed webhook to `/hooks/context`. Changes are stored and shown as banners. Monitor creation is a one-off script; endpoint and signature scheme come from `docs.context.dev` in task 5.3.
+- Strike call: a stored change from the last 14 days whose title or summary announces a strike (keyword match, negations like "kein Streik" excluded) has its dates read by a small regex parser (German and English day-month forms and ranges; no LLM). If the dates cover the travel date, `kurt_call` is `strike`: no train is Kurt's pick, because past-run odds do not cover strike days, and the latest earlier day without an announced strike is offered as `try_date`. A strike with unknown dates keeps Kurt's pick and attaches the warning (`strike_unclear`). The odds list never changes. Watched trips on a struck day get a once-only push. Wording never states DB policy: "a strike is announced for this day; past-run odds do not cover strike days".
+- Test changes (title "TEST:", sent by `scripts/send_test_change.py`, signed like Context.dev) are stored with `test = 1`, marked `test: true` in every output and removed by a signed clear event.
+- Exa items and banners are display only (see risk-signals spec). No DB-owned page is fetched.
 
 ### D12. API contract (JSON, times ISO 8601 UTC with the stop's timezone given once)
 ```
 GET  /api/health                      -> {ok, version, sources:{transitous, exa, context}, plan_budget_left}
 GET  /api/stations?q=                 -> [{id, name, lat, lon}]
-GET  /api/picks?from=&to=&date=&time= -> {from, to, date, tz, picks:[Pick], note}
+GET  /api/picks?from=&to=&date=&time= -> {from, to, date, tz, picks:[Pick], note, kurt_call:"pick"|"none"|"strike"|"strike_unclear", strike:Strike|null}
+     Strike = {title, url, source, changed_at, dates:[iso date]|null, covers_date, test, try_date|null, note}
      Pick = {id, dep, arr, duration_min, changes,
              legs:[{train, from, to, dep, arr, trip_id}],
              odds:{p20, p60, late, n, weekday, basis:"history"|"estimate"|"none"} ,
              already_posted: bool, is_kurts_pick: bool,
              ride_instead:{dep, arr, changes, trains:[..], delta_arr_min}|null,
              bahn_url}
-GET  /api/signals?from=&to=&date=     -> {status:"ok"|"empty"|"unavailable", checked_at, items:[{kind, reason, source, published, url}], banners:[{source, url, changed_at}]}
+GET  /api/signals?from=&to=&date=     -> {status:"ok"|"empty"|"unavailable", checked_at, items:[{kind, reason, source, published, url}], banners:[{source, url, changed_at, title, test, is_strike, dates, covers_date}], strike:Strike|null}
 POST /api/trips  {pick, price_eur?, push?}   -> {trip_id, secret}
 GET  /api/trips/{id}?secret=          -> Trip = {booked:Pick, price_eur, state, delay_min, expected_arr, updated_at, stale,
              thresholds:[{at:20|60|120, label, amount_eur|null, reached}],
@@ -104,7 +107,7 @@ GET  /api/late-now                    -> {checked_at, stale, checked, late:[{tra
 GET  /api/backtest                    -> contents of data/backtest.json
 GET  /api/push/key                    -> {public_key}
 POST /api/demo/replay                 -> {trip_id, secret}   (404 while no recording exists)
-POST /hooks/context                   -> 204 | 401
+POST /hooks/context                   -> 204 | 400 | 401   (change.detected, or spaetkauf.test.clear)
 ```
 Trips are addressed by id plus a random secret kept in the browser's local storage; that is the whole "account". Every trip route, including PATCH, DELETE and /claim, needs the secret as ?secret= or an X-Trip-Secret header; a wrong secret and an unknown id both return 404.
 

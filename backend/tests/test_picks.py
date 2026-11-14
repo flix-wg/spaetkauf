@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import httpx
 import pytest
@@ -7,8 +7,9 @@ from fastapi.testclient import TestClient
 from test_odds import odds_db
 
 from app import odds, picks
-from app.db import init_db
+from app.db import connect, init_db
 from app.odds import BERLIN
+from app.signals import ensure_schema
 from app.transitous import Transitous
 
 DAY = (datetime.now(BERLIN) + timedelta(days=7)).date()
@@ -119,3 +120,45 @@ def test_no_alternative_and_unknown_station(make_client):
     assert only["ride_instead"] is None and not only["is_kurts_pick"]  # 20 %: nothing qualifies
     missing = get(client, **{"from": "Nowhere"})
     assert missing.status_code == 404 and "Nowhere" in missing.json()["detail"]
+
+
+def add_change(db_path, title: str) -> None:
+    conn = connect(db_path)
+    ensure_schema(conn)
+    with conn:
+        conn.execute(
+            "INSERT INTO context_changes(id, source, url, title, summary, changed_at) "
+            "VALUES ('c1', 'gdl.de', 'https://www.gdl.de/presse/x', ?, '', ?)",
+            (title, datetime.now(UTC).isoformat(timespec="seconds")),
+        )
+    conn.close()
+
+
+@pytest.mark.parametrize(
+    "trains, title, call",
+    [
+        (["ICE 2", "ICE 3"], None, "pick"),
+        (["ICE 3"], None, "none"),
+        (["ICE 2", "ICE 3"], f"GDL: Streik am {DAY:%d.%m.%Y}", "strike"),
+        (["ICE 2", "ICE 3"], "GDL kündigt Streiks an", "strike_unclear"),
+    ],
+)
+def test_kurt_call_follows_strike_announcements(make_client, settings, trains, title, call):
+    times = {"ICE 2": ("09:00", "13:00"), "ICE 3": ("09:30", "12:50")}
+    client = make_client(plan_pages([[itin((t, "München Hbf", *times[t])) for t in trains]]))
+    if title:
+        add_change(settings.db_path, title)
+    body = get(client).json()
+    assert body["kurt_call"] == call
+    kurts = [p["legs"][0]["train"] for p in body["picks"] if p["is_kurts_pick"]]
+    assert kurts == ([] if call in ("none", "strike") else ["ICE 2"])
+    assert [p["odds"]["p20"] for p in body["picks"]] == [0.5, 0.2][-len(trains) :]
+    strike = body["strike"]
+    if call == "strike":
+        assert strike["dates"] == [DAY.isoformat()] and strike["covers_date"]
+        assert strike["try_date"] == (DAY - timedelta(days=1)).isoformat()
+        assert "past-run odds do not cover strike days" in strike["note"]
+    elif call == "strike_unclear":
+        assert strike["dates"] is None and not strike["covers_date"] and not strike["test"]
+    else:
+        assert strike is None

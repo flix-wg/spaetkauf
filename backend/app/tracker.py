@@ -212,6 +212,41 @@ async def record(
     return fresh
 
 
+async def strike_alerts(
+    db_path, title: str, dates: set[str], test: bool, notify: Notify, now: datetime | None = None
+) -> list[str]:
+    """Once-only 'strike' alert for watched trips whose travel day is in `dates` (Berlin dates).
+
+    Test changes use the kind 'strike-test' so clearing them can re-arm the alert.
+    """
+    now = now or datetime.now(UTC)
+    kind = "strike-test" if test else "strike"
+    conn = connect(db_path)
+    rows = conn.execute(
+        "SELECT * FROM trips WHERE finished_at IS NULL AND is_replay = 0 AND auto = 0"
+    ).fetchall()
+    fresh = []
+    with conn:
+        for row in map(dict, rows):
+            pick = json.loads(row["pick"])
+            days = {_t(pick[k]).astimezone(BERLIN).date().isoformat() for k in ("dep", "arr")
+                    if pick.get(k)}  # fmt: skip
+            if (
+                days & dates
+                and conn.execute(
+                    "INSERT OR IGNORE INTO trip_alerts(trip_id, kind, sent_at) VALUES (?,?,?)",
+                    (row["id"], kind, _iso(now)),
+                ).rowcount
+            ):
+                fresh.append(row)
+    conn.close()
+    for row in fresh:
+        body = f"Strike announced for your travel day: {title}"
+        await notify(db_path, row, {"title": "Strike announced", "body": body,
+                                    "url": f"/trip/{row['id']}"})  # fmt: skip
+    return [row["id"] for row in fresh]
+
+
 def finish(db_path, trip_id: str, final_delay: int | None, now: datetime) -> None:
     conn = connect(db_path)
     with conn:

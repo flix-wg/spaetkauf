@@ -1,4 +1,4 @@
-"""Ranked picks for a route and date (design D6, D7, D12) and the backtest file."""
+"""Ranked picks for a route and date (design D6, D7, D11, D12) and the backtest file."""
 
 import hashlib
 import json
@@ -12,6 +12,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 
 from .matching import parse_train, station_tokens
 from .odds import BERLIN, connection_odds, odds_path, open_odds
+from .signals import strike_signal
 from .stations import rail_stops
 from .transitous import Transitous
 
@@ -173,6 +174,18 @@ def rank(picks: list[dict]) -> list[dict]:
     return picks
 
 
+def kurt_call(picks: list[dict], strike: dict | None) -> str:
+    """'strike' (announced strike covers the day: no Kurt's pick), 'none', 'strike_unclear'
+    (strike with unknown dates: pick kept, warning attached) or 'pick'. Odds stay as they are."""
+    if strike and strike["covers_date"]:
+        for p in picks:
+            p["is_kurts_pick"] = False
+        return "strike"
+    if not any(p["is_kurts_pick"] for p in picks):
+        return "none"
+    return "strike_unclear" if strike and strike["dates"] is None else "pick"
+
+
 def note(picks: list[dict]) -> str:
     if not picks:
         return "No long-distance connections found; try another date or station."
@@ -255,8 +268,10 @@ async def picks(
         p["ride_instead"] = ride_instead(p, found)
         p["bahn_url"] = bahn_url(src_name, dst_name, p["dep"])
     ranked = rank(found)
+    strike = strike_signal(tr.settings.db_path, day)
+    call = kurt_call(ranked, strike)
     return {"from": src_name, "to": dst_name, "date": day.isoformat(), "tz": TZ,
-            "picks": ranked, "note": note(ranked)}  # fmt: skip
+            "picks": ranked, "note": note(ranked), "kurt_call": call, "strike": strike}  # fmt: skip
 
 
 @router.get("/backtest")
