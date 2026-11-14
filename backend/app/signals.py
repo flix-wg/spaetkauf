@@ -347,7 +347,8 @@ def strike_signal(db_path: Path, day: date) -> dict | None:
         return None
 
 
-def take_exa_budget(conn) -> bool:
+def take_exa_budget(conn) -> str | None:
+    """Reserve one search for the current UTC day; that day, or None when the cap is spent."""
     cap = int(os.environ.get("SPAETKAUF_EXA_BUDGET") or EXA_BUDGET)
     day = datetime.now(UTC).date().isoformat()
     with conn:
@@ -355,11 +356,10 @@ def take_exa_budget(conn) -> bool:
         cur = conn.execute(
             "UPDATE exa_budget SET used = used + 1 WHERE day = ? AND used < ?", (day, cap)
         )
-    return cur.rowcount == 1
+    return day if cur.rowcount == 1 else None
 
 
-def give_exa_budget(conn) -> None:
-    day = datetime.now(UTC).date().isoformat()
+def give_exa_budget(conn, day: str) -> None:
     with conn:
         conn.execute("UPDATE exa_budget SET used = used - 1 WHERE day = ? AND used > 0", (day,))
 
@@ -447,8 +447,9 @@ def usable_reason(reason) -> bool:
     return not (UNAFFECTED.search(reason) or NO_IMPACT.search(reason))
 
 
-_LOCAL_TRAINS = (
-    r"(?:local|regional|S-Bahn|(?-i:RE|RB)\d*|commuter|suburban|Regional\w*|Nahverkehr)\b"
+_LOCAL_TRAINS = r"(?:local|regional|S-Bahn|(?-i:RE|RB)\d*|Regional\w*|Nahverkehr)\b"
+_LONG_TRAINS = (
+    r"\b(?:Fernverkehr|Fernzüge|ICEs?|ICs?|ECs?|intercity|long[- ]distance|high[- ]speed)\b"
 )
 NO_IMPACT = re.compile(
     r"\bno\s+(?:[\w-]+\s+){0,3}?(?:impact|implications?|effects?|disruptions?)\b"
@@ -458,19 +459,26 @@ NO_IMPACT = re.compile(
     r"|\b(?:unrelated|irrelevant)\b"
     r"|\bnot\s+(?:an?\s+)?long[- ]distance"
     r"|\bnicht\s+(?:(?:im|den|dem|der)\s+)?Fernverkehr"
-    rf"|\b(?:affect\w*|concern\w*|appl\w*\s+to)\s+only\s+(?:the\s+)?{_LOCAL_TRAINS}"
-    rf"|\bonly\s+(?:affect\w*|concern\w*|appl\w*\s+to)\s+(?:the\s+)?{_LOCAL_TRAINS}"
-    rf"|\bonly\s+(?:the\s+)?{_LOCAL_TRAINS}[^.!?\n,;]{{0,40}}?\b(?:is|are|was|were)\s+affected"
-    rf"|\b{_LOCAL_TRAINS}(?:[\s-](?:trains?|services?|traffic|lines?))?[\s-]only\b"
-    r"(?!\s+(?:run|operate|go|fahren|verkehren)\w*)"
-    rf"|\bnur\s+(?:die\s+|den\s+)?{_LOCAL_TRAINS}[^.!?\n,;]{{0,40}}?\b(?:ist|sind)\s+betroffen"
-    rf"|\bbetrifft\s+nur\s+(?:die\s+|den\s+)?{_LOCAL_TRAINS}",
+    # "affects only S-Bahn trains", unless a long-distance train follows in the same sentence
+    r"|\b(?:affects?|concerns?|betrifft|betreffen)\s+(?:only|nur)\s+(?:the\s+|die\s+|den\s+)?"
+    rf"{_LOCAL_TRAINS}(?![^.!?\n]*{_LONG_TRAINS})",
     re.IGNORECASE,
 )
 
 
-def parse_results(results: list, date: str) -> list[dict]:
-    items = []
+def _flag(value) -> bool | None:
+    if isinstance(value, str):
+        value = {"true": True, "false": False}.get(value.strip().lower())
+    return value if isinstance(value, bool) else None
+
+
+def parse_results(results: list, date: str) -> tuple[list[dict], bool]:
+    """Usable items, and whether every summary was well formed (only then may "empty" be cached).
+
+    A missing or unreadable affects_long_distance_on_route keeps the item: hiding a real
+    disruption is worse than showing one that may be off the route.
+    """
+    items, complete = [], True
     for r in results or []:
         if not isinstance(r, dict):
             continue
@@ -482,10 +490,12 @@ def parse_results(results: list, date: str) -> list[dict]:
             try:
                 summary = json.loads(summary)
             except ValueError:
+                complete = False
                 continue
-        if not isinstance(summary, dict) or summary.get("relevant") is not True:
-            continue
-        if summary.get("affects_long_distance_on_route") is not True:
+        relevant = _flag(summary.get("relevant")) if isinstance(summary, dict) else None
+        if relevant is None:
+            complete = False
+        if not relevant or _flag(summary.get("affects_long_distance_on_route")) is False:
             continue
         if not covers(summary, date):
             continue
@@ -504,10 +514,12 @@ def parse_results(results: list, date: str) -> list[dict]:
         )
         if len(items) == MAX_ITEMS:
             break
-    return items
+    return items, complete
 
 
-async def _search(request: Request, settings: Settings, a: str, b: str, date: str) -> list[dict]:
+async def _search(
+    request: Request, settings: Settings, a: str, b: str, date: str
+) -> tuple[list[dict], bool]:
     async with httpx.AsyncClient(
         timeout=15,
         headers={"User-Agent": settings.client_name, "x-api-key": settings.exa_key},
@@ -571,24 +583,26 @@ async def get_signals(
                 items = [i for i in json.loads(row["items"]) if usable_reason(i.get("reason"))]
                 checked = row["fetched_at"]
                 status = "ok" if items else "empty"
-            elif settings.exa_key and a and b and not take_exa_budget(conn):
+            elif settings.exa_key and a and b and not (budget_day := take_exa_budget(conn)):
                 status = "capped"
             elif settings.exa_key and a and b:
                 try:
-                    items = await _search(request, settings, a, b, date)
+                    items, complete = await _search(request, settings, a, b, date)
                 except (httpx.HTTPError, ValueError, AttributeError) as exc:
                     items = []
                     # Rejected or never sent: not billed, so retries during an outage stay free.
                     if isinstance(exc, NOT_BILLED):
-                        give_exa_budget(conn)
+                        give_exa_budget(conn, budget_day)
                 else:
                     status = "ok" if items else "empty"
                     checked = time.time()
-                    with conn:
-                        conn.execute(
-                            "INSERT OR REPLACE INTO signals_cache(key, fetched_at, items) VALUES (?, ?, ?)",
-                            (key, checked, json.dumps(items)),
-                        )
+                    if items or complete:
+                        with conn:
+                            conn.execute(
+                                "INSERT OR REPLACE INTO signals_cache(key, fetched_at, items) "
+                                "VALUES (?, ?, ?)",
+                                (key, checked, json.dumps(items)),
+                            )
         return {
             "status": status,
             "checked_at": datetime.fromtimestamp(checked, UTC).isoformat(timespec="seconds"),

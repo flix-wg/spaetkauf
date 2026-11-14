@@ -95,12 +95,21 @@ def test_filters_and_cap(tmp_path):
 
 
 def test_nothing_relevant_is_empty(tmp_path):
-    body = (
-        make_client(tmp_path, Exa([result(1, relevant=False)]))
-        .get("/api/signals", params=PARAMS)
-        .json()
-    )
-    assert body["status"] == "empty" and body["items"] == []
+    exa = Exa([result(1, relevant=False)])
+    c = make_client(tmp_path, exa)
+    for _ in range(2):
+        body = c.get("/api/signals", params=PARAMS).json()
+        assert body["status"] == "empty" and body["items"] == []
+    assert len(exa.bodies) == 1
+
+
+def test_empty_from_malformed_summaries_is_not_cached(tmp_path):
+    bad = [{**result(1), "summary": "not json"}, result(2, relevant="maybe")]
+    exa = Exa(bad)
+    c = make_client(tmp_path, exa)
+    for _ in range(2):
+        assert c.get("/api/signals", params=PARAMS).json()["status"] == "empty"
+    assert len(exa.bodies) == 2
 
 
 def test_second_call_hits_cache(tmp_path):
@@ -180,13 +189,40 @@ def test_exa_daily_budget_caps_paid_calls(tmp_path, monkeypatch):
     assert answers == ["empty", "empty", "capped"] and len(exa.bodies) == 2
 
 
-def test_exa_rejection_gives_the_budget_back(tmp_path, monkeypatch):
+def test_exa_rejection_gives_the_budget_back_to_the_reserved_day(tmp_path, monkeypatch):
+    now = [datetime(2026, 11, 14, 23, 59, 59, tzinfo=UTC)]
+
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return now[0].astimezone(tz)
+
+    def exa(request):
+        if len(replies) == 2:  # the first call fails just after UTC midnight
+            now[0] += timedelta(seconds=2)
+        return replies.pop(0)
+
+    monkeypatch.setattr("app.signals.datetime", Clock)
     monkeypatch.setenv("SPAETKAUF_EXA_BUDGET", "1")
     replies = [httpx.Response(503), httpx.Response(200, json={"results": [result(1)]})]
-    c = make_client(tmp_path, lambda request: replies.pop(0))
+    c = make_client(tmp_path, exa)
     assert c.get("/api/signals", params=PARAMS).json()["status"] == "unavailable"
+    conn = connect(c.app.state.settings.db_path)
+    assert dict(conn.execute("SELECT day, used FROM exa_budget").fetchall()) == {
+        "2026-11-14": 0
+    }
+    conn.close()
     assert c.get("/api/signals", params=PARAMS).json()["status"] == "ok"
     assert replies == []
+
+
+KEEP = [
+    "Not only regional trains are affected: ICE services are cancelled nationwide",
+    "regional trains only will run; all ICE services are cancelled",
+    "Strike affects only regional trains and ICE services.",
+    "Strike: only regional trains run, no EC to Zürich.",
+    "Track closure at Lindau diverts EC trains to Zürich.",
+]
 
 
 def test_only_items_on_the_route_for_long_distance_are_kept(tmp_path):
@@ -195,23 +231,36 @@ def test_only_items_on_the_route_for_long_distance_are_kept(tmp_path):
     exa = Exa([
         result(1, **on_route, affects_long_distance_on_route=False,
                reason="The Nürnberg–Ingolstadt line is closed; ICEs run via Augsburg."),
-        result(2, **on_route, affects_long_distance_on_route=None, reason="Schema miss."),
         result(3, **on_route, reason="Works on the S-Bahn trunk line; not long-distance."),
         result(4, **on_route, reason="Die Sperrung betrifft nicht den Fernverkehr."),
         result(5, **on_route, reason="Track works affect only S-Bahn and RE trains near Lindau."),
-        result(6, **on_route, reason="Bauarbeiten bei Kempten, nur Regionalzüge sind betroffen."),
-        result(7, **on_route, reason="Strike: only regional trains run, no EC to Zürich."),
-        result(8, **on_route, reason="Track closure at Lindau diverts EC trains to Zürich."),
+        result(6, **on_route, reason="Die Sperrung betrifft nur die S-Bahn München."),
+        *(result(10 + n, **on_route, reason=r) for n, r in enumerate(KEEP)),
     ])
     c = make_client(tmp_path, exa)
-    assert [i["reason"] for i in c.get("/api/signals", params=params).json()["items"]] == [
-        "Strike: only regional trains run, no EC to Zürich.",
-        "Track closure at Lindau diverts EC trains to Zürich.",
-    ]
+    items = c.get("/api/signals", params=params).json()["items"]
+    assert [i["reason"] for i in items] == KEEP
     schema = exa.bodies[0]["contents"]["summary"]["schema"]
     question = schema["properties"]["affects_long_distance_on_route"]["description"]
     assert "affects_long_distance_on_route" in schema["required"]
     assert all(w in question for w in ("München", "Zürich", "2026-11-22"))
+
+
+def test_unreadable_route_flag_keeps_the_item(tmp_path):
+    missing = result(5)
+    missing["summary"] = json.dumps(
+        {k: v for k, v in json.loads(missing["summary"]).items()
+         if k != "affects_long_distance_on_route"}
+    )
+    exa = Exa([
+        result(1, affects_long_distance_on_route=False),
+        result(2, affects_long_distance_on_route="false"),
+        result(3, affects_long_distance_on_route="True"),
+        result(4, affects_long_distance_on_route=None),
+        missing,
+    ])
+    items = make_client(tmp_path, exa).get("/api/signals", params=PARAMS).json()["items"]
+    assert [i["reason"] for i in items] == ["r3", "r4", "r5"]
 
 
 def test_answers_cached_before_the_route_check_are_not_served(tmp_path):

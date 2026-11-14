@@ -51,10 +51,11 @@ a strike for the travel date changes Kurt's call (see "Strike call" below).
 
 ## What is filtered
 
-- Only results with `relevant: true` and `affects_long_distance_on_route: true`, at most 5,
-  `source` is the hostname. Reasons that say there is no impact, "not long-distance", "nicht im
-  Fernverkehr" or that only S-Bahn, regional or local trains are affected are dropped, also from
-  the cache.
+- Only results with `relevant: true`, at most 5, `source` is the hostname. Results with
+  `affects_long_distance_on_route: false` are dropped; a missing or unreadable value keeps the
+  result. Reasons that say there is no impact, "not long-distance", "nicht im Fernverkehr" or
+  "affects only S-Bahn/regional trains" (with no long-distance train later in the sentence) are
+  dropped, also from the cache. An empty answer with a malformed summary is not cached.
 - In the app, results whose reason names long-distance trains (long-distance, Fernverkehr, ICE,
   intercity, high-speed) and do not say they are unaffected add a warning to Kurt’s pick: past runs
   may not include this, so the chance may not hold. The pick and its odds stay the same.
