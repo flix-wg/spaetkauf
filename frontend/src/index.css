@@ -57,6 +57,211 @@ summary {
   outline-color: #fff;
 }
 
+/* Kurt's moving parts, in the 80 x 60 coordinates of his drawing. */
+.kurt :is(.kurt-body, .kurt-head, .kurt-spiral) {
+  transform-box: view-box;
+}
+.kurt-body {
+  transform-origin: 77px 50px;
+}
+.kurt-head {
+  transform-origin: 12px 40px;
+}
+.kurt-spiral {
+  transform-origin: 46px 27px;
+}
+.kurt-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.kurt-crawl .kurt-body {
+  animation: kurt-stretch 0.9s ease-in-out infinite;
+}
+.kurt-crawl .kurt-head {
+  animation: kurt-reach 0.9s ease-in-out infinite;
+}
+.kurt-crawl .kurt-spiral {
+  animation: kurt-roll 2.7s linear infinite;
+}
+.kurt-crawl .kurt-eye,
+.kurt-blink .kurt-eye {
+  animation: kurt-blink 4.5s ease-in-out infinite;
+}
+.kurt-blink:hover .kurt-head {
+  animation: kurt-reach 0.9s ease-in-out 2;
+}
+@keyframes kurt-stretch {
+  50% {
+    transform: scaleX(1.05);
+  }
+}
+@keyframes kurt-reach {
+  50% {
+    transform: translateX(-3.6px) rotate(-5deg);
+  }
+}
+@keyframes kurt-roll {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes kurt-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.15);
+  }
+}
+
+/* First-load splash: Kurt crawls in leaving a slime trail, then dashes off when the app is ready. */
+#splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding-bottom: 8vh;
+  background: #fff;
+  color: var(--color-ink);
+}
+.splash-skip #splash {
+  display: none;
+}
+#splash.out {
+  opacity: 0;
+  transition: opacity 0.3s ease 0.4s;
+}
+.sp-stage {
+  position: relative;
+  width: 280px;
+  height: 100px;
+}
+.sp-trail {
+  position: absolute;
+  left: 4px;
+  bottom: 10px;
+  width: 158px;
+  height: 5px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgb(253 79 0 / 0), #fd4f00 40%);
+  transform-origin: left;
+  animation: sp-trail 1.6s cubic-bezier(0.35, 0.5, 0.4, 1) both;
+}
+.sp-kurt {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 130px;
+  animation: sp-crawl 1.6s cubic-bezier(0.35, 0.5, 0.4, 1) both;
+}
+.sp-kurt svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform: scaleX(-1);
+}
+/* Speed lines behind him for the dash. */
+.sp-kurt::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 38%;
+  width: 70px;
+  height: 34px;
+  background:
+    linear-gradient(var(--color-ink), var(--color-ink)) 30px 0 / 40px 3px no-repeat,
+    linear-gradient(var(--color-ink), var(--color-ink)) 0 15px / 70px 3px no-repeat,
+    linear-gradient(var(--color-ink), var(--color-ink)) 20px 30px / 50px 3px no-repeat;
+  opacity: 0;
+}
+#splash.out .sp-kurt {
+  animation: sp-dash 0.45s cubic-bezier(0.6, 0, 0.9, 0.5) both;
+}
+#splash.out .sp-kurt::before {
+  opacity: 1;
+  transition: opacity 0.1s;
+}
+.sp-word {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 44px;
+  letter-spacing: -0.02em;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+#splash.fonts .sp-word {
+  opacity: 1;
+}
+.sp-quip {
+  display: grid;
+  margin: 0;
+  font-size: 15px;
+  color: var(--color-muted);
+  text-align: center;
+}
+.sp-quip > span {
+  grid-area: 1 / 1;
+  animation: sp-quip1 2s both;
+}
+.sp-quip > span + span {
+  animation-name: sp-quip2;
+}
+@keyframes sp-crawl {
+  from {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(150px);
+  }
+}
+@keyframes sp-trail {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes sp-dash {
+  from {
+    transform: translateX(150px);
+  }
+  20% {
+    transform: translateX(140px) scaleX(0.94);
+  }
+  to {
+    transform: translateX(calc(50vw + 200px)) scaleX(1.15);
+  }
+}
+@keyframes sp-quip1 {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  62%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes sp-quip2 {
+  0%,
+  60% {
+    opacity: 0;
+  }
+  68%,
+  100% {
+    opacity: 1;
+  }
+}
+
 /* Split-flap tile: two half cards on a hinge, sized by the tile's font size. */
 .flap {
   position: relative;
@@ -173,6 +378,18 @@ summary {
   }
   .meter-fill {
     transition: none;
+  }
+  .kurt *,
+  .sp-kurt,
+  .sp-trail,
+  .sp-quip > span {
+    animation: none !important;
+  }
+  .sp-kurt {
+    transform: translateX(150px);
+  }
+  .sp-quip > span + span {
+    display: none;
   }
 }
 

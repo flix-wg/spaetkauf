@@ -1,1 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 60"><rect width="80" height="60" rx="14" fill="#FD4F00"/><g transform="translate(6 6) scale(.85)"><rect x="4" y="44" width="68" height="10" rx="5" fill="#14161A"/><path d="M11 46 C9 37 11 29 17 25" stroke="#14161A" stroke-width="6" stroke-linecap="round" fill="none"/><line x1="16" y1="25" x2="10" y2="11" stroke="#14161A" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="25" x2="23" y2="10" stroke="#14161A" stroke-width="2.5" stroke-linecap="round"/><circle cx="10" cy="10" r="3.2" fill="#14161A"/><circle cx="23" cy="9" r="3.2" fill="#14161A"/><circle cx="47" cy="27" r="19" fill="#FFFFFF" stroke="#14161A" stroke-width="2.5"/><path d="M44 27 a3 3 0 1 1 6 0 a6 6 0 1 1 -12 0 a9 9 0 1 1 18 0 a12 12 0 1 1 -24 0" stroke="#14161A" stroke-width="2.5" fill="none" stroke-linecap="round"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#FD4F00"/><g transform="translate(1.8449999999999989 10.170000000000002) scale(0.74)">
+  <path d="M14 54 C8 54 4.5 51.5 4.5 47 L4.5 33 C4.5 24 19 24 19 33 L19 40 C19 43.5 21 45 24 45 L64 45 C70 45 74 47 77 52.5 C75.5 53.5 73.5 54 70 54 Z" fill="#14161A"/>
+  <path d="M9 26 L7.2 14.5 M15 26 L21.5 13.5" stroke="#14161A" stroke-width="3.4" stroke-linecap="round"/>
+  <circle cx="7.2" cy="10.5" r="4" fill="#14161A"/><circle cx="21.5" cy="9.5" r="4" fill="#14161A"/>
+  
+  <circle cx="46" cy="27" r="19" fill="#fff" stroke="#14161A" stroke-width="4"/>
+  <path d="M47 28 a3.4 3.4 0 0 0 -6.8 0 a6.8 6.8 0 0 0 13.6 0 a10.2 10.2 0 0 0 -20.4 0" stroke="#14161A" stroke-width="4" fill="none" stroke-linecap="round"/></g></svg>
