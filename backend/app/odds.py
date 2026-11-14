@@ -88,6 +88,34 @@ def rate(stats: dict, threshold: int, m: float) -> float:
     )
 
 
+def _reach(conn: sqlite3.Connection, legs: list[dict], m: float) -> tuple[float, dict] | None:
+    """(share of runs making every change, history of the last leg); None when a leg has none."""
+    stats = [leg_odds(conn, leg["train"], leg["to"], leg["arr"]) for leg in legs]
+    if any(s["status"] != "ok" for s in stats):
+        return None
+    reach = 1.0
+    for leg, nxt, s in zip(legs, legs[1:], stats):
+        change_min = (_t(nxt["dep"]) - _t(leg["arr"])).total_seconds() / 60
+        reach *= 1 - rate(s, bucket_at_or_below(change_min - CHANGE_MARGIN_MIN), m)
+    return reach, stats[-1]
+
+
+def miss_odds(
+    conn: sqlite3.Connection, legs: list[dict], spare_min: float, m: float | None = None
+) -> float | None:
+    """Upper bound on arriving more than `spare_min` late: the last leg's share at the largest
+    bucket at or below spare_min, and every missed change counts as a miss. 1.0 below the finest
+    bucket (5 min); None without history."""
+    m = SHRINK_M if m is None else m
+    parts = _reach(conn, legs, m)
+    if parts is None:
+        return None
+    if spare_min < BUCKETS[0]:
+        return 1.0
+    reach, end = parts
+    return round(1 - reach * (1 - rate(end, bucket_at_or_below(spare_min), m)), 4)
+
+
 def connection_odds(conn: sqlite3.Connection, legs: list[dict], m: float | None = None) -> dict:
     """legs: [{train, to, dep, arr}] with scheduled UTC times, transit legs only, in order.
 
@@ -101,14 +129,10 @@ def connection_odds(conn: sqlite3.Connection, legs: list[dict], m: float | None 
     last = legs[-1]
     out = {"p20": None, "p60": None, "late": None, "n": None,
            "weekday": WEEKDAYS[weekday(last["arr"])], "basis": "none"}  # fmt: skip
-    stats = [leg_odds(conn, leg["train"], leg["to"], leg["arr"]) for leg in legs]
-    if any(s["status"] != "ok" for s in stats):
+    parts = _reach(conn, legs, m)
+    if parts is None:
         return out
-    reach = 1.0
-    for leg, nxt, s in zip(legs, legs[1:], stats):
-        change_min = (_t(nxt["dep"]) - _t(leg["arr"])).total_seconds() / 60
-        reach *= 1 - rate(s, bucket_at_or_below(change_min - CHANGE_MARGIN_MIN), m)
-    end = stats[-1]
+    reach, end = parts
     out.update(
         p20=round(1 - reach * (1 - rate(end, 20, m)), 4),
         p60=round(rate(end, 60, m), 4),

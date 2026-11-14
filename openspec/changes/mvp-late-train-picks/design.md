@@ -94,6 +94,8 @@ GET  /api/picks?from=&to=&date=&time= -> {from, to, date, tz, picks:[Pick], note
              already_posted: bool, is_kurts_pick: bool,
              ride_instead:{dep, arr, changes, trains:[..], delta_arr_min}|null,
              bahn_url}
+GET  /api/picks?...&mode=arrive&time=T -> as above plus {mode:"arrive", arrive_by}; Pick plus
+             {spare_min, p_miss|null, late_ok:{unlock, refund25, refund50}, group:"late_ok"|"on_time"}
 GET  /api/signals?from=&to=&date=     -> {status:"ok"|"empty"|"unavailable", checked_at, items:[{kind, reason, source, published, url}], banners:[{source, url, changed_at, title, test, is_strike, dates, covers_date}], strike:Strike|null}
 POST /api/trips  {pick, price_eur?, push?}   -> {trip_id, secret}
 GET  /api/trips/{id}?secret=          -> Trip = {booked:Pick, price_eur, state, delay_min, expected_arr, updated_at, stale,
@@ -109,6 +111,8 @@ GET  /api/push/key                    -> {public_key}
 POST /api/demo/replay                 -> {trip_id, secret}   (404 while no recording exists)
 POST /hooks/context                   -> 204 | 400 | 401   (change.detected, or spaetkauf.test.clear)
 ```
+`mode=arrive` (time required, else 400) lists connections scheduled to arrive in the 3 h before T, paging Transitous backward (at most 3 plan calls). `spare_min` is T minus the scheduled arrival; `late_ok` says which delay outcomes (20 min unlock, 60 and 120 min refunds) still arrive by T; `group` is `late_ok` from 20 min spare, else `on_time`. `p_miss` is an upper bound on arriving after T: the last leg's share at the largest delay bucket at or below the spare time, every missed change counted as a miss, 1.0 under 5 min spare, null without history. Kurt's pick is the highest p20 among `late_ok` picks with p_miss ≤ 0.10 and p20 ≥ 0.30; no ride-instead is needed. Order: `late_ok` within the cap by p20, the other `late_ok`, then `on_time` by arrival, latest first. Depart mode and its response are unchanged.
+
 Trips are addressed by id plus a random secret kept in the browser's local storage; that is the whole "account". Every trip route, including PATCH, DELETE and /claim, needs the secret as ?secret= or an X-Trip-Secret header; a wrong secret and an unknown id both return 404.
 
 ### D13. Frontend

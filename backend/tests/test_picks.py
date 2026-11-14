@@ -36,10 +36,11 @@ def itin(*legs, delay=0):
     return {"startTime": at(legs[0][2]), "legs": out}
 
 
-def plan_pages(pages):
+def plan_pages(pages, cursor="nextPageCursor"):
     def handler(request: httpx.Request) -> httpx.Response:
         path, params = request.url.path, request.url.params
         handler.calls.append(path)
+        handler.params.append(dict(params))
         if path.endswith("/geocode"):
             hit = {"type": "STOP", "id": "de-DELFI_de:02000:10950", "name": "Hamburg Hbf",
                    "lat": 53.55, "lon": 10.0, "modes": ["HIGHSPEED_RAIL"]}  # fmt: skip
@@ -48,10 +49,10 @@ def plan_pages(pages):
         body = {"from": {"name": "Hamburg Hbf"}, "to": {"name": "München Hbf"},
                 "itineraries": pages[page]}  # fmt: skip
         if page + 1 < len(pages):
-            body["nextPageCursor"] = str(page + 1)
+            body[cursor] = str(page + 1)
         return httpx.Response(200, json=body)
 
-    handler.calls = []
+    handler.calls, handler.params = [], []
     return handler
 
 
@@ -60,8 +61,8 @@ def make_client(settings, tmp_path, monkeypatch):
     monkeypatch.setattr(odds, "SHRINK_M", 0)
     init_db(settings.db_path)
     wd = DAY.weekday()
-    rows = [{"train": t, "stop": "München Hbf", "weekday": wd, "n": 20, "ge20": k, "ge60": 1}
-            for t, k in (("ICE 1", 12), ("ICE 2", 10), ("ICE 3", 4))]  # fmt: skip
+    rows = [{"train": t, "stop": "München Hbf", "weekday": wd, "n": 20, "ge20": k, "ge30": k30,
+             "ge60": 1} for t, k, k30 in (("ICE 1", 12, 6), ("ICE 2", 10, 0), ("ICE 3", 4, 0))]  # fmt: skip
 
     def make(handler):
         app = FastAPI()
@@ -120,6 +121,35 @@ def test_no_alternative_and_unknown_station(make_client):
     assert only["ride_instead"] is None and not only["is_kurts_pick"]  # 20 %: nothing qualifies
     missing = get(client, **{"from": "Nowhere"})
     assert missing.status_code == 404 and "Nowhere" in missing.json()["detail"]
+
+
+def test_arrive_mode_groups_bounds_and_kurts_pick(make_client):
+    m = "München Hbf"
+    handler = plan_pages([
+        [itin(("ICE 1", m, "08:30", "12:30")), itin(("ICE 4", m, "08:40", "12:40")),
+         itin(("ICE 3", m, "09:00", "12:57")), itin(("ICE 5", m, "09:30", "13:10"))],
+        [itin(("ICE 6", m, "06:00", "09:50")), itin(("ICE 2", m, "07:00", "11:00"))],
+    ], cursor="previousPageCursor")  # fmt: skip
+    client = make_client(handler)
+    body = get(client, mode="arrive", time="13:00").json()
+    plans = [q for q in handler.params if "fromPlace" in q]
+    assert [(q["arriveBy"], q.get("pageCursor")) for q in plans] == [("true", None), ("true", "1")]
+    assert body["mode"] == "arrive" and body["kurt_call"] == "pick"
+    noon = datetime.fromisoformat(at("13:00")).astimezone(UTC)
+    assert body["arrive_by"] == noon.strftime("%Y-%m-%dT%H:%M:%SZ")
+    # ICE 5 arrives after T, ICE 6 before the 3 h window
+    got = [(p["legs"][0]["train"], p["group"], p["spare_min"], p["p_miss"]) for p in body["picks"]]
+    assert got == [
+        ("ICE 2", "late_ok", 120, 0.0),  # p_miss from ge120
+        ("ICE 1", "late_ok", 30, 0.3),  # ge30 = 6 of 20: above the cap
+        ("ICE 4", "late_ok", 20, None),  # no history
+        ("ICE 3", "on_time", 3, 1.0),  # under 5 min spare
+    ]
+    # ICE 1 has the highest p20 but misses T too often, so Kurt picks ICE 2
+    assert [p["is_kurts_pick"] for p in body["picks"]] == [True, False, False, False]
+    assert body["picks"][0]["late_ok"] == {"unlock": True, "refund25": True, "refund50": True}
+    assert body["picks"][1]["late_ok"] == {"unlock": True, "refund25": False, "refund50": False}
+    assert get(client, mode="arrive", time="").status_code == 400
 
 
 def add_change(db_path, title: str) -> None:
