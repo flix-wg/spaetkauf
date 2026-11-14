@@ -1,12 +1,12 @@
 import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { api, ApiError } from '../api'
+import { api, ApiError, type Claim } from '../api'
 import { IconBack, IconCheck, IconCopy, IconExternal } from '../components/Icons'
 import { Kurt } from '../components/Kurt'
 import { InlinePrice } from '../components/PriceForm'
 import { ScreenHeader } from '../components/Shell'
 import { Empty, ErrorState, Loading } from '../components/States'
-import { eur } from '../format'
+import { eur, hhmm, signedMin } from '../format'
 import { useAsync } from '../hooks'
 import { findTrip, removeTrip } from '../store'
 
@@ -33,6 +33,61 @@ function pasteable(v: string) {
   if (/^\d{4}-\d{2}-\d{2}T/.test(v)) return DE.format(new Date(v)).replace(',', '')
   const d = v.match(/^(\d{4})-(\d{2})-(\d{2})$/)
   return d ? `${d[3]}.${d[2]}.${d[1]}` : v
+}
+
+function proofText(c: Claim) {
+  const ev = c.evidence!
+  const f = Object.fromEntries(c.fields.map((x) => [x.label, pasteable(x.value)]))
+  const obs = ev.observations.map((o) => `${hhmm(o.at)} Uhr: ${o.cancelled ? 'Ausfall' : `${signedMin(o.delay_min ?? 0)} Min.`}`)
+  return [
+    `Zug: ${f.Train}`,
+    `Datum: ${f.Date}`,
+    `Strecke: ${f.From} → ${f.To}`,
+    `Geplante Ankunft: ${pasteable(ev.scheduled_arr)}`,
+    ev.observed_arr && `${c.provisional ? 'Erwartete' : 'Beobachtete'} Ankunft: ${pasteable(ev.observed_arr)} (${signedMin(ev.delay_min)} Min.)`,
+    `Verspätung: ${ev.delay_min} Min.`,
+    'Beobachtungen:',
+    ...obs,
+    c.is_replay
+      ? `Wiedergabe aufgezeichneter Daten vom ${c.replay_of}, Beobachtungszeiten sind Wiedergabezeiten.`
+      : 'Quelle: Echtzeitdaten von Transitous (transitous.org), nicht die eigene Aufzeichnung der DB.',
+  ].filter(Boolean).join('\n')
+}
+
+function Proof({ c }: { c: Claim }) {
+  const ev = c.evidence!
+  const [copied, setCopied] = useState(false)
+  return (
+    <details className="rounded-2xl border border-line p-3.5">
+      <summary className="cursor-pointer font-display text-[16px] font-bold lg:text-[20px]">Proof of the delay</summary>
+      <div className="mt-3 flex flex-col gap-3">
+        <p className="mono text-[14px] font-semibold">
+          Scheduled {pasteable(ev.scheduled_arr)}
+          {ev.observed_arr && <><br />{c.provisional ? 'Expected' : 'Observed'} {pasteable(ev.observed_arr)} ({signedMin(ev.delay_min)} min)</>}
+        </p>
+        <ol className="flex flex-col border-l-2 border-line pl-3" aria-label="Observations">
+          {ev.observations.map((o) => (
+            <li key={o.at} className="mono flex justify-between gap-3 py-0.5 text-[13px]">
+              <span className="text-muted">{hhmm(o.at)}</span>
+              <span className="font-semibold">{o.cancelled ? 'cancelled' : `${signedMin(o.delay_min ?? 0)} min`}</span>
+            </li>
+          ))}
+        </ol>
+        <p className="text-[12px] text-muted">{ev.source}</p>
+        <button
+          type="button"
+          className="btn-ghost"
+          onClick={async () => {
+            await copyText(proofText(c))
+            setCopied(true)
+          }}
+        >
+          {copied ? <><IconCheck size={16} /> Copied</> : <><IconCopy size={16} /> Copy as text</>}
+        </button>
+        <p className="sr-only" role="status" aria-live="polite">{copied ? 'Proof copied' : ''}</p>
+      </div>
+    </details>
+  )
 }
 
 export function ClaimScreen() {
@@ -137,6 +192,8 @@ export function ClaimScreen() {
                 </ul>
               )}
               <p className="sr-only" role="status" aria-live="polite">{copied ? `${copied} copied` : ''}</p>
+
+              {c.evidence && (c.due || Math.abs(c.evidence.delay_min - 60) <= 10) && <Proof c={c} />}
 
               <div className="flex flex-col gap-2 rounded-2xl bg-surface p-3.5">
                 <h2 className="font-display text-[16px] font-bold lg:text-[20px]">Where to file</h2>

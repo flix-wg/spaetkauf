@@ -1,4 +1,5 @@
 import type { Alternative, Backtest, Claim, LateNow, Pick, Station, Trip } from '../api'
+import { MIN_PAYOUT, payout } from '../payout'
 
 const TZ = 'Europe/Berlin'
 
@@ -130,8 +131,9 @@ export function tripAt(date: string, o: Partial<Trip> & { delay: number }): Trip
 
 export function claimFor(delay: number, price: number | null): Claim {
   const pct = delay >= 120 ? 50 : delay >= 60 ? 25 : 0
-  const amount = price === null || !pct ? null : Math.ceil(price * (pct / 100) * 20) / 20
-  const due = pct > 0 && (price === null || (amount !== null && amount >= 4))
+  const amount = price === null || !pct ? null : payout(price, pct)
+  const due = pct > 0 && (price === null || (amount !== null && amount >= MIN_PAYOUT))
+  const iso = (min: number) => new Date(Date.parse('2026-11-20T22:28:00Z') + min * 60000).toISOString().replace('.000', '')
   return {
     switched: false,
     provisional: false,
@@ -146,14 +148,25 @@ export function claimFor(delay: number, price: number | null): Claim {
       ? `Arrived ${delay} minutes late at München Hbf: ${pct} % of €${price!.toFixed(2)}, rounded up to the next 5 cents.`
       : pct === 0
         ? 'Under 60 minutes late: no compensation is due.'
-        : 'No payout is due because the amount is under €4.',
+        : 'No payout is due because the amount is under €4. Still yours: the lifted Zugbindung from 20 minutes late, and a full refund if you give up the trip at an expected 60+ minutes.',
     fields: [
-      { label: 'Trip', value: 'Hamburg Hbf → München Hbf, Fri 20 Nov 2026' },
-      { label: 'Booked trains', value: 'ICE 1583, ICE 879' },
-      { label: 'Scheduled arrival', value: '23:28' },
-      { label: 'Actual arrival', value: `${String(Math.floor((23 * 60 + 28 + delay) / 60) % 24).padStart(2, '0')}:${String((28 + delay) % 60).padStart(2, '0')}` },
+      { label: 'Date', value: '2026-11-20' },
+      { label: 'Train', value: 'ICE 1583, ICE 879' },
+      { label: 'From', value: 'Hamburg Hbf' },
+      { label: 'To', value: 'München Hbf' },
+      { label: 'Scheduled arrival', value: iso(0) },
+      { label: 'Actual arrival', value: iso(delay) },
       { label: 'Delay', value: `${delay} min` },
     ],
+    evidence: {
+      scheduled_arr: iso(0),
+      observed_arr: iso(delay),
+      delay_min: delay,
+      source: 'Real-time data from Transitous, not DB’s own record.',
+      observations: [0, Math.round(delay / 3), Math.round((2 * delay) / 3), delay].map((d, i) => ({
+        at: iso(delay - (3 - i) * 40), delay_min: d, cancelled: false,
+      })),
+    },
     where: 'File it yourself in the DB Navigator app (Fahrgastrechte) or on bahn.de. Kurt never submits a claim and never asks for bank details. Claims are possible for one year after the travel date.',
   }
 }

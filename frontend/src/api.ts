@@ -210,6 +210,13 @@ export interface Claim {
   reason: string
   fields: { label: string; value: string }[]
   where: string
+  evidence: {
+    scheduled_arr: string
+    observed_arr: string | null
+    delay_min: number
+    source: string
+    observations: { at: string; delay_min: number | null; cancelled: boolean }[]
+  } | null
 }
 export interface LateTrain {
   train: string
