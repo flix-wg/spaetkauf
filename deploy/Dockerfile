@@ -18,7 +18,8 @@ RUN useradd --system --uid 10001 app && mkdir /data && chown app /data
 USER app
 ENV PATH=/app/backend/.venv/bin:$PATH \
     SPAETKAUF_DB_PATH=/data/app.sqlite \
-    SPAETKAUF_ODDS_PATH=/app/data/odds.sqlite
+    SPAETKAUF_ODDS_PATH=/app/data/odds.sqlite \
+    SPAETKAUF_HISTORY_PATH=/app/data/history.sqlite
 VOLUME /data
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
