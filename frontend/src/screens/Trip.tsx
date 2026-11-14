@@ -419,7 +419,7 @@ function PushButton({ ref_ }: { ref_: TripRef }) {
   const [busy, setBusy] = useState(false)
   const msg: Record<string, string> = {
     ok: 'Notifications are on for this trip.',
-    unsupported: 'This browser cannot show notifications. On iPhone, add Spätkauf to your Home Screen first. The screen still updates while open.',
+    unsupported: 'This browser cannot show notifications. On iPhone, add Kurt to your Home Screen first. The screen still updates while open.',
     denied: 'Notifications are blocked for this site. Allow them in your browser settings. The screen still updates while open.',
     failed: 'Could not turn notifications on. Try again in the installed app.',
   }

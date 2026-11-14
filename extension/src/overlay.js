@@ -58,7 +58,7 @@
       anchor.href = server + link;
       anchor.target = '_blank';
       anchor.rel = 'noopener';
-      anchor.textContent = 'Open in Spätkauf';
+      anchor.textContent = 'Open in Kurt';
       pill.append(anchor);
     }
     shadow.append(pill, help);

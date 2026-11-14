@@ -1,10 +1,10 @@
-# Spätkauf for bahn.de
+# Kurt for bahn.de
 
 Shows historical late-arrival odds beside long-distance connections and marks Kurt’s pick. It reads results already loaded by the traveller; it does not book or navigate. When a card already shows a delay or cancellation, its badge starts with "Delay already posted: won’t count", keeps its odds and loses Kurt’s mark; no other card gets it. Seat and occupancy notices are ignored.
 
-Install: open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select `extension/`. In the extension’s settings, set the Spätkauf server URL (HTTPS, or HTTP on localhost). Custom HTTPS servers ask for access on save. The popup toggles overlays and shows server health, adapter availability, parser path, counts, last check, layout hash and three parsed connections.
+Install: open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select `extension/`. In the extension’s settings, set the Kurt server URL (HTTPS, or HTTP on localhost). Custom HTTPS servers ask for access on save. The popup toggles overlays and shows server health, adapter availability, parser path, counts, last check, layout hash and three parsed connections.
 
-Privacy: odds requests send origin/destination names and destination EVA, date, times and train names to the configured Spätkauf server only. When the heuristic fails, the adapter sends a structure-only skeleton of tags, classes, attribute names and content tokens: no text, prices or station names. Class and attribute names containing 3+ consecutive digits or words from the searched station names are dropped. Nothing is sent to bahn.de beyond the page the user loads. No tracking.
+Privacy: odds requests send origin/destination names and destination EVA, date, times and train names to the configured Kurt server only. When the heuristic fails, the adapter sends a structure-only skeleton of tags, classes, attribute names and content tokens: no text, prices or station names. Class and attribute names containing 3+ consecutive digits or words from the searched station names are dropped. Nothing is sent to bahn.de beyond the page the user loads. No tracking.
 
 The server uses `claude-haiku-5-5` to suggest selectors when heuristics fail: one call per layout hash per day, at most 50 calls/day by default (`SPAETKAUF_ADAPT_DAILY_CAP`). Set `ANTHROPIC_API_KEY` on the server to enable it. A 503 means heuristics only. Successful selectors are kept locally (20 layouts); unavailable layouts are remembered until the next day in Berlin. Adaptation waits up to 60 seconds. Odds are cached for ten minutes in the service worker.
 

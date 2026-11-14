@@ -146,7 +146,7 @@ export function ClaimScreen() {
                     Open DB’s refund page <IconExternal size={18} />
                   </a>
                 )}
-                <p className="text-[12px] text-muted">You paste, you add your bank details yourself, you send. Spätkauf never files for you.</p>
+                <p className="text-[12px] text-muted">You paste, you add your bank details yourself, you send. Kurt never files for you.</p>
               </div>
             </div>
           </>

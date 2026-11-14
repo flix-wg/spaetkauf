@@ -43,7 +43,7 @@ export function Late() {
                 <Empty title="Nothing is 20+ minutes late">Kurt checked {d.checked} trains and found none. Check back in a few minutes.</Empty>
               ) : (
                 <ul className="flex flex-col 2xl:grid 2xl:grid-cols-2 2xl:gap-x-10">
-                  {list.map((t) => (
+                  {list.map((t, i) => (
                     <li key={t.train + t.station} className="flex min-h-[64px] items-center justify-between gap-3 border-b border-line py-2.5 lg:min-h-[80px] lg:py-3">
                       <span className="flex min-w-0 flex-col">
                         <span className="truncate text-[15px] font-bold lg:text-[19px]">
@@ -54,7 +54,7 @@ export function Late() {
                           {t.station} · {hhmm(t.sched)} → {hhmm(t.expected)}
                         </span>
                       </span>
-                      <Flap size="sm" text={`+${t.delay_min}`} label={`plus ${t.delay_min} minutes`} />
+                      <Flap size="sm" text={`+${t.delay_min}`} label={`plus ${t.delay_min} minutes`} delay={Math.min(i, 7) * 90} />
                     </li>
                   ))}
                 </ul>

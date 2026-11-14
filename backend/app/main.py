@@ -47,7 +47,7 @@ def create_app(
         if getattr(app.state, "history", None) is not None:
             app.state.history.close()
 
-    app = FastAPI(title="Spätkauf", version=__version__, lifespan=lifespan)
+    app = FastAPI(title="Kurt", version=__version__, lifespan=lifespan)
     app.state.settings = settings
     app.state.transitous = Transitous(settings, transport)
 

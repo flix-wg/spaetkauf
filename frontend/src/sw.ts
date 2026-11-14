@@ -26,7 +26,7 @@ self.addEventListener('push', (event) => {
   }
   const url = data.url ?? (data.trip_id ? `/trip/${data.trip_id}` : '/trips')
   event.waitUntil(
-    self.registration.showNotification(data.title ?? 'Spätkauf', {
+    self.registration.showNotification(data.title ?? 'Kurt', {
       body: data.body,
       icon: '/icon-192.png',
       badge: '/icon-192.png',

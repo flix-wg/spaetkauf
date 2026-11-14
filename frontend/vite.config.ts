@@ -17,8 +17,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: false,
       manifest: {
-        name: 'Spätkauf',
-        short_name: 'Spätkauf',
+        name: 'Kurt',
+        short_name: 'Kurt',
         description: 'Buy the cheap ticket for the train that is usually late. Ride the better one.',
         theme_color: '#FD4F00',
         background_color: '#FFFFFF',

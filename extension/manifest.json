@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Spätkauf for bahn.de",
+  "name": "Kurt for bahn.de",
   "version": "0.1.0",
   "description": "Historical late-train odds and Kurt’s pick alongside your connection results.",
   "permissions": ["storage"],

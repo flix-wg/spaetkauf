@@ -25,19 +25,22 @@ function Row({ r }: { r: TripRef }) {
       to={`/trip/${encodeURIComponent(r.id)}`}
       className="flex min-h-[72px] items-center justify-between gap-3 rounded-2xl border border-line px-3.5 py-3 no-underline lg:min-h-[88px] lg:px-5"
     >
-      <span className="flex min-w-0 flex-col gap-0.5">
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         {b ? (
           <>
-            <span className="mono whitespace-nowrap text-[15px] font-bold lg:text-[20px]">
-              {b.legs[0].dep ? `${hhmm(b.dep, tz)} → ${hhmm(b.arr, tz)}` : `due ${hhmm(b.arr, tz)}`}{' '}
-              <span className="font-sans text-[12px] font-semibold text-muted lg:text-[15px]">{dayLabel(b.arr, tz)}</span>
+            {/* On a narrow phone the day drops under the times instead of running into the delay. */}
+            <span className="flex flex-wrap items-baseline gap-x-1.5">
+              <span className="mono whitespace-nowrap text-[15px] font-bold lg:text-[20px]">
+                {b.legs[0].dep ? `${hhmm(b.dep, tz)} → ${hhmm(b.arr, tz)}` : `due ${hhmm(b.arr, tz)}`}
+              </span>
+              <span className="whitespace-nowrap text-[12px] font-semibold text-muted lg:text-[15px]">{dayLabel(b.arr, tz)}</span>
             </span>
             <span className="truncate text-[12px] text-muted lg:text-[15px]">
               {shortStation(b.legs[0].from) || '…'} → {shortStation(b.legs[b.legs.length - 1].to)} · {changesLabel(b.changes)}
             </span>
             {t!.is_replay && (
               <span className="tag w-fit rounded bg-ink px-1.5 py-0.5 text-white">
-                REPLAY{t!.replay_of ? ` · ${dayLabel(`${t!.replay_of}T12:00:00Z`).toUpperCase()}` : ''}
+                REPLAY
               </span>
             )}
           </>
@@ -54,7 +57,7 @@ function Row({ r }: { r: TripRef }) {
             </span>
           </span>
         ) : t ? (
-          <span className="text-[12px] text-muted">waiting for data</span>
+          <span className="max-w-[72px] text-right text-[12px] leading-tight text-muted">waiting for data</span>
         ) : null}
         <IconChevron size={18} className="text-muted" />
       </span>

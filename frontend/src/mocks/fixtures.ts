@@ -154,7 +154,7 @@ export function claimFor(delay: number, price: number | null): Claim {
       { label: 'Actual arrival', value: `${String(Math.floor((23 * 60 + 28 + delay) / 60) % 24).padStart(2, '0')}:${String((28 + delay) % 60).padStart(2, '0')}` },
       { label: 'Delay', value: `${delay} min` },
     ],
-    where: 'File it yourself in the DB Navigator app (Fahrgastrechte) or on bahn.de. Spätkauf never submits a claim and never asks for bank details. Claims are possible for one year after the travel date.',
+    where: 'File it yourself in the DB Navigator app (Fahrgastrechte) or on bahn.de. Kurt never submits a claim and never asks for bank details. Claims are possible for one year after the travel date.',
   }
 }
 

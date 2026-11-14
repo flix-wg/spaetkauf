@@ -19,7 +19,7 @@ export function SourcesSheet() {
   return (
     <div className="flex flex-col gap-4 text-[14px] leading-snug lg:text-[16px]">
       <p className="rounded-xl bg-surface p-3 font-semibold">
-        Spätkauf is independent. It is not affiliated with Deutsche Bahn and does not sell or book tickets.
+        Kurt is independent. It is not affiliated with Deutsche Bahn and does not sell or book tickets.
       </p>
       <ul className="flex flex-col divide-y divide-line">
         {SOURCES.map(([n, d]) => (

@@ -1,4 +1,4 @@
-# Spätkauf
+# Kurt
 
 Mobile web app that ranks Deutsche Bahn long-distance connections by how often they arrive 20+ minutes late, pairs each with the train you would ride instead, and watches a booked trip live.
 

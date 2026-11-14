@@ -9,7 +9,7 @@ async function settings() {
 function serverURL(value) {
   const url = new URL(value);
   const hostname = url.hostname.replace(/\.+$/, '');
-  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || /(^|\.)(bahn\.de|db\.de|bahn\.com|deutschebahn\.com)$/i.test(hostname)) throw new Error('Invalid Spätkauf server URL');
+  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || /(^|\.)(bahn\.de|db\.de|bahn\.com|deutschebahn\.com)$/i.test(hostname)) throw new Error('Invalid Kurt server URL');
   return url.origin;
 }
 function nextBerlinMidnight(now = Date.now()) {

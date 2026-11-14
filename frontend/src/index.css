@@ -344,6 +344,26 @@ summary {
   z-index: 2;
   animation: flap-unfold calc(var(--flip) / 2) ease-out calc(var(--flip) / 2) both;
 }
+/* The final card lands with a small bounce on the hinge. */
+.flap-land {
+  animation: flap-land calc(var(--flip) * 1.4) cubic-bezier(0.3, 0.7, 0.4, 1) calc(var(--flip) / 2) both;
+}
+@keyframes flap-land {
+  0% {
+    transform: rotateX(90deg);
+    filter: brightness(0.5);
+  }
+  55% {
+    transform: rotateX(-14deg);
+    filter: brightness(1.08);
+  }
+  80% {
+    transform: rotateX(5deg);
+  }
+  100% {
+    transform: rotateX(0);
+  }
+}
 @keyframes flap-fold {
   to {
     transform: rotateX(-90deg);
@@ -370,7 +390,8 @@ summary {
 }
 @media (prefers-reduced-motion: reduce) {
   .sheet-in,
-  .flap-unfold {
+  .flap-unfold,
+  .flap-land {
     animation: none;
   }
   .flap-fold {

@@ -86,7 +86,7 @@ function SideNav() {
     <aside className="flex w-[264px] shrink-0 flex-col gap-8 border-r border-line bg-surface px-5 py-7">
       <div className="flex items-center gap-3 px-2">
         <Kurt width={60} motion="blink" />
-        <span className="font-display text-[30px] font-bold">Spätkauf</span>
+        <span className="font-display text-[30px] font-bold">Kurt</span>
       </div>
       <nav aria-label="Main" className="flex flex-col gap-1.5">
         {navItems(pathname).map(({ to, label, icon: Icon, on }) => (

@@ -179,7 +179,7 @@ export function Search() {
 
   return (
     <>
-      <ScreenHeader title="Spätkauf" />
+      <ScreenHeader title="Kurt" />
       <div className="flex flex-col gap-5 px-5 pb-8 lg:grid lg:grid-cols-[minmax(0,560px)_minmax(0,1fr)] lg:items-start lg:gap-x-14 lg:px-10 lg:pb-12">
         <div className="contents lg:flex lg:flex-col lg:gap-6">
           <div className="flex items-end gap-3 rounded-[22px] bg-tint p-4 lg:p-6">
