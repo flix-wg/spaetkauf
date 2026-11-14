@@ -7,8 +7,7 @@
     const kurt = result.kurt === true;
     let line = result.basis === 'none' || !Number.isFinite(result.p20)
       ? (card?.trains?.length && root.SpkParse && !root.SpkParse.isLongDistance(card.trains.at(-1)) ? 'No odds: last leg is a regional train' : 'No history for this train yet')
-      : `${Math.round(result.p20 * 100)} % chance of 20+ min late · ${result.late} of ${result.n} ${result.weekday}s were`;
-    if (result.basis === 'last_train') line += ' · last train only, changes not counted';
+      : `${Math.round(result.p20 * 100)} % ${result.basis === 'last_train' ? 'last train ' : ''}20+ late (${result.late} of ${result.n} ${result.weekday}s)`;
     if (kurt) line = 'Kurt: ' + line;
     return { line, kurt };
   }

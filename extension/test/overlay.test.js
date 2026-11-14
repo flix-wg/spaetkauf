@@ -7,9 +7,9 @@ const { JSDOM } = require('jsdom');
 const result = { p20: 0.41, late: 14, n: 34, weekday: 'Saturday', basis: 'history', kurt: false };
 const card = { trains: ['ICE 599'] };
 test('odds text, Kurt, changes and missing history', () => {
-  assert.deepEqual(text(result, card), { line: '41 % chance of 20+ min late · 14 of 34 Saturdays were', kurt: false });
-  assert.equal(text({ ...result, kurt: true }, card).line, 'Kurt: 41 % chance of 20+ min late · 14 of 34 Saturdays were');
-  assert.equal(text({ ...result, p20: 0.416, basis: 'last_train' }, card).line, '42 % chance of 20+ min late · 14 of 34 Saturdays were · last train only, changes not counted');
+  assert.deepEqual(text(result, card), { line: '41 % 20+ late (14 of 34 Saturdays)', kurt: false });
+  assert.equal(text({ ...result, kurt: true }, card).line, 'Kurt: 41 % 20+ late (14 of 34 Saturdays)');
+  assert.equal(text({ ...result, p20: 0.416, basis: 'last_train' }, card).line, '42 % last train 20+ late (14 of 34 Saturdays)');
   assert.equal(text({ ...result, p20: null, basis: 'none', train: 'ICE 599' }, card).line, 'No history for this train yet');
   assert.equal(text({ ...result, p20: NaN }, { trains: ['ICE 599', 'RE 4'] }).line, 'No odds: last leg is a regional train');
 });
