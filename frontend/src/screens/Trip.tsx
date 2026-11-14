@@ -336,23 +336,23 @@ function Zugbindung({ t, dest }: { t: Trip; dest: string }) {
   }, [full])
   return (
     <section aria-label="Zugbindung" className="flex flex-col gap-2 rounded-2xl border-2 border-ink bg-white p-3.5 lg:p-5">
-      <span className="tag">ZUGBINDUNG AUFGEHOBEN</span>
+      <span className="tag">ZUGBINDUNG LIFTED AT 20+ MIN</span>
       <p className="text-[14px] font-semibold leading-snug lg:text-[17px]">
         {cancelled
-          ? 'Your train is cancelled: under DB’s rule 9.1.1 (BB Personenverkehr) your Zugbindung is lifted.'
-          : `Expected +${d} min at ${dest}: under DB’s rule 9.1.1 (BB Personenverkehr) your Zugbindung is lifted.`}
+          ? 'Your train is cancelled: under DB’s rule 9.1.1 (BB Personenverkehr) your Zugbindung is lifted once DB shows the cancellation.'
+          : `Expected +${d} min at ${dest}: under DB’s rule 9.1.1 (BB Personenverkehr) your Zugbindung is lifted once DB shows 20+ min (rule 9.1.4).`}
       </p>
       <p className="mono text-[13px]">
         {trains} · due {hhmm(b.arr)}{t.expected_arr && !cancelled ? ` · expected ${hhmm(t.expected_arr)}` : ''}
       </p>
       <p className="text-[12px] text-muted">
-        {asOf ? `As of ${asOf}. ` : ''}Transitous real-time data, not DB’s own. If DB Navigator shows less, the conductor goes by DB.
+        {asOf ? `As of ${asOf}. ` : ''}Transitous real-time data, not DB’s own. Check DB Navigator shows the delay too: the conductor goes by DB.
       </p>
       <button type="button" className="btn-primary" onClick={() => setFull(true)}>Show to conductor</button>
       {full && createPortal(
         <div role="dialog" aria-modal="true" aria-label="Zugbindung aufgehoben" className="fixed inset-0 z-50 flex flex-col gap-5 overflow-y-auto bg-white p-6 text-black">
           <p className="font-display text-[34px] font-bold leading-tight">Zugbindung aufgehoben</p>
-          <p className="text-[18px] font-semibold">BB Personenverkehr 9.1.1</p>
+          <p className="text-[18px] font-semibold">BB Personenverkehr 9.1.1 und 9.1.4: ab 20 Min. erwarteter Verspätung am Ziel</p>
           <div className="flex flex-col gap-1 border-y-4 border-black py-4">
             <p className="mono text-[26px] font-bold">{trains}</p>
             <p className="text-[18px]">{stopName(b.legs[0].from)} → {dest}</p>
@@ -362,7 +362,7 @@ function Zugbindung({ t, dest }: { t: Trip; dest: string }) {
             Ankunft planmäßig {hhmm(b.arr)}
             {cancelled ? <><br />Zug fällt aus</> : t.expected_arr && <><br />erwartet {hhmm(t.expected_arr)} (+{d} Min.)</>}
           </p>
-          <p className="text-[15px]">{asOf ? `Stand ${asOf} Uhr · ` : ''}Echtzeitdaten von Transitous</p>
+          <p className="text-[15px]">{asOf ? `Stand ${asOf} Uhr · ` : ''}Echtzeitdaten von Transitous, nicht von der DB</p>
           <button type="button" className="btn-primary mt-auto !min-h-[56px]" onClick={() => setFull(false)}>Close</button>
         </div>,
         document.body,

@@ -351,9 +351,10 @@ def get_claim(
                 f"Replay of data recorded on {view['replay_of']}; "
                 "observation times are playback times."
             )
+        by_label = {f["label"]: f["value"] for f in fields}
         evidence = {
-            "scheduled_arr": fields[4]["value"],
-            "observed_arr": fields[5]["value"] or None,
+            "scheduled_arr": by_label["Scheduled arrival"],
+            "observed_arr": by_label.get("Actual arrival") or by_label.get("Expected arrival") or None,
             "delay_min": delay,
             "source": source,
             "observations": timeline(all_snapshots(db, trip_id)),

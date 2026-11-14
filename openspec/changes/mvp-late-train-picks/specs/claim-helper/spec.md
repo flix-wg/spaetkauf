@@ -73,11 +73,11 @@ The claim screen SHALL show the evidence as a folded "Proof of the delay" row wh
 - **THEN** no proof row is shown
 
 ### Requirement: Zugbindung card
-While a trip runs and the delay at the destination is forecast or observed at 20 minutes or more, the trip screen SHALL show a card inline with the trip status, never as a pop-up: train, scheduled and forecast arrival, "Zugbindung aufgehoben (BB Personenverkehr 9.1.1)" and the time of the reading. It SHALL say the delay comes from Transitous, not DB, so it claims no more than DB shows.
+While a trip runs and the delay at the destination is forecast or observed at 20 minutes or more, the trip screen SHALL show a card inline with the trip status, never as a pop-up: train, scheduled and forecast arrival, the rule (BB Personenverkehr 9.1.1, lifted once DB shows 20+ minutes expected per 9.1.4) and the time of the reading. It SHALL say the delay comes from Transitous, not DB, and that the conductor goes by what DB shows.
 
 #### Scenario: Forecast passes 20 minutes
 - **WHEN** the forecast delay at the destination is 27 minutes
-- **THEN** the card says the train is expected 27 minutes late at the destination and that under DB's rule 9.1.1 the Zugbindung is lifted, with the time of the reading
+- **THEN** the card says the train is expected 27 minutes late at the destination and that under DB's rule 9.1.1 the Zugbindung is lifted once DB shows 20+ minutes, with the time of the reading
 
 #### Scenario: Delay drops under 20 minutes
 - **WHEN** the forecast falls back under 20 minutes

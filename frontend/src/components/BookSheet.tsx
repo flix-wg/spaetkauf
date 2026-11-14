@@ -45,7 +45,7 @@ export function BookSheet({ pick, tz, onClose }: { pick: Pick; tz: string; onClo
           {parsed !== null && payout(parsed, 25) < MIN_PAYOUT && (
             <p className="text-[13px] leading-snug text-muted">
               At {eur(parsed)} {even120 ? 'even a 120-minute' : 'a 60-minute'} delay pays nothing in cash ({even120 ? 50 : 25} % ={' '}
-              {eur(payout(parsed, even120 ? 50 : 25))}, DB’s minimum is €4). A lifted Zugbindung and the full refund at 60+ min still apply.
+              {eur(payout(parsed, even120 ? 50 : 25))}, DB’s minimum is €4). A lifted Zugbindung at 20+ min, and a full refund if you give up the trip at 60+ min, still apply.
             </p>
           )}
         </div>
