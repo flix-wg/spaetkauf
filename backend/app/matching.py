@@ -27,6 +27,7 @@ def parse_train(short_name: str | None) -> tuple[str, str] | None:
 def station_tokens(name: str) -> list[str]:
     s = unicodedata.normalize("NFC", name or "").lower().translate(_FOLD)
     s = re.sub(r"\bs\s*\+\s*u\b", " ", s)
+    s = re.sub(r"\s*\([a-z]{2}\)\s*$", "", s)  # feeds append a country: "Köln Hbf (DE)"
     return sorted({t for t in re.split(r"[^0-9a-z]+", s) if t and t not in _DROP})
 
 

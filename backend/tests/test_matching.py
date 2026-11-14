@@ -19,6 +19,7 @@ def test_parse_train():
         ("Kassel Bahnhof Wilhelmshöhe", "Kassel-Wilhelmshöhe"),
         ("Frankfurt (Main) Flughafen Fernbahnhof", "Frankfurt am Main Flughafen Fernbahnhof"),
         ("Mannheim, Hauptbahnhof", "Mannheim Hbf"),
+        ("Köln Hbf (DE)", "Köln Hbf"),
     ],
 )
 def test_station_key_live_equals_history(live, history):
