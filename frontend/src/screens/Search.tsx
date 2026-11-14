@@ -25,10 +25,12 @@ function StationField({
   error?: string
 }) {
   const [list, setList] = useState<Station[] | null>(null)
+  const [active, setActive] = useState(-1)
   const [focus, setFocus] = useState(false)
   const q = useDebounced(field.text, 200)
   const id = useRef(`st-${label}`).current
   useEffect(() => {
+    setActive(-1)
     if (!focus || field.station || q.trim().length < 2) return setList(null)
     let live = true
     api.stations(q.trim()).then(
@@ -53,9 +55,34 @@ function StationField({
         placeholder={label === 'From' ? 'Hamburg Hbf' : 'München Hbf'}
         onFocus={() => setFocus(true)}
         onBlur={() => setTimeout(() => setFocus(false), 150)}
-        onChange={(e) => onChange({ text: e.target.value, station: null })}
+        onChange={(e) => {
+          setActive(-1)
+          setList(null)
+          onChange({ text: e.target.value, station: null })
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            setList(null)
+            setActive(-1)
+          } else if (focus && list?.length && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+            e.preventDefault()
+            const next = e.key === 'ArrowDown'
+              ? (active + 1) % list.length
+              : (active < 0 ? list.length - 1 : (active - 1 + list.length) % list.length)
+            setActive(next)
+            document.getElementById(`${id}-option-${next}`)?.scrollIntoView({ block: 'nearest' })
+          } else if (e.key === 'Enter' && focus && list && active >= 0) {
+            e.preventDefault()
+            const station = list[active]
+            onChange({ text: station.name, station })
+            setList(null)
+            setActive(-1)
+          }
+        }}
         role="combobox"
-        aria-expanded={!!list}
+        aria-expanded={focus && !!list}
+        aria-autocomplete="list"
+        aria-activedescendant={focus && list && active >= 0 ? `${id}-option-${active}` : undefined}
         aria-controls={`${id}-list`}
         className={`h-[52px] w-full rounded-xl border-[1.5px] bg-white pl-4 pr-14 text-[17px] font-semibold focus:border-ink ${error ? 'border-accent-text' : 'border-line'}`}
       />
@@ -69,16 +96,17 @@ function StationField({
           {list.length === 0 ? (
             <li className="px-4 py-3 text-[14px] text-muted">Nothing found. Keep typing or try another spelling.</li>
           ) : (
-            list.map((s) => (
-              <li key={s.id} role="option" aria-selected={false}>
+            list.map((s, i) => (
+              <li key={s.id} id={`${id}-option-${i}`} role="option" aria-selected={active === i}>
                 <button
                   type="button"
+                  tabIndex={-1}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
                     onChange({ text: s.name, station: s })
                     setList(null)
                   }}
-                  className="flex min-h-[48px] w-full items-center px-4 text-left text-[16px] hover:bg-surface"
+                  className={`flex min-h-[48px] w-full items-center px-4 text-left text-[16px] hover:bg-surface ${active === i ? 'bg-surface outline outline-2 outline-inset outline-ink' : ''}`}
                 >
                   {s.name}
                 </button>

@@ -2,8 +2,9 @@
 
 import asyncio
 import json
+import re
 import time
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 
 import httpx
 
@@ -21,6 +22,10 @@ class BudgetSpent(Exception):
 
 class SourceUnavailable(Exception):
     """Transitous failed or timed out."""
+
+
+class OutsideTimetable(Exception):
+    """The requested time is outside the source timetable."""
 
 
 class Transitous:
@@ -74,6 +79,22 @@ class Transitous:
                 self._spend()
             try:
                 resp = await self._client.get(path, params=params)
+                if kind == "plan" and resp.status_code == 400:
+                    try:
+                        error = str(resp.json().get("error", ""))
+                    except ValueError:
+                        error = ""
+                    window = re.fullmatch(
+                        r"query time .+ is outside of loaded timetable window "
+                        r"\[(\d{4}-\d{2}-\d{2}) [^,]+, (\d{4}-\d{2}-\d{2}) [^\[]+\[",
+                        error,
+                    )
+                    if window:
+                        last = date.fromisoformat(window[2]) - timedelta(days=1)
+                        raise OutsideTimetable(
+                            f"Timetables only cover {window[1]} to {last.isoformat()}. "
+                            "Pick a date in that range"
+                        )
                 if resp.status_code >= 500:
                     raise httpx.HTTPStatusError("server error", request=resp.request, response=resp)
                 resp.raise_for_status()

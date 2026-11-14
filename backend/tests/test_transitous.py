@@ -49,3 +49,27 @@ def test_source_down_retries_once(settings):
 
     asyncio.run(run())
     assert len(calls) == 2
+
+
+def test_outside_timetable_is_actionable_without_retry(settings):
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+
+    calls = []
+
+    def handler(request):
+        calls.append(request.url.path)
+        return httpx.Response(400, json={"error": (
+            "query time 2028-06-01 07:00 is outside of loaded timetable window "
+            "[2026-10-13 00:00, 2027-11-13 00:00["
+        )})
+
+    with TestClient(create_app(settings, httpx.MockTransport(handler))) as client:
+        response = client.get("/api/picks", params={
+            "from": "de-DELFI_a", "to": "de-DELFI_b", "date": "2028-06-01", "time": "09:00",
+        })
+        assert response.status_code == 400
+        assert "Timetables only cover 2026-10-13 to 2027-11-12" in response.json()["detail"]
+        assert calls == ["/api/v1/plan"]
+        assert client.app.state.transitous.budget_left() == 2

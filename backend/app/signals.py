@@ -370,7 +370,8 @@ def exa_body(a: str, b: str, date: str) -> dict:
     question = (
         "Does this article report a rail strike, track closure, construction, weather or event "
         f"that affects long-distance trains between {a} and {b} around {date}? "
-        "Answer in English, one sentence."
+        "Use a factual English sentence grounded in the article. Mark relevant false for local-only "
+        "notices, unclear impact, or no impact on long-distance trains on this route and date."
     )
     return {
         "query": f"Streik OR Warnstreik OR Streckensperrung OR Bauarbeiten OR Sturm Bahn "
@@ -407,6 +408,23 @@ def covers(summary: dict, date: str) -> bool:
     return not (start and start > date) and not (end and end < date)
 
 
+def usable_reason(reason) -> bool:
+    if not isinstance(reason, str) or not reason.strip() or len(reason) > 300:
+        return False
+    # Only explicit "no impact" wording: "no long-distance trains will run" must stay.
+    return not (UNAFFECTED.search(reason) or NO_IMPACT.search(reason))
+
+
+NO_IMPACT = re.compile(
+    r"\bno\s+(?:[\w-]+\s+){0,3}?(?:impact|implications?|effects?|disruptions?)\b"
+    r"|(?:\bnot|n't|\bnicht)\s+(?:[\w-]+\s+){0,2}?(?:affect\w*|betroffen|beeinträchtigt)"
+    r"|\bkeine\s+(?:\w+\s+){0,2}?Auswirkungen"
+    r"|\b(?:not an?|neither)\b[^.!?\n]*\bnor\b"
+    r"|\b(?:unrelated|irrelevant)\b",
+    re.IGNORECASE,
+)
+
+
 def parse_results(results: list, date: str) -> list[dict]:
     items = []
     for r in results or []:
@@ -425,11 +443,14 @@ def parse_results(results: list, date: str) -> list[dict]:
             continue
         if not covers(summary, date):
             continue
+        reason = summary.get("reason")
+        if not usable_reason(reason):
+            continue
         kind = summary.get("kind")
         items.append(
             {
                 "kind": kind if kind in KINDS else "other",
-                "reason": str(summary.get("reason") or r.get("title") or "")[:300],
+                "reason": reason.strip(),
                 "source": (urlparse(url).hostname or "").removeprefix("www."),
                 "published": (r.get("publishedDate") or "")[:10] or None,
                 "url": url,
@@ -499,7 +520,8 @@ async def get_signals(
                 "SELECT fetched_at, items FROM signals_cache WHERE key = ?", (key,)
             ).fetchone()
             if row and time.time() - row["fetched_at"] < CACHE_TTL:
-                items, checked = json.loads(row["items"]), row["fetched_at"]
+                items = [i for i in json.loads(row["items"]) if usable_reason(i.get("reason"))]
+                checked = row["fetched_at"]
                 status = "ok" if items else "empty"
             elif settings.exa_key and a and b and take_exa_budget(conn):
                 try:

@@ -137,3 +137,36 @@ def test_claim_preserves_replay_identity(client, settings):
     tid, secret = create_trip(settings.db_path, PICK, Decimal("34.99"), replay_of="2026-10-23")
     claim = client.get(f"/api/trips/{tid}/claim", params={"secret": secret}).json()
     assert claim["is_replay"] is True and claim["replay_of"] == "2026-10-23"
+
+
+@pytest.mark.parametrize(
+    "basis,replay_of",
+    [("at_stop", "2026-10-30"), ("destination_forecast", "2026-10-30"),
+     ("destination_forecast", None)],
+)
+def test_claim_arrival_clocks_match_replay_source(client, settings, basis, replay_of):
+    import json
+
+    from app.db import connect
+    from app.trips import create_trip
+
+    pick = {**PICK, "arr": "2026-10-30T19:32:00Z", "delay_basis": basis}
+    tid, secret = create_trip(settings.db_path, pick, Decimal(40), replay_of=replay_of)
+    conn = connect(settings.db_path)
+    with conn:
+        conn.execute(
+            "INSERT INTO trip_snapshots(trip_id, at, delay_min, expected_arr, raw)"
+            " VALUES (?,?,?,?,?)",
+            (tid, "2026-10-30T21:36:00Z", 124, "2026-10-30T21:36:00Z",
+             json.dumps({"basis": basis})),
+        )
+        conn.execute("UPDATE trips SET finished_at = ? WHERE id = ?", ("2026-10-30T21:36:00Z", tid))
+    conn.close()
+    claim = client.get(f"/api/trips/{tid}/claim", params={"secret": secret}).json()
+    fields = {f["label"]: f["value"] for f in claim["fields"]}
+    if basis == "at_stop":
+        assert fields["Scheduled arrival"] == "30.10.2026 19:32"
+        assert fields["Actual arrival"] == "30.10.2026 21:36"
+    else:
+        assert fields["Scheduled arrival"] == "2026-10-30T19:32:00Z"
+        assert fields["Actual arrival"] == "2026-10-30T21:36:00Z"

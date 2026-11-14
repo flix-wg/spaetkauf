@@ -175,7 +175,7 @@ export function CompactPick({
                 ? `Not enough history · ${changesLabel(pick.changes)}`
                 : ride
                   ? `If late, ride ${ride.times}`
-                  : meta(pick)}
+                  : `No quicker train to switch to · ${meta(pick)}`}
           </span>
         </span>
       </button>

@@ -9,7 +9,7 @@ from . import __version__, board, ext, history, picks, push, replay, signals, st
 from .config import REPO_ROOT, Settings
 from .db import init_db
 from .loop import run_loop
-from .transitous import BudgetSpent, SourceUnavailable, Transitous
+from .transitous import BudgetSpent, OutsideTimetable, SourceUnavailable, Transitous
 
 DIST = REPO_ROOT / "frontend" / "dist"
 
@@ -41,6 +41,10 @@ def create_app(
     @app.exception_handler(BudgetSpent)
     async def _budget(request: Request, exc: BudgetSpent):
         return JSONResponse({"detail": "Limit reached for today"}, status_code=429)
+
+    @app.exception_handler(OutsideTimetable)
+    async def _timetable(request: Request, exc: OutsideTimetable):
+        return JSONResponse({"detail": str(exc)}, status_code=400)
 
     @app.exception_handler(SourceUnavailable)
     async def _down(request: Request, exc: SourceUnavailable):

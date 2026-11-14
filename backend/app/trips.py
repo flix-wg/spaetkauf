@@ -157,7 +157,7 @@ def trip_view(row: dict, snap: dict | None, now: datetime | None = None) -> dict
             "amount_at_120_eur": thresholds[2]["amount_eur"],
         },
         "connection_at_risk": bool(raw.get("connection_at_risk")),
-        "delay_basis": raw.get("basis", "destination_forecast"),
+        "delay_basis": raw.get("basis", pick.get("delay_basis", "destination_forecast")),
         "at_stop": {
             "name": raw["stop"],
             "planned_arr": raw.get("planned_arr"),
@@ -324,6 +324,14 @@ def get_claim(
         },
         {"label": "Delay", "value": f"{delay} min" if delay is not None else ""},
     ]
+    if view["is_replay"] and view["delay_basis"] == "at_stop":
+        # History stores local clock times as UTC; send copy-ready values without conversion.
+        for field in fields:
+            if (
+                field["label"] in {"Scheduled arrival", "Expected arrival", "Actual arrival"}
+                and field["value"]
+            ):
+                field["value"] = _parse(field["value"]).strftime("%d.%m.%Y %H:%M")
     return {
         **result, "fields": fields, "where": WHERE,
         "switched": switched, "provisional": bool(provisional),

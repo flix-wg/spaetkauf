@@ -1,10 +1,19 @@
 /// <reference lib="webworker" />
-import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching'
+import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, getCacheKeyForURL } from 'workbox-precaching'
 
 declare const self: ServiceWorkerGlobalScope
 
 cleanupOutdatedCaches()
 precacheAndRoute(self.__WB_MANIFEST)
+const appShell = createHandlerBoundToURL('/index.html')
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url)
+  if (event.request.mode === 'navigate' && url.origin === self.location.origin
+      && url.pathname !== '/' && !getCacheKeyForURL(url.origin + url.pathname)
+      && !/^\/api(?:\/|$)/.test(url.pathname)) {
+    event.respondWith(appShell({ event, request: event.request, url }))
+  }
+})
 self.skipWaiting()
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()))
 

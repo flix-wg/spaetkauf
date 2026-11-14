@@ -379,3 +379,30 @@ def test_try_date_skips_other_active_announcement(strike_db):
     strike = strike_for(conn, date(2026, 11, 18), today=REF)
     assert strike["try_date"] == "2026-11-16"
     assert "No strike is announced for Mon 16 Nov" in strike["note"]
+
+
+def test_contradictory_or_malformed_reasons_are_dropped_including_cache(tmp_path):
+    exa = Exa([
+        result(1, reason="RE1 works have no long-distance implications."),
+        result(2, reason="This is not a long-distance Worcester, nor a strike."),
+        result(3, reason={"text": "Track closure"}),
+        result(4, reason="Long-distance trains are not affected."),
+        result(5, reason="Track closure diverts ICE trains on this route."),
+        result(6, reason="GDL strike: no long-distance trains run between the two cities."),
+        result(7, reason="Wegen des Streiks fährt kein Fernverkehr auf der Strecke."),
+    ])
+    c = make_client(tmp_path, exa)
+    expected = [
+        "Track closure diverts ICE trains on this route.",
+        "GDL strike: no long-distance trains run between the two cities.",
+        "Wegen des Streiks fährt kein Fernverkehr auf der Strecke.",
+    ]
+    assert [i["reason"] for i in c.get("/api/signals", params=PARAMS).json()["items"]] == expected
+    conn = connect(c.app.state.settings.db_path)
+    with conn:
+        conn.execute("UPDATE signals_cache SET items = ?", (json.dumps([
+            {"reason": "No long-distance implications."}, *({"reason": r} for r in expected),
+        ]),))
+    conn.close()
+    assert [i["reason"] for i in c.get("/api/signals", params=PARAMS).json()["items"]] == expected
+    assert len(exa.bodies) == 1

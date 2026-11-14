@@ -386,3 +386,20 @@ def test_already_posted_suppresses_threshold_alerts(client, settings):
     assert sent == ["Your train is cancelled"]
     claim = client.get(f"/api/trips/{tid}/claim", params={"secret": secret}).json()
     assert not claim["due"] and "already posted" in claim["reason"]
+
+
+def test_history_replay_basis_before_first_snapshot(client, monkeypatch):
+    async def idle(app):
+        pass
+
+    monkeypatch.setattr(replay, "drive", idle)
+    saved = client.post(
+        "/api/demo/replay", json={"recording": "history:ice611-2026-10-30"}
+    ).json()
+    view = client.get(
+        f"/api/trips/{saved['trip_id']}", params={"secret": saved["secret"]}
+    ).json()
+    assert view["updated_at"] is None and view["at_stop"] is None
+    assert view["delay_basis"] == "at_stop"
+    assert view["booked"]["dep"] == "2026-10-30T10:45:00Z"
+    assert view["booked"]["arr"] == "2026-10-30T19:32:00Z"

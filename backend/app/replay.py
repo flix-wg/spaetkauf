@@ -270,6 +270,7 @@ async def start_replay(request: Request, body: ReplayBody | None = None):
         )
     rec = found[0]
     pick, frames, day = _material(db_path, rec["id"])
+    pick["delay_basis"] = rec["delay_basis"]
     trip_id, secret = create_trip(db_path, pick, body.price_eur, body.push, replay_of=day)
     if not hasattr(app.state, "replays"):
         app.state.replays = {}
