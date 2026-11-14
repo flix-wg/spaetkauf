@@ -57,19 +57,99 @@ summary {
   outline-color: #fff;
 }
 
-@keyframes flap {
-  0% {
+/* Split-flap tile: two half cards on a hinge, sized by the tile's font size. */
+.flap {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  isolation: isolate;
+  perspective: 12em;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-feature-settings: 'tnum';
+  color: #f4f1e8;
+  background: #0b0c0e;
+  box-shadow: 0 0.05em 0.1em rgb(0 0 0 / 0.3);
+}
+.flap-half {
+  position: absolute;
+  inset-inline: 0;
+  height: 50%;
+  overflow: hidden;
+  border-radius: inherit;
+  backface-visibility: hidden;
+}
+.flap-half > span {
+  position: absolute;
+  inset-inline: 0;
+  height: 200%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.flap-top {
+  top: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  background: linear-gradient(#2c2f34, #212428);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07);
+  transform-origin: 50% 100%;
+}
+.flap-top > span {
+  top: 0;
+}
+.flap-bottom {
+  bottom: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  background: linear-gradient(#1b1d21, #131518);
+  box-shadow: inset 0 0.06em 0.06em -0.02em rgb(0 0 0 / 0.6);
+  transform-origin: 50% 0;
+}
+.flap-bottom > span {
+  bottom: 0;
+}
+/* The gap between the cards, with a hinge pin at each end. */
+.flap::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: max(1px, 0.04em);
+  transform: translateY(-50%);
+  background: #000;
+  z-index: 3;
+}
+.flap::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 0.18em;
+  transform: translateY(-50%);
+  background: linear-gradient(90deg, #4a4e55 0.06em, transparent 0.06em calc(100% - 0.06em), #4a4e55 calc(100% - 0.06em));
+  z-index: 4;
+}
+.flap-fold {
+  z-index: 2;
+  animation: flap-fold calc(var(--flip) / 2) ease-in both;
+}
+.flap-unfold {
+  z-index: 2;
+  animation: flap-unfold calc(var(--flip) / 2) ease-out calc(var(--flip) / 2) both;
+}
+@keyframes flap-fold {
+  to {
     transform: rotateX(-90deg);
-    opacity: 0.2;
-  }
-  100% {
-    transform: rotateX(0);
-    opacity: 1;
+    filter: brightness(0.5);
   }
 }
-.flap-in {
-  animation: flap 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
-  transform-origin: 50% 0;
+@keyframes flap-unfold {
+  from {
+    transform: rotateX(90deg);
+    filter: brightness(0.5);
+  }
 }
 @keyframes sheet-up {
   from {
@@ -84,9 +164,12 @@ summary {
   transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 @media (prefers-reduced-motion: reduce) {
-  .flap-in,
-  .sheet-in {
+  .sheet-in,
+  .flap-unfold {
     animation: none;
+  }
+  .flap-fold {
+    display: none;
   }
   .meter-fill {
     transition: none;
