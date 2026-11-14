@@ -62,7 +62,20 @@ MAX_STRIKE_SPAN = 14
 _locks: dict[str, asyncio.Lock] = {}
 
 
+_SCHEMA_READY: set[str] = set()
+
+
 def ensure_schema(conn) -> None:
+    """Once per database file and process: the script commits, which cost ~0.4 s per request."""
+    path = conn.execute("PRAGMA database_list").fetchone()[2]
+    if path and path in _SCHEMA_READY:
+        return
+    _ensure_schema(conn)
+    if path:
+        _SCHEMA_READY.add(path)
+
+
+def _ensure_schema(conn) -> None:
     with conn:
         conn.executescript(SCHEMA)
         cols = {r[1] for r in conn.execute("PRAGMA table_info(context_changes)")}

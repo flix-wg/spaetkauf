@@ -5,6 +5,7 @@ import json
 import sqlite3
 import unicodedata
 from datetime import UTC, date, datetime, time, timedelta
+from functools import lru_cache
 from typing import Annotated, Literal
 from urllib.parse import quote
 
@@ -161,9 +162,14 @@ def ride_instead(booked: dict, others: list[dict], before: int = 0) -> dict | No
 
 def station_eva(conn: sqlite3.Connection, name: str) -> str | None:
     """The EVA number most runs at this station name carry in the odds, without leading zeros."""
+    return _eva(conn, station_key(name))
+
+
+@lru_cache(maxsize=2048)
+def _eva(conn: sqlite3.Connection, key: str) -> str | None:  # unindexed column: ~15 ms a scan
     row = conn.execute(
         "SELECT eva FROM train_stop_stats WHERE station_key = ? GROUP BY eva ORDER BY sum(n) DESC LIMIT 1",
-        (station_key(name),),
+        (key,),
     ).fetchone()
     return row[0].lstrip("0") if row else None
 
