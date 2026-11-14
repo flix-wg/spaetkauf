@@ -274,7 +274,7 @@ async def fetch(
         for pick in its:
             if arrive:
                 fits = start - ARRIVE_WINDOW <= _t(pick["arr"]) <= start
-                fits = fits and _local_day(pick["arr"]) == day
+                fits = fits and _local_day(pick["dep"]) == _local_day(pick["arr"]) == day
             else:
                 fits = _local_day(pick["dep"]) == day
             if fits:
