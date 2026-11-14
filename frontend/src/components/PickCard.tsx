@@ -103,7 +103,7 @@ export function KurtsPick({
           {has ? (
             <>
               <span className="mono text-[40px] font-bold leading-none lg:text-[68px]">{pctNum(o.p20)}%</span>
-              <span className="text-[12px] lg:text-[15px] lg:font-semibold">{o.basis === 'estimate' ? 'trip 20+ late' : '20+ late'}</span>
+              <span className="text-[12px] lg:text-[15px] lg:font-semibold">{o.basis === 'estimate' ? 'est. trip 20+ late' : '20+ late'}</span>
             </>
           ) : (
             <span className="text-[13px] font-semibold">No odds yet</span>

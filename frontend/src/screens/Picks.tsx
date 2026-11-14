@@ -102,9 +102,12 @@ export function Picks() {
                   </span>
                 </section>
               )}
-              <button type="button" onClick={() => open('backtest')} className="-my-2 inline-flex min-h-[44px] items-center self-start px-1 text-[13px] font-semibold text-accent-text underline lg:text-[15px]">
-                How good is Kurt?
-              </button>
+              <p className="px-1 text-[12px] leading-snug text-muted lg:text-[14px]">
+                A delay already posted when you buy doesn't count.{' '}
+                <button type="button" onClick={() => open('backtest')} className="-my-3 inline-flex min-h-[44px] items-center font-semibold text-accent-text underline">
+                  How good is Kurt?
+                </button>
+              </p>
             </>
           )}
         </div>
