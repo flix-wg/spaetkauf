@@ -89,8 +89,8 @@
     let top=cards[0].el; while(parent(top)) top=parent(top);
     const s=scan(top), months=['jan','feb','mär','apr','mai','jun','jul','aug','sep','okt','nov','dez']; const eng=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
     const headings=s.ranges.filter(r=>/^h[1-6]$/.test(r.el.localName) || r.el.getAttribute('role')==='heading').map(r=>{ const m=r.el.textContent.match(/\b(\d{1,2})\.?\s+([A-Za-zäÄ]+)\.?\s+(\d{4})/); if(!m)return null; const key=m[2].toLowerCase().slice(0,3), idx=Math.max(months.indexOf(key),eng.indexOf(key)); return idx<0?null:{el:r.el,date:m[3]+'-'+String(idx+1).padStart(2,'0')+'-'+m[1].padStart(2,'0')}; }).filter(Boolean);
-    let date=fallbackDate, previous=null;
-    for(const c of cards) { const pos=s.ranges.find(r=>r.el===c.el)?.start??0; const h=headings.filter(h=>(s.ranges.find(r=>r.el===h.el)?.start??Infinity)<=pos).pop(); if(h)date=h.date; else if(date && previous && minutes(previous)-minutes(c.dep)>360)date=new Date(Date.parse(date+'T12:00:00Z')+86400000).toISOString().slice(0,10); c.date=date||null; previous=c.dep; } return cards;
+    let date=fallbackDate, previous=null, heading=null;
+    for(const c of cards) { const pos=s.ranges.find(r=>r.el===c.el)?.start??0; const h=headings.filter(h=>(s.ranges.find(r=>r.el===h.el)?.start??Infinity)<=pos).pop(); if(h && h!==heading) { date=h.date; heading=h; } else if(date && previous && minutes(previous)-minutes(c.dep)>360)date=new Date(Date.parse(date+'T12:00:00Z')+86400000).toISOString().slice(0,10); c.date=date||null; previous=c.dep; } return cards;
   }
   const SpkParse={posted,LD_TYPES,REGIONAL_TYPES,normTrain,isLongDistance,parseCards,applySpec,pageContext,assignDates,scan,skip,children,parent,contains,trainSource,timeSource};
   root.SpkParse=SpkParse; if(typeof module!=='undefined')module.exports=SpkParse;

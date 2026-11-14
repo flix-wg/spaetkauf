@@ -163,3 +163,14 @@ def test_adapt_pending_and_model_error(client, monkeypatch):
     monkeypatch.setattr(ext, "ask_model", ask)
     assert client.post("/api/ext/adapt", json=payload()).status_code == 502
     assert client.post("/api/ext/adapt", json=payload()).status_code == 422
+
+
+def test_posted_connections_keep_odds_but_cannot_be_kurt(client):
+    connections = [journey("ICE 1"), journey("ICE 1", dep="11:00")]
+    before = post_odds(client, connections).json()
+    connections[0]["posted"] = True
+    after = post_odds(client, connections).json()
+    assert before["kurt"] == 0 and after["kurt"] == 1
+    assert [r["p20"] for r in before["results"]] == [r["p20"] for r in after["results"]]
+    connections[1]["posted"] = True
+    assert post_odds(client, connections).json()["kurt"] is None

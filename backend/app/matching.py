@@ -10,7 +10,8 @@ LONG_DISTANCE_TYPES = (
 MIN_RUNS = 10
 GE_COLUMNS = ("ge5", "ge10", "ge15", "ge20", "ge30", "ge45", "ge60", "ge90", "ge120")
 
-_DROP = {"hbf", "hauptbahnhof", "bahnhof", "bf", "am"}
+_DROP = {"hbf", "hauptbahnhof", "bahnhof", "bf", "am", "tief"}  # "Berlin Hbf (tief)" is Berlin Hbf
+_SPELL = {"m": "main", "fernbf": "fernbahnhof"}  # "Frankfurt(M) Flughafen Fernbf"
 # Live feeds and the history label some trains differently; a number is looked up across its family only.
 _FAMILIES = ({"ICE", "IC"}, {"EC", "ECE"}, {"RJ", "RJX"}, {"EN", "NJ"})
 _FOLD = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"})
@@ -28,7 +29,7 @@ def station_tokens(name: str) -> list[str]:
     s = unicodedata.normalize("NFC", name or "").lower().translate(_FOLD)
     s = re.sub(r"\bs\s*\+\s*u\b", " ", s)
     s = re.sub(r"\s*\([a-z]{2}\)\s*$", "", s)  # feeds append a country: "Köln Hbf (DE)"
-    return sorted({t for t in re.split(r"[^0-9a-z]+", s) if t and t not in _DROP})
+    return sorted({_SPELL.get(t, t) for t in re.split(r"[^0-9a-z]+", s) if t and t not in _DROP})
 
 
 def station_key(name: str) -> str:
@@ -43,10 +44,9 @@ def _pick_station(keys: list[str], stop_name: str) -> tuple[str | None, str]:
     key = station_key(stop_name)
     if key in keys:
         return key, "exact"
-    tokens = set(key.split())
-    scored = sorted(((len(tokens & set(k.split())), k) for k in keys), reverse=True)
-    if scored and scored[0][0] >= 1 and (len(scored) == 1 or scored[1][0] < scored[0][0]):
-        return scored[0][1], "overlap"
+    alias = {"frankfurt": "frankfurt main", "an brandenburg der havel": "brandenburg"}.get(key)
+    if alias in keys:
+        return alias, "alias"
     return None, "none"
 
 

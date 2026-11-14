@@ -29,13 +29,17 @@ test('skeleton hashes ignore text values and extra repeated result cards',async(
   assert.ok(!a.includes('nav'));
 });
 test('large pages, unsafe names, skipped subtrees and direct content tokens',()=>{
-  const doc=document('<main><section><p>05:29 ICE 573 143,99 € 45 min Hamburg</p><script>secret</script><style>secret</style><div hidden>secret</div><spk-badge>23:00 ICE 900</spk-badge><svg><text>secret</text></svg>'+Array.from({length:2300},(_,i)=>'<div class="row'+i+'" data-sensitive="secret">hello</div>').join('')+'<time>12:00</time></section></main>');
+  const doc=document('<main><section><p>05:29 ICE 573 143,99 € 45 min Hamburg</p><script>secret</script><style>secret</style><div hidden>secret</div><spk-badge>23:00 ICE 900</spk-badge><svg><text>secret</text></svg>'+Array.from({length:2300},(_,i)=>'<'+(i%2?'div':'section')+' class="row'+i+'" data-sensitive="secret">hello</'+(i%2?'div':'section')+'>').join('')+'<time>12:00</time></section></main>');
   const s=S.build(doc);valid(s);assert.ok(!s.includes('secret'));assert.ok(!s.includes('spk-'));assert.ok(!s.includes('script'));assert.equal(s.split('\n').length,2000);
   assert.deepEqual(S.classify('12:31 h'),['DUR']);
   assert.deepEqual(S.classify('05:29 ICE 573 143,99 € 45 min Hamburg'),['TIME','TRAIN','PRICE','DUR','TEXT']);
   const unsafe=document('<main class="results passenger-Felix-Schmidt station-Hamburg price-143-99 station-MÜNCHEN row123" data-passenger-felix="yes" aria-hamburg="yes" data-id123="yes" data-layout="safe">05:29 ICE 1 06:00</main>');
-  const filtered=S.build(unsafe,{words:['Felix','Schmidt','Hamburg','München']});valid(filtered);
+  const filtered=S.build(unsafe,{words:['Hamburg','Hbf','München']});valid(filtered);
   assert.match(filtered,/main\.results\[data-layout\]/);
   assert.doesNotMatch(filtered,/passenger|station-|price-|row123|id123|aria-hamburg/i);
+  unsafe.querySelector('main').className='results passenger-anna-jones';
+  unsafe.querySelector('main').removeAttribute('data-passenger-felix');
+  unsafe.querySelector('main').setAttribute('data-passenger-anna','yes');
+  assert.equal(S.build(unsafe,{words:['Hamburg','Hbf','München']}),filtered);
   const deep=document('<main>'+ '<div>'.repeat(90)+'05:29 ICE 1 06:00'+'</div>'.repeat(90)+'</main>');valid(S.build(deep));
 });

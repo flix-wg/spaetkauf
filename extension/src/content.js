@@ -79,14 +79,14 @@
       return;
     }
     const date = cards[0]?.date || ctx.date;
-    const body = { from: ctx.from, to: ctx.to, to_eva: ctx.toEva, date, connections: selected.map(c => ({ dep: c.dep, arr: c.arr, trains: c.trains, ...(c.date && c.date !== date ? { date: c.date } : {}) })) };
+    const body = { from: ctx.from, to: ctx.to, to_eva: ctx.toEva, date, connections: selected.map(c => ({ dep: c.dep, arr: c.arr, trains: c.trains, posted: c.posted, ...(c.date && c.date !== date ? { date: c.date } : {}) })) };
     const config = await chrome.storage.sync.get({ server: 'https://65-108-33-75.sslip.io' });
     const key = JSON.stringify([config.server, body]);
     if (key !== lastKey) {
       const response = await send({ type: 'odds', body });
       if (!enabled || token !== generation) return;
       lastResponse = response;
-      lastKey = key;
+      lastKey = response?.ok ? key : null;
     }
     if (lastResponse?.ok) {
       for (const result of lastResponse.data.results) {

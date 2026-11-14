@@ -47,3 +47,9 @@ test('normalization, authoritative times, fallback dates and invalid specs',()=>
   assert.equal(P.applySpec(doc,{card:'[',train:'span',dep:'time',arr:'time'}),null);
   assert.equal(P.applySpec(doc,{card:'ul,li',train:'span',dep:'time',arr:'time'}),null);
 });
+
+test('a shared heading allows midnight rollover and a new heading resets the date',()=>{
+  const doc=document('<h3>14 November 2026</h3><ul><li>23:00 23:50 ICE 1</li><li>00:30 01:30 ICE 2</li></ul><h3>16 November 2026</h3><ul><li>00:10 01:10 ICE 3</li></ul>');
+  const cards=P.assignDates(P.parseCards(doc).cards,'2020-01-01');
+  assert.deepEqual(cards.map(c=>c.date),['2026-11-14','2026-11-15','2026-11-16']);
+});

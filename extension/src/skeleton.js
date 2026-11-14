@@ -7,10 +7,13 @@
     for(const m of text.matchAll(pattern)) { if(text.slice(end,m.index).trim())add('TEXT'); const v=m[0]; add(new RegExp('^'+P.timeSource+'$').test(v)?'TIME':P.normTrain(v)?'TRAIN':/€|EUR/i.test(v)?'PRICE':'DUR'); end=m.index+v.length; }
     if(text.slice(end).trim())add('TEXT'); return out;
   }
-  function signature(n) { return n.nodeType===11?'#shadow':n.localName+'.'+[...n.classList].join('.'); }
+  const structural = new Set(('results result card connection clock trains train time times row layout route list main content label value item start end dep arr departure arrival date duration price infos info reiseplan uebersicht uhrzeit sollzeit von nach hyphen verbindung zeiten dauer umstieg umstiege reiseloesung flags details container test util offscreen aria data hidden expanded haspopup icon role').split(' '));
+  const structuralName = name => /^[a-z]+(?:[-_]+[a-z]+)*$/.test(name) && name.split(/[-_]+/).every(part => structural.has(part));
+
   function build(rootNode, {words = []} = {}) {
     const privateWords=words.map(w=>w.toLowerCase()).filter(w=>w.length>=3);
-    const safeName=name=>!/[0-9]{3}/.test(name) && !privateWords.some(w=>name.toLowerCase().includes(w));
+    const safeName=name=>structuralName(name) && !privateWords.some(w=>name.includes(w));
+    const signature=n=>n.nodeType===11?'#shadow':n.localName+'.'+[...n.classList].filter(safeName).join('.');
     const times=P.scan(rootNode).times;
     let start=times[0]?.el || (rootNode.nodeType===9?rootNode.documentElement:rootNode);
     while(start && !times.every(t=>P.contains(start,t.el)))start=P.parent(start);
@@ -23,7 +26,7 @@
       if(!name || !/^(?:#shadow|[a-z][a-z0-9-]{0,40})$/.test(name))return false;
       if(n.nodeType===1) {
         for(const c of n.classList)if(/^[A-Za-z_-][A-Za-z0-9_-]{0,63}$/.test(c) && safeName(c))name+='.'+c;
-        for(const a of n.attributes)if(/^(?:aria|data)-[a-z0-9-]{1,40}$/.test(a.name) && safeName(a.name))name+='['+a.name+']'; else if(a.name==='role' && /^[a-z]{1,30}$/.test(a.value))name+='[role='+a.value+']';
+        for(const a of n.attributes)if(/^(?:aria|data)-[a-z0-9-]{1,40}$/.test(a.name) && safeName(a.name))name+='['+a.name+']'; else if(a.name==='role' && /^(?:list|listitem|heading|button|group|region|status|time)$/.test(a.value))name+='[role='+a.value+']';
       }
       if(n.localName==='svg')name='svg';
       const tokens=n.localName==='svg'?[]:classify([...n.childNodes].filter(c=>c.nodeType===3).map(c=>c.textContent).join(''));

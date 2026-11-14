@@ -2,7 +2,7 @@ import sqlite3
 
 import pytest
 
-from app.matching import find_stats, parse_train, station_key
+from app.matching import _pick_station, find_stats, parse_train, station_key
 
 
 def test_parse_train():
@@ -64,3 +64,15 @@ def test_find_stats_family_fallback_and_eva_sum(conn):
     assert (ec["status"], ec["train_type"], ec["type_fallback"]) == ("ok", "ECE", True)
     berlin = find_stats(conn, "ICE", "500", "S+U Berlin Hauptbahnhof", 0)
     assert (berlin["status"], berlin["n"], berlin["ge20"]) == ("ok", 14, 3)
+
+
+def test_station_matching_rejects_other_city_stations(conn):
+    for stop in ("München Ost", "München-Pasing", "Berlin-Spandau"):
+        train = "500" if stop.startswith("Berlin") else "785"
+        assert find_stats(conn, "ICE", train, stop, 4)["status"] == "stop_not_matched"
+    assert find_stats(conn, "ICE", "785", "Muenchen Hauptbahnhof (DE)", 4)["status"] == "ok"
+    assert _pick_station(["frankfurt main"], "Frankfurt") == ("frankfurt main", "alias")
+    assert _pick_station(["frankfurt main sued"], "Frankfurt") == (None, "none")
+    assert _pick_station(["frankfurt main"], "Frankfurt Ost") == (None, "none")
+    assert _pick_station(["berlin"], "Berlin Hbf (tief)") == ("berlin", "exact")
+    assert station_key("Frankfurt(M) Flughafen Fernbf") == station_key("Frankfurt am Main Flughafen Fernbahnhof")

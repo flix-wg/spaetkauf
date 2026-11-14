@@ -49,6 +49,7 @@ class Connection(BaseModel):
     arr: Clock
     trains: list[Train] = Field(max_length=12)
     date: Date | None = None
+    posted: bool = False
 
     @field_validator("dep", "arr")
     @classmethod
@@ -113,7 +114,11 @@ def extension_odds(body: OddsRequest, request: Request):
             if result["p20"] is not None:
                 result.update(train=train, basis="history" if len(trains) == 1 else "last_train")
         results.append(result)
-    eligible = [r for r in results if r["p20"] is not None and r["p20"] >= picks.KURT_MIN_P20]
+    eligible = [
+        r for r in results
+        if not body.connections[r["i"]].posted
+        and r["p20"] is not None and r["p20"] >= picks.KURT_MIN_P20
+    ]
     kurt = max(eligible, key=lambda r: r["p20"])["i"] if eligible else None
     if kurt is not None:
         results[kurt]["kurt"] = True
