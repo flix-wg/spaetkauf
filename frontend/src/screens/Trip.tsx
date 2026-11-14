@@ -175,8 +175,8 @@ function TripView({
             </span>
             <span className="text-[12px] leading-snug opacity-80 lg:text-[15px]">
               {atStop
-                ? 'A real run from DB’s delay data, played back fast. Each step is the delay measured at that stop, not a forecast for the destination.'
-                : `Recorded live by Kurt, played back fast. Each step is what the forecast for ${dest} said at that moment.`}
+                ? 'Delay measured at each stop, played back fast.'
+                : `Kurt’s live forecast for ${dest}, played back fast.`}
             </span>
             {atStop && <span className="text-[11px] opacity-60 lg:text-[13px]">Delay history: piebro/deutsche-bahn-data (CC BY 4.0).</span>}
           </div>
@@ -222,8 +222,8 @@ function TripView({
               {t.is_replay
                 ? 'The recording starts in a moment.'
                 : notYet
-                ? `Kurt starts watching at ${hhmm(new Date(new Date(b.dep).getTime() - 3 * 3600_000).toISOString())}, three hours before departure. This screen updates by itself.`
-                : 'No live reading for this train yet. This screen updates by itself.'}
+                ? `Kurt starts watching at ${hhmm(new Date(new Date(b.dep).getTime() - 3 * 3600_000).toISOString())}.`
+                : 'No live data yet. This updates by itself.'}
             </p>
           ) : cancelled ? (
             <p className="text-[14px] font-semibold leading-snug lg:text-[18px]">Ride any train to {dest}, or ask DB for a full refund.</p>
@@ -232,7 +232,7 @@ function TripView({
           )}
           {t.stale && !done && !waiting ? (
             <p className="rounded-lg bg-white/70 px-3 py-2 text-[13px] font-semibold lg:text-[16px]" role="alert">
-              Live data is stale. Last update {t.updated_at ? hhmm(t.updated_at) : 'unknown'}. Check the DB app before you board another train.
+              Live data is stale (last {t.updated_at ? hhmm(t.updated_at) : 'unknown'}). Check the DB app.
             </p>
           ) : atStop ? (
             t.at_stop && (
@@ -248,7 +248,7 @@ function TripView({
           )}
           {doneOk && <OnTime t={t} />}
           {done && !doneOk && finalDelay < 60 && (
-            <p className="text-[14px] font-semibold leading-snug lg:text-[18px]">The ticket unlocked, but under 60 minutes late pays nothing back.</p>
+            <p className="text-[14px] font-semibold leading-snug lg:text-[18px]">Unlocked, but under 60 late pays nothing back.</p>
           )}
         </section>
       </div>
@@ -258,7 +258,7 @@ function TripView({
 
         {t.connection_at_risk && !done && (
           <p className="rounded-xl border-2 border-ink p-3 text-[14px] font-semibold leading-snug lg:text-[17px]" role="alert">
-            Your change is at risk: the first train is expected after the second one leaves.
+            Your change is at risk.
           </p>
         )}
 
@@ -266,13 +266,13 @@ function TripView({
 
         {t.switched && (
           <p className="rounded-xl bg-surface p-3 text-[13px] lg:text-[15px]">
-            You marked this trip as switched. Compensation only applies if you still arrive 60+ minutes late.
+            Switched. Money back only at 60+ late.
           </p>
         )}
 
         {t.price_eur === null && !done && (
           <div className="rounded-2xl border border-line p-3 lg:p-4">
-            <p className="mb-2 text-[13px] text-muted lg:text-[15px]">Add the price to see cash amounts on the meter.</p>
+            <p className="mb-2 text-[13px] text-muted lg:text-[15px]">Add the price to see amounts in euros.</p>
             <InlinePrice cta="Save" onSave={async (n) => { await api.patchTrip(ref_, { price_eur: n }); reload() }} />
           </div>
         )}
@@ -464,11 +464,8 @@ function OnTime({ t }: { t: Trip }) {
           Arrived on time.{!wasUnlocked && kurts && ' Kurt was wrong on this one.'}
         </p>
         <p className="text-[13px] leading-snug lg:text-[17px]">
-          {wasUnlocked
-            ? `The binding was lifted when it reached +${t.peak_delay_min}; nothing comes back.`
-            : 'The ticket stayed bound to this train and nothing comes back.'}
-          {!wasUnlocked && kurts && p !== null &&
-            ` Kurt’s odds for this train were ${p} %; about ${onTime < 1 ? 'fewer than 1' : onTime} in 10 such picks run on time.`}
+          {wasUnlocked ? `Unlocked at +${t.peak_delay_min}, nothing back.` : 'Nothing comes back.'}
+          {!wasUnlocked && kurts && p !== null && ` About ${onTime < 1 ? 'fewer than 1' : onTime} in 10 such picks run on time.`}
         </p>
       </div>
     </div>

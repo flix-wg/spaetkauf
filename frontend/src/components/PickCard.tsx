@@ -16,8 +16,8 @@ export function oddsLine(p: Pick) {
   const days = weekdayPlural(o.weekday)
   const counts = o.late !== null && o.n !== null ? `${o.late} of ${o.n} ${days}` : null
   if (o.basis === 'estimate') {
-    const last = p.legs[p.legs.length - 1]?.train ?? 'The last train'
-    return `${pctNum(o.p20)} % is for the whole trip, a missed change included.${counts ? ` ${last} alone: late ${counts}.` : ''}`
+    const last = p.legs[p.legs.length - 1]?.train ?? 'Last train'
+    return counts ? `${last}: late ${counts}` : 'Missed change counts as late'
   }
   return `Late ${counts ?? days}`
 }
@@ -36,19 +36,15 @@ export function OddsLine({ pick, onHistory, className = '' }: { pick: Pick; onHi
 function rideLine(p: Pick, tz: string) {
   const r = p.ride_instead
   if (!r) return null
-  const d = r.delta_arr_min
-  // d > 0 is still a win: the booked train only unlocks once it runs 20+ late.
-  const rel =
-    d === 0
-      ? 'Arrives with your booked train’s timetable, ahead of it once it’s 20+ late.'
-      : d < 0
-        ? `Arrives ${-d} min before your booked train is due.`
-        : `Arrives ${d} min after your booked arrival, still ahead of your train once it’s 20+ late.`
   return {
     times: `${hhmm(r.dep, tz)} → ${hhmm(r.arr, tz)}`,
-    what: `${r.trains.join(' + ')}${r.changes === 0 ? ' direct' : `, ${changesLabel(r.changes)}`}`,
-    rel,
+    what: `${r.trains.join(' + ')}${r.changes === 0 ? ' · direct' : ` · ${changesLabel(r.changes)}`}`,
   }
+}
+
+// Trains, changes and duration on one line: "ICE 650 · direct · 5 h 34 min".
+export function meta(p: Pick) {
+  return `${p.legs.map((l) => l.train).join(' + ')} · ${changesLabel(p.changes)} · ${duration(p.duration_min)}`
 }
 
 export function Actions({
@@ -98,20 +94,16 @@ export function KurtsPick({
       </div>
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="tag lg:!text-[13px]">BOOK</span>
           <span className="mono text-[24px] font-bold leading-tight lg:text-[32px]">
             {hhmm(pick.dep, tz)} → {hhmm(pick.arr, tz)}
           </span>
-          <span className="text-[13px] leading-snug lg:text-[16px]">
-            {changesLabel(pick.changes)} · {duration(pick.duration_min)}
-          </span>
-          <span className="text-[13px] leading-snug lg:text-[16px]">{pick.legs.map((l) => l.train).join(' + ')}</span>
+          <span className="text-[13px] leading-snug lg:text-[16px]">{meta(pick)}</span>
         </div>
         <div className="flex shrink-0 flex-col items-end">
           {has ? (
             <>
               <span className="mono text-[40px] font-bold leading-none lg:text-[68px]">{pctNum(o.p20)}%</span>
-              <span className="text-[12px] lg:text-[15px] lg:font-semibold">{o.basis === 'estimate' ? 'whole trip 20+ late' : '20+ min late'}</span>
+              <span className="text-[12px] lg:text-[15px] lg:font-semibold">{o.basis === 'estimate' ? 'trip 20+ late' : '20+ late'}</span>
             </>
           ) : (
             <span className="text-[13px] font-semibold">No odds yet</span>
@@ -122,18 +114,12 @@ export function KurtsPick({
       {strike && <StrikeLine s={strike} tone="card" />}
       {ride ? (
         <div className="flex flex-col gap-0.5 rounded-xl bg-white p-3 lg:gap-1 lg:rounded-2xl lg:p-4">
-          <span className="tag text-accent-text lg:!text-[13px]">IF IT’S LATE, YOU’D RIDE</span>
+          <span className="tag text-accent-text lg:!text-[13px]">IF LATE, RIDE</span>
           <span className="mono text-[20px] font-bold leading-tight lg:text-[28px]">{ride.times}</span>
           <span className="text-[13px] font-semibold lg:text-[16px]">{ride.what}</span>
-          <span className="mt-0.5 text-[12px] leading-snug text-muted lg:text-[14px]">{ride.rel}</span>
         </div>
-      ) : (
-        <p className="rounded-xl bg-white p-3 text-[13px] text-muted lg:text-[15px]">
-          No other train in the window. Kurt shows the next option on the live screen.
-        </p>
-      )}
+      ) : null}
       <Actions pick={pick} onBook={onBook} tone="accent" />
-      <p className="text-center text-[12px] leading-snug lg:text-[13px]">Price and buying happen on bahn.de. Kurt never sees either.</p>
     </section>
   )
 }
@@ -186,8 +172,8 @@ export function CompactPick({
               : !hasOdds(o)
                 ? `Not enough history · ${changesLabel(pick.changes)}`
                 : ride
-                  ? `You’d ride ${ride.times}`
-                  : `${changesLabel(pick.changes)} · ${pick.legs.map((l) => l.train).join(' + ')}`}
+                  ? `If late, ride ${ride.times}`
+                  : meta(pick)}
           </span>
         </span>
       </button>
@@ -195,16 +181,13 @@ export function CompactPick({
         <div className="flex flex-col gap-3 border-t border-line px-3.5 pb-3.5 pt-3 lg:px-5 lg:pb-5">
           <div className="flex flex-col text-[13px] leading-snug lg:text-[15px]">
             <OddsLine pick={pick} onHistory={onHistory} className="font-semibold" />
-            <p className="text-muted">
-              {changesLabel(pick.changes)} · {duration(pick.duration_min)} · {pick.legs.map((l) => l.train).join(' + ')}
-            </p>
+            <p className="text-muted">{meta(pick)}</p>
           </div>
           {ride && (
             <div className="rounded-xl bg-surface p-3">
-              <span className="tag text-accent-text">IF IT’S LATE, YOU’D RIDE</span>
+              <span className="tag text-accent-text">IF LATE, RIDE</span>
               <p className="mono text-[16px] font-bold lg:text-[20px]">{ride.times}</p>
               <p className="text-[13px] font-semibold lg:text-[15px]">{ride.what}</p>
-              <p className="mt-0.5 text-[12px] leading-snug text-muted lg:text-[14px]">{ride.rel}</p>
             </div>
           )}
           <Actions pick={pick} onBook={onBook} tone="plain" />
@@ -241,7 +224,6 @@ export function StrikeCall({ s, day, tryHref }: { s: Strike; day: string; tryHre
           Try {dayLabel(`${s.try_date}T12:00:00Z`)}
         </Link>
       )}
-      <p className="text-[12px] leading-snug opacity-80 lg:text-[14px]">All trains and their odds are still listed. The odds come from past runs.</p>
     </section>
   )
 }

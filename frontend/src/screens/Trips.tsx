@@ -147,10 +147,7 @@ function Replays() {
   return (
     <section className="mt-3 flex flex-col gap-2 lg:mt-0 lg:gap-3" aria-label="Replays">
       <h2 className="font-display text-[18px] font-bold lg:text-[26px]">Watch a replay</h2>
-      <p className="-mt-1 text-[12px] leading-snug text-muted lg:text-[15px]">
-        Real trains, late and on time, played back in about a minute and labelled as replays. Past runs show the delay measured at
-        each stop; live recordings show the forecast Kurt saw for the destination.
-      </p>
+      <p className="-mt-1 text-[12px] leading-snug text-muted lg:text-[15px]">Real trips, played back in a minute.</p>
       {list.map((r) => (
         <RecordingRow key={r.id} r={r} busy={busy === r.id} onPlay={() => play(r.id)} />
       ))}

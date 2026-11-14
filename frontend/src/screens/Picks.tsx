@@ -95,22 +95,16 @@ export function Picks() {
                 <section className="flex items-start gap-3 rounded-[22px] bg-surface p-4 lg:gap-4 lg:p-6" aria-label="No pick">
                   <Kurt width={56} className="mt-0.5 shrink-0" />
                   <span className="flex flex-col gap-1">
-                    <span className="font-display text-[18px] font-bold leading-tight lg:text-[24px]">Kurt has no pick here</span>
+                    <span className="font-display text-[18px] font-bold leading-tight lg:text-[24px]">No pick here</span>
                     <span className="text-[13px] leading-snug text-muted lg:text-[16px]">
-                      {arrive
-                        ? `No late train fits the cap. Kurt only picks a train that still arrives by ${by} when it runs 20+ late, misses ${by} on at most 1 in 10 runs, and is 20+ late on at least 3 of 10. The trains that arrive by ${by} are listed with their odds.`
-                        : 'Kurt only picks a train that is 20+ late on at least 3 of 10 runs and has a better one to ride instead. None of these does. Their odds are below; another time of day may do better.'}
+                      {arrive ? `None is late often enough and still in by ${by}.` : 'None is late often enough. Try another time.'}
                     </span>
                   </span>
                 </section>
               )}
-              <p className="px-1 text-[12px] leading-snug text-muted lg:text-[14px]">
-                A delay already posted when you buy does not count, so Kurt never picks a train for it. Odds are
-                base rates from past runs.{' '}
-                <button type="button" onClick={() => open('backtest')} className="-my-3 inline-flex min-h-[44px] items-center font-semibold text-accent-text underline">
-                  How good is Kurt?
-                </button>
-              </p>
+              <button type="button" onClick={() => open('backtest')} className="-my-2 inline-flex min-h-[44px] items-center self-start px-1 text-[13px] font-semibold text-accent-text underline lg:text-[15px]">
+                How good is Kurt?
+              </button>
             </>
           )}
         </div>
@@ -127,8 +121,7 @@ export function Picks() {
                   </div>
                 }
               >
-                The free route service allows a fixed number of searches per day and today’s are used up. Saved
-                trips keep updating.
+                Today’s searches are used up. Saved trips keep updating.
               </Empty>
             ) : (
               <ErrorState error={picks.error} retry={retry} />
@@ -138,15 +131,15 @@ export function Picks() {
               title="No long-distance trains found"
               action={<Link to={back} className="btn-ghost">Try another date or station</Link>}
             >
-              Kurt found no ICE, IC or EC connection for this route and time.
+              No ICE, IC or EC at this time.
             </Empty>
           )}
           {picks.status === 'ok' && picks.data.picks.length > 0 && arrive && (
             <>
               {(
                 [
-                  ['Late still works', `Even 20+ min late, these arrive by ${by}.`, late],
-                  ['On time', `These make ${by} only if they run close to time.`, onTime],
+                  ['Late still works', `In by ${by} even 20+ late`, late],
+                  ['Only on time', `In by ${by} only if on time`, onTime],
                 ] as const
               ).map(([title, sub, list]) =>
                 list.length === 0 ? null : (

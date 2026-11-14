@@ -22,12 +22,11 @@ export function HistorySheet({ q, onClose }: { q: HistoryQuery; onClose: () => v
       {res.status === 'error' && <Missing error={res.error} retry={retry} />}
       {res.status === 'ok' && (
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-4 gap-2 rounded-2xl bg-tint p-3 lg:p-4">
+          <div className="grid grid-cols-3 gap-2 rounded-2xl bg-tint p-3 lg:p-4">
             {(
               [
+                ['runs', res.data.summary.n],
                 ['20+ late', res.data.summary.late20],
-                ['60+ late', res.data.summary.late60],
-                ['120+ late', res.data.summary.late120],
                 ['cancelled', res.data.summary.cancelled],
               ] as const
             ).map(([label, v]) => (
@@ -37,9 +36,7 @@ export function HistorySheet({ q, onClose }: { q: HistoryQuery; onClose: () => v
               </div>
             ))}
           </div>
-          <p className="-mt-2 text-[13px] text-muted lg:text-[15px]">
-            Of {res.data.summary.n} {days} on record, newest first. A cancelled arrival counts as late.
-          </p>
+          <p className="-mt-2 text-[13px] text-muted lg:text-[15px]">{days[0].toUpperCase() + days.slice(1)}, newest first</p>
           {res.data.runs.length === 0 ? (
             <p className="text-[14px] text-muted">No runs on record for this stop{q.weekday === undefined ? '' : ' on that weekday'}.</p>
           ) : (

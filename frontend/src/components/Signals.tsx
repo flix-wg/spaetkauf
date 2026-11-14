@@ -115,7 +115,7 @@ export function SignalsArea({
   if (loading) {
     body = (
       <div className="flex min-h-[88px] flex-col justify-center gap-2 rounded-2xl border border-line p-3.5" role="status">
-        <span className="text-[13px] text-muted">Reading the news for strikes, closures and storms…</span>
+        <span className="text-[13px] text-muted">Checking the news…</span>
         <span className="h-2.5 w-3/4 animate-pulse rounded-full bg-surface motion-reduce:animate-none" />
         <span className="h-2.5 w-1/2 animate-pulse rounded-full bg-surface motion-reduce:animate-none" />
       </div>
@@ -123,13 +123,13 @@ export function SignalsArea({
   } else if (!s || s.status === 'unavailable') {
     body = (
       <p className="rounded-2xl bg-surface p-3.5 text-[13px] leading-snug text-muted">
-        The news check is not available right now. Picks and odds never depend on it.
+        News check unavailable right now.
       </p>
     )
   } else if (s.status === 'empty' || s.items.length === 0) {
     body = (
       <p className="rounded-2xl bg-ok-tint p-3.5 text-[13px] leading-snug text-ok">
-        No strike, closure or storm news found for this route on {day}. Checked at {hhmm(s.checked_at)}.
+        No strike or closure news for {day}.
       </p>
     )
   } else {
@@ -137,10 +137,6 @@ export function SignalsArea({
     const shown = all ? items : items.slice(0, SHOW)
     body = (
       <>
-        <p className="text-[13px] leading-snug text-muted">
-          {s.items.length === 1 ? 'One article mentions' : `${s.items.length} articles mention`} places on this route.
-          Context only: Kurt’s odds never use them.
-        </p>
         <ul className="flex flex-col divide-y divide-line rounded-2xl border border-line">
           {shown.map((it) => (
             <Item key={it.url} it={it} />
@@ -156,7 +152,10 @@ export function SignalsArea({
   }
   return (
     <section aria-label="News for this route" className="flex flex-col gap-2">
-      <h2 className="font-display text-[18px] font-bold">News around {day}</h2>
+      <h2 className="font-display text-[18px] font-bold">
+        News around {day}
+        <span className="block font-sans text-[13px] font-normal text-muted">Not used in the odds</span>
+      </h2>
       <Banners s={s} shown={shown} />
       {body}
     </section>

@@ -71,7 +71,7 @@ export function Lookup() {
       <div className="flex flex-col gap-4 px-5 pb-8 lg:grid lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:items-start lg:gap-x-10 lg:px-10 lg:pb-12">
         <div className="flex flex-col gap-4">
           <p className="text-[15px] leading-snug text-muted lg:text-[17px]">
-            Every number Kurt shows comes from past runs. Look up a train or a route and tap a row to see the runs.
+            Look up a train or a route. Tap a row to see its runs.
           </p>
           <div role="radiogroup" aria-label="Look up by" className="grid grid-cols-2 gap-1 rounded-xl bg-surface p-1">
             {(['train', 'route'] as const).map((m) => (
@@ -145,7 +145,7 @@ export function Lookup() {
               <h2 className="font-display text-[20px] font-bold lg:text-[26px]">
                 {stopName(res.data.d.from) || res.data.d.from} → {stopName(res.data.d.to) || res.data.d.to}
                 <span className="block font-sans text-[13px] font-normal text-muted lg:text-[15px]">
-                  Trains that served both, by usual departure. Share of {days} 20+ min late or cancelled at {stopName(res.data.d.to) || res.data.d.to}.
+                  Share of {days} 20+ late at {stopName(res.data.d.to) || res.data.d.to}
                 </span>
               </h2>
               {res.data.d.trains.length === 0 ? (

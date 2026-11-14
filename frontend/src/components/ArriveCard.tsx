@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import type { HistoryQuery, Pick, Strike } from '../api'
-import { changesLabel, duration, hhmm, pct, pctNum } from '../format'
+import { duration, hhmm, pct, pctNum } from '../format'
 import { Kurt, Snails } from './Kurt'
 import { IconChevron } from './Icons'
-import { Actions, hasOdds, OddsLine } from './PickCard'
+import { Actions, hasOdds, meta, OddsLine } from './PickCard'
 import { StrikeLine } from './Signals'
 
 export function spareLine(p: Pick, by: string, short = false) {
@@ -14,28 +14,16 @@ export function spareLine(p: Pick, by: string, short = false) {
 // p_miss is an upper bound (a missed change counts as a miss), so it is rounded up, never down.
 export function missLine(p: Pick, by: string) {
   const m = p.p_miss
-  if (m === null || m === undefined) return `Too little history to bound a miss of ${by}`
-  if (m >= 1) return `Under 5 min to spare: a small delay misses ${by}`
-  return `≤ ${Math.max(1, Math.ceil(m * 100 - 1e-9))} % chance it misses ${by}`
+  if (m === null || m === undefined) return 'Miss chance unknown'
+  if (m >= 1) return `Tight: a small delay misses ${by}`
+  return `≤ ${Math.max(1, Math.ceil(m * 100 - 1e-9))} % miss ${by}`
 }
 
 export function LateBadges({ p }: { p: Pick }) {
   const ok = p.late_ok
   if (!ok?.unlock) return null
-  const items = [
-    ok.unlock && '+20 in time: binding lifted',
-    ok.refund25 && '+60 in time: 25 % back',
-    ok.refund50 && '+120 in time: 50 % back',
-  ].filter(Boolean) as string[]
-  return (
-    <span className="flex flex-wrap gap-1.5">
-      {items.map((t) => (
-        <span key={t} className="rounded-md bg-ok-tint px-2 py-0.5 text-[12px] font-semibold text-ok lg:text-[14px]">
-          {t}
-        </span>
-      ))}
-    </span>
-  )
+  const t = ok.refund50 ? 'In time even 2 h late: 50 % back' : ok.refund25 ? 'In time even 1 h late: 25 % back' : 'In time even 20 min late'
+  return <span className="w-fit rounded-md bg-ok-tint px-2 py-0.5 text-[12px] font-semibold text-ok lg:text-[14px]">{t}</span>
 }
 
 type CardProps = { pick: Pick; tz: string; by: string; onBook: (p: Pick) => void; onHistory: (q: HistoryQuery) => void }
@@ -50,19 +38,15 @@ export function ArriveKurtsPick({ pick, tz, by, strike, onBook, onHistory }: Car
       </span>
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="tag lg:!text-[13px]">BOOK</span>
           <span className="mono text-[24px] font-bold leading-tight lg:text-[32px]">
             {hhmm(pick.dep, tz)} → {hhmm(pick.arr, tz)}
           </span>
-          <span className="text-[13px] leading-snug lg:text-[16px]">
-            {changesLabel(pick.changes)} · {duration(pick.duration_min)}
-          </span>
-          <span className="text-[13px] leading-snug lg:text-[16px]">{pick.legs.map((l) => l.train).join(' + ')}</span>
+          <span className="text-[13px] leading-snug lg:text-[16px]">{meta(pick)}</span>
         </div>
         {hasOdds(o) && (
           <div className="flex shrink-0 flex-col items-end">
             <span className="mono text-[40px] font-bold leading-none lg:text-[68px]">{pctNum(o.p20)}%</span>
-            <span className="text-[12px] lg:text-[15px] lg:font-semibold">{o.basis === 'estimate' ? 'whole trip 20+ late' : '20+ min late'}</span>
+            <span className="text-[12px] lg:text-[15px] lg:font-semibold">{o.basis === 'estimate' ? 'trip 20+ late' : '20+ late'}</span>
           </div>
         )}
       </div>
@@ -72,11 +56,9 @@ export function ArriveKurtsPick({ pick, tz, by, strike, onBook, onHistory }: Car
         <span className="tag text-accent-text lg:!text-[13px]">ARRIVE BY {by}</span>
         <span className="mono text-[20px] font-bold leading-tight lg:text-[28px]">{spareLine(pick, by, true)}</span>
         <span className="text-[13px] font-semibold lg:text-[16px]">{missLine(pick, by)}</span>
-        <span className="text-[12px] leading-snug text-muted lg:text-[14px]">Even 20+ min late it still gets you there in time.</span>
         <LateBadges p={pick} />
       </div>
       <Actions pick={pick} onBook={onBook} tone="accent" />
-      <p className="text-center text-[12px] leading-snug lg:text-[13px]">Price and buying happen on bahn.de. Kurt never sees either.</p>
     </section>
   )
 }
@@ -108,18 +90,16 @@ export function ArrivePick({ pick, tz, by, onBook, onHistory }: CardProps) {
           </span>
         </span>
         <span className="text-[12px] leading-snug text-muted lg:text-[15px]">
-          {dead ? 'Already posted: does not count' : `${spareLine(pick, by)} · ${missLine(pick, by)}`}
+          {dead ? 'Already posted: does not count' : `${spareLine(pick, by, true)} · ${missLine(pick, by)}`}
         </span>
-        {!dead && <LateBadges p={pick} />}
       </button>
       {open && (
         <div className="flex flex-col gap-3 border-t border-line px-3.5 pb-3.5 pt-3 lg:px-5 lg:pb-5">
           <div className="flex flex-col text-[13px] leading-snug lg:text-[15px]">
             <OddsLine pick={pick} onHistory={onHistory} className="font-semibold" />
-            <p className="text-muted">
-              {changesLabel(pick.changes)} · {duration(pick.duration_min)} · {pick.legs.map((l) => l.train).join(' + ')}
-            </p>
+            <p className="text-muted">{meta(pick)}</p>
           </div>
+          <LateBadges p={pick} />
           <Actions pick={pick} onBook={onBook} tone="plain" />
         </div>
       )}
