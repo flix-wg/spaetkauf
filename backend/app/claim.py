@@ -21,6 +21,24 @@ def claim_amount(price: Decimal, pct: int) -> Decimal:
     return (raw / STEP).to_integral_value(rounding=ROUND_CEILING) * STEP
 
 
+def timeline(snaps: list[dict]) -> list[dict]:
+    """First observation, each change of 5+ min against the last kept row, last observation."""
+    rows = [s for s in snaps if s["delay_min"] is not None or s["cancelled"]]
+    kept: list[dict] = []
+    for i, s in enumerate(rows):
+        prev = kept[-1] if kept else None
+        if (
+            prev is None
+            or i == len(rows) - 1
+            or bool(s["cancelled"]) != prev["cancelled"]
+            or abs((s["delay_min"] or 0) - (prev["delay_min"] or 0)) >= 5
+        ):
+            kept.append(
+                {"at": s["at"], "delay_min": s["delay_min"], "cancelled": bool(s["cancelled"])}
+            )
+    return kept
+
+
 def compute_claim(price: Decimal | None, delay_min: int | None, switched: bool) -> dict:
     """Return {due, pct, amount_eur, reason}."""
     if switched:
@@ -56,7 +74,11 @@ def compute_claim(price: Decimal | None, delay_min: int | None, switched: bool) 
             "due": False,
             "pct": pct,
             "amount_eur": None,
-            "reason": f"{pct} % would be {amount:.2f} EUR; DB pays nothing under 4.00 EUR.",
+            "reason": (
+                f"{pct} % would be {amount:.2f} EUR; DB pays nothing under 4.00 EUR. "
+                "Still yours: the lifted Zugbindung from 20 minutes late, and a full refund "
+                "if you give up the trip at an expected 60+ minutes."
+            ),
         }
     return {
         "due": True,

@@ -11,7 +11,7 @@ from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 
 from .alternatives import alternatives_view, origin_departed
-from .claim import WHERE, claim_amount, compute_claim
+from .claim import WHERE, claim_amount, compute_claim, timeline
 from .db import connect
 from .push import check_subscription
 
@@ -101,6 +101,15 @@ def latest_snapshot(db_path, trip_id: str) -> dict | None:
     ).fetchone()
     conn.close()
     return dict(row) if row else None
+
+
+def all_snapshots(db_path, trip_id: str) -> list[dict]:
+    conn = connect(db_path)
+    rows = conn.execute(
+        "SELECT * FROM trip_snapshots WHERE trip_id = ? ORDER BY at, rowid", (trip_id,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 
 def trip_view(row: dict, snap: dict | None, now: datetime | None = None) -> dict:
@@ -334,8 +343,23 @@ def get_claim(
                 and field["value"]
             ):
                 field["value"] = _parse(field["value"]).strftime("%d.%m.%Y %H:%M")
+    evidence = None
+    if not switched and not view["booking_delay_excluded"] and delay is not None:
+        source = "Real-time data from Transitous, not DB's own record."
+        if view["is_replay"]:
+            source = (
+                f"Replay of data recorded on {view['replay_of']}; "
+                "observation times are playback times."
+            )
+        evidence = {
+            "scheduled_arr": fields[4]["value"],
+            "observed_arr": fields[5]["value"] or None,
+            "delay_min": delay,
+            "source": source,
+            "observations": timeline(all_snapshots(db, trip_id)),
+        }
     return {
-        **result, "fields": fields, "where": WHERE,
+        **result, "fields": fields, "where": WHERE, "evidence": evidence,
         "switched": switched, "provisional": bool(provisional),
         "is_replay": view["is_replay"], "replay_of": view["replay_of"],
     }

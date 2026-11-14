@@ -41,6 +41,8 @@ def test_claim_rules(price, delay, switched, due, amount):
         assert got["pct"] == 25 and "price" in got["reason"]
     if switched and delay < 60:
         assert "switched" in got["reason"]
+    if price == "12.90":
+        assert "4.00 EUR" in got["reason"] and "Zugbindung" in got["reason"]
 
 
 def test_trip_round_trip_and_secrets(client, settings):
@@ -102,6 +104,7 @@ def test_switched_claim_uses_no_booked_arrival(client, settings):
     claim = client.get(f"/api/trips/{tid}/claim", params={"secret": secret}).json()
     assert (claim["due"], claim["pct"], claim["amount_eur"]) == (False, 0, None)
     assert {f["label"]: f["value"] for f in claim["fields"]}["Actual arrival"] == ""
+    assert claim["evidence"] is None
     assert all(text in claim["reason"] for text in ("actual arrival", "under 60", "25 %", "50 %"))
 
 
@@ -186,3 +189,25 @@ def test_claim_arrival_clocks_match_replay_source(client, settings, basis, repla
     else:
         assert fields["Scheduled arrival"] == "2026-10-30T19:32:00Z"
         assert fields["Actual arrival"] == "2026-10-30T21:36:00Z"
+
+
+def test_claim_evidence_keeps_changes_of_five_minutes(client, settings):
+    from app.db import connect
+
+    saved = client.post("/api/trips", json={"pick": PICK, "price_eur": 34.99}).json()
+    tid, secret = saved["trip_id"], saved["secret"]
+    conn = connect(settings.db_path)
+    with conn:
+        for i, d in enumerate([0, 2, 9, None, 11, 25, 27, 67]):
+            conn.execute(
+                "INSERT INTO trip_snapshots(trip_id, at, delay_min, expected_arr) VALUES (?,?,?,?)",
+                (tid, f"2026-11-14T{10 + i}:00:00Z", d, "2026-11-14T13:07:00Z"),
+            )
+    conn.close()
+    ev = client.get(f"/api/trips/{tid}/claim", params={"secret": secret}).json()["evidence"]
+    assert [o["delay_min"] for o in ev["observations"]] == [0, 9, 25, 67]
+    assert ev["observations"][-1]["at"] == "2026-11-14T17:00:00Z"
+    assert (ev["scheduled_arr"], ev["observed_arr"], ev["delay_min"]) == (
+        "2026-11-14T12:00:00Z", "2026-11-14T13:07:00Z", 67,
+    )
+    assert "Transitous" in ev["source"]
