@@ -78,6 +78,8 @@ def test_parquet_parts_under_limit(tmp_path):
     )
     parts = sorted((tmp_path / "history").glob("*.parquet"))
     assert parts
+    meta = json.loads((tmp_path / "history/meta.json").read_text())
+    assert meta["files"] == [p.name for p in parts]
     assert all(p.stat().st_size < 20 * 1024 * 1024 for p in parts)
     events = sorted((tmp_path / "history").glob("events-*.parquet"))
     assert events
@@ -86,7 +88,11 @@ def test_parquet_parts_under_limit(tmp_path):
         actual = db.execute(
             "SELECT count(*) FROM read_parquet(?)", [[str(p) for p in events]]
         ).fetchone()[0]
+        max_group = db.execute(
+            "SELECT max(row_group_num_rows) FROM parquet_metadata(?)", [[str(p) for p in events]]
+        ).fetchone()[0]
     assert actual == expected
+    assert max_group <= 8192
 
 
 def test_odds_export_with_system_python(tmp_path):
@@ -103,3 +109,15 @@ def test_odds_export_with_system_python(tmp_path):
         check=True,
     )
     assert (tmp_path / "odds/index.json").is_file()
+
+
+@pytest.mark.parametrize("sql", [
+    "WITH f AS mode(j.dep_min) ORDER BY n DESC LIMIT 100",
+    "WITH f AS mode(j.dep_min), mode(j.arr_min) ORDER BY changed LIMIT 100",
+    "SELECT e.dep_delay, e.dep_cancelled ORDER BY changed LIMIT 1001",
+])
+def test_golden_export_rejects_changed_backend_sql(sql):
+    from export_history_golden import OrderedHistory
+
+    with pytest.raises(ValueError, match="Backend history SQL changed"):
+        OrderedHistory(None).execute(sql)

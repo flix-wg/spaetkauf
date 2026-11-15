@@ -29,3 +29,9 @@ The current file has 2,964,486 events in 357,131 runs.
 - `GET /api/history/route?from=Hamburg Hbf&to=München Hbf[&weekday=]`: trains that served `from` and then `to` on the same run, with late shares, median delay and typical times.
 
 Unknown trains, stops or dates answer 404. Most requests take 5 to 25 ms (`scripts/bench_history.py`).
+
+## In the browser
+
+The static site queries monthly Parquet files with DuckDB-WASM using HTTP range reads. Run
+`scripts/fetch_duckdb_ext.sh` before a frontend build or test to fetch the self-hosted Parquet extension. The
+WASM module ships gzipped; the CSP needs `script-src wasm-unsafe-eval` and `connect-src self blob:`.
