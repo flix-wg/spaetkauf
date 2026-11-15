@@ -20,7 +20,7 @@ interface Page {
   from?: Stop; to?: Stop; nextPageCursor?: string; previousPageCursor?: string
 }
 const iso = (value: string | Date) => new Date(value).toISOString().slice(0, 19) + 'Z'
-const minutes = (a: string, b: string) => {
+export const minutes = (a: string, b: string) => {
   const n = (Date.parse(b) - Date.parse(a)) / 60_000
   const lower = Math.floor(n)
   return n - lower === 0.5 ? lower + (Math.abs(lower % 2)) : Math.round(n)
