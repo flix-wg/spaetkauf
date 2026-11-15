@@ -17,3 +17,5 @@ __pycache__/
 data/history.duckdb
 data/history.tmp
 data/history.duckdb.wal
+
+frontend/public/data/
