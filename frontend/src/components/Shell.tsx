@@ -152,13 +152,19 @@ function SideNav() {
   )
 }
 
+const EMAIL = import.meta.env.VITE_OPERATOR_EMAIL
+
 function Footer() {
   useT()
   return (
     <footer className="px-5 pb-8 pt-10 text-center text-[13px] text-muted">
       <Link to="/impressum">{tr('impressum')}</Link> · <Link to="/datenschutz">{tr('datenschutz')}</Link> ·{' '}
       <a href="https://github.com/flix-wg/spaetkauf">{tr('quellcode')}</a> ·{' '}
-      <a href="https://transitous.org/sources/">{tr('transitousQuellen')}</a>
+      <a href="https://transitous.org/sources/">{tr('transitousQuellen')}</a> ·{' '}
+      <a href="https://www.openstreetmap.org/copyright">{tr('osmContributors')}</a> ·{' '}
+      {tr('delayData')}: <a href="https://github.com/piebro/deutsche-bahn-data">piebro/deutsche-bahn-data</a>,{' '}
+      <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+      {EMAIL && <> · <a href={`mailto:${EMAIL}`}>{EMAIL}</a></>}
     </footer>
   )
 }

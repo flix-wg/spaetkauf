@@ -22,6 +22,7 @@ export function App() {
           <Route path="/picks" element={<Picks />} />
           <Route path="/trips" element={<Trips />} />
           <Route path="/trip/:id" element={<TripScreen />} />
+          <Route path="/trips/:id" element={<TripScreen />} />
           <Route path="/trip/:id/claim" element={<ClaimScreen />} />
           <Route path="/late" element={<Late />} />
           <Route path="/impressum" element={<Legal page="impressum" />} />

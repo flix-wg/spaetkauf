@@ -1,6 +1,13 @@
-import { tx } from './i18n-core'
-import { getLang, tr, type Lang } from './i18n-core'
-// Types follow design.md D12 and what the backend really returns. Trip calls carry the trip secret as ?secret=.
+import { getLang, tr, tx, type Lang } from './i18n-core.ts'
+import { localize, text } from './coreText.ts'
+import { lateNow } from './core/board.ts'
+import { historyRoute, historyRuns, historyTrain, NotFound as HistoryNotFound } from './core/history.ts'
+import { httpOddsSource } from './core/oddsSource.ts'
+import { BadRequest, getPicks, NotFound as PicksNotFound } from './core/picks.ts'
+import { BudgetSpent, createTransitous, OutsideTimetable, SourceUnavailable, stationsSearch, type Transitous } from './core/transitous.ts'
+import { deleteTrip, getTrip, saveTrip, StorageUnavailable, tripClaim, tripView, updateTrip, watchTrip } from './core/trips.ts'
+// Types follow design.md D12 and what the backend returned. The static build computes them in the browser
+// (src/core); TripRef.secret is a leftover of server trips and stays empty.
 
 export type Basis = 'history' | 'estimate' | 'none'
 export type TripState = 'on_time' | 'unlocked' | 'cash25' | 'cash50' | 'cancelled'
@@ -135,6 +142,8 @@ export interface SignalsResponse {
   items: SignalItem[]
   banners: Banner[]
   strike: Strike | null
+  // The static build has no news search; the screens show Interested instead.
+  blocked?: boolean
 }
 export interface Banner {
   source: string
@@ -276,45 +285,39 @@ export class ApiError extends Error {
   }
 }
 
-export const MOCK = import.meta.env.VITE_MOCK === '1'
-
-async function http<T>(method: string, path: string, body?: unknown): Promise<T> {
-  let res: Response
-  try {
-    res = await fetch(path, {
-      method,
-      headers: { 'Accept-Language': getLang(), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
-      body: body === undefined ? undefined : JSON.stringify(body),
-    })
-  } catch {
-    throw new ApiError(0, tr('couldNotReachTheServer'))
+export class Blocked extends ApiError {
+  constructor() {
+    super(501, tr('needsAServer'))
   }
-  if (!res.ok) {
-    const detail = await res
-      .json()
-      .then((j) => (typeof j?.detail === 'string' ? j.detail : ''))
-      .catch(() => '')
-    const msg =
-      res.status === 429
-        ? tr('kurtHasUsedUpTodaySRoute')
-        : res.status === 503
-          ? tr('theLiveTrainSourceIsNotAnswering')
-          : res.status === 404 && detail.startsWith('Unknown station')
-            ? tx('unknownStationHint', detail)
-            : detail
-              ? `${detail}.`
-              : tx('requestFailed', res.status)
-    throw new ApiError(res.status, msg)
-  }
-  return res.status === 204 ? (undefined as T) : ((await res.json()) as T)
 }
 
-async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
-  if (MOCK) {
-    const { mockCall } = await import('./mocks')
-    return mockCall<T>(method, path, body)
-  }
-  return http<T>(method, path, body)
+const env: Partial<ImportMetaEnv> = import.meta.env ?? {}
+export const MOCK = env.VITE_MOCK === '1'
+
+let live: Transitous | undefined
+const transitous = () => (live ??= createTransitous())
+const odds = httpOddsSource('/data')
+
+// Core errors become the status codes the screens already handle.
+function fail(error: unknown, fallback: string): never {
+  if (error instanceof ApiError) throw error
+  if (error instanceof BudgetSpent) throw new ApiError(429, tr('kurtHasUsedUpTodaySRoute'))
+  if (error instanceof SourceUnavailable) throw new ApiError(503, tr('theLiveTrainSourceIsNotAnswering'))
+  if (error instanceof StorageUnavailable) throw new ApiError(507, tr('tripsCannotBeSavedOnThisDevice'))
+  const message = error instanceof Error ? text(error.message) : ''
+  if (error instanceof PicksNotFound && error.message.startsWith('Unknown station')) throw new ApiError(404, tx('unknownStationHint', message))
+  if (error instanceof PicksNotFound || error instanceof HistoryNotFound) throw new ApiError(404, `${message}.`)
+  if (error instanceof BadRequest || error instanceof OutsideTimetable || error instanceof RangeError) throw new ApiError(400, `${message}.`)
+  throw new ApiError(503, fallback)
+}
+function run<T>(mock: [string, string, unknown?], real: () => T | Promise<T>, fallback = tr('somethingWentWrong')): Promise<T> {
+  if (MOCK) return import('./mocks/index.ts').then(m => m.mockCall<T>(...mock))
+  return (async () => real())().catch(error => fail(error, fallback))
+}
+function saved(r: TripRef) {
+  const trip = getTrip(r.id)
+  if (!trip) throw new ApiError(404, tr('thisTripIsNotSavedOnThis413'))
+  return trip
 }
 
 const qs = (o: Record<string, string | undefined>) => {
@@ -335,29 +338,55 @@ export interface LegalInfo {
 }
 
 export const api = {
-  legal: () => call<LegalInfo>('GET', '/api/legal'),
-  health: () => call<Health>('GET', '/api/health'),
-  stations: (q: string) => call<Station[]>('GET', `/api/stations${qs({ q })}`),
+  legal: () => run<LegalInfo>(['GET', '/api/legal'], () => ({
+    name: env.VITE_OPERATOR_NAME ?? '',
+    address: (env.VITE_OPERATOR_ADDRESS ?? '').split(';').map((line) => line.trim()).filter(Boolean),
+    email: env.VITE_OPERATOR_EMAIL ?? '',
+    hosting: 'Cloudflare Pages',
+    cdn: 'cloudflare',
+    adapter: false,
+  })),
+  health: () => run<Health>(['GET', '/api/health'], () => ({
+    ok: true, version: 'static', sources: { transitous: 'browser', exa: 'blocked', context: 'blocked' }, plan_budget_left: 0,
+  })),
+  stations: (q: string) => run<Station[]>(['GET', `/api/stations${qs({ q })}`], () => stationsSearch(transitous(), q)),
   picks: (p: { from: string; to: string; date: string; time: string; mode?: 'arrive'; before?: string }) =>
-    call<PicksResponse>('GET', `/api/picks${qs(p)}`),
+    run<PicksResponse>(['GET', `/api/picks${qs(p)}`], async () => localize(await getPicks({ tr: transitous(), odds }, {
+      from: p.from, to: p.to, date: p.date, time: p.time || undefined, mode: p.mode, before: p.before ? Number(p.before) : undefined,
+    })), `${text('Odds table unavailable')}.`),
   history: (h: HistoryQuery) =>
-    call<HistoryRuns>('GET', `/api/history${qs({ train: h.train, stop: h.stop, weekday: h.weekday?.toString() })}`),
+    run<HistoryRuns>(['GET', `/api/history${qs({ train: h.train, stop: h.stop, weekday: h.weekday?.toString() })}`],
+      async () => localize(await historyRuns(h.train, h.stop, h.weekday)), `${text('Run history unavailable')}.`),
   historyTrain: (train: string, weekday?: number) =>
-    call<TrainStops>('GET', `/api/history/train${qs({ train, weekday: weekday?.toString() })}`),
+    run<TrainStops>(['GET', `/api/history/train${qs({ train, weekday: weekday?.toString() })}`],
+      async () => localize(await historyTrain(train, weekday)), `${text('Run history unavailable')}.`),
   historyRoute: (from: string, to: string, weekday?: number) =>
-    call<RouteTrains>('GET', `/api/history/route${qs({ from, to, weekday: weekday?.toString() })}`),
-  signals: (p: { from: string; to: string; date: string }) => call<SignalsResponse>('GET', `/api/signals${qs(p)}`),
+    run<RouteTrains>(['GET', `/api/history/route${qs({ from, to, weekday: weekday?.toString() })}`],
+      async () => localize(await historyRoute(from, to, weekday)), `${text('Run history unavailable')}.`),
+  signals: (p: { from: string; to: string; date: string }) => run<SignalsResponse>(['GET', `/api/signals${qs(p)}`], () => ({
+    status: 'unavailable', checked_at: new Date().toISOString(), items: [], banners: [], strike: null, blocked: true,
+  })),
   createTrip: (pick: Pick, price_eur?: number) =>
-    call<Created>('POST', '/api/trips', { pick, price_eur, lang: getLang() }),
-  trip: (r: TripRef) => call<Trip>('GET', tripPath(r.id, r.secret)),
+    run<Created>(['POST', '/api/trips', { pick, price_eur, lang: getLang() }], async () => ({ trip_id: (await saveTrip(pick, price_eur)).id, secret: '' })),
+  trip: (r: TripRef) => run<Trip>(['GET', tripPath(r.id, r.secret)], () => localize(tripView(saved(r)))),
   patchTrip: (r: TripRef, body: { price_eur?: number; switched?: boolean; push?: unknown; lang?: Lang }) =>
-    call<void>('PATCH', tripPath(r.id, r.secret), { ...body, ...('push' in body ? { lang: getLang() } : {}) }),
-  deleteTrip: (r: TripRef) => call<void>('DELETE', tripPath(r.id, r.secret)),
-  claim: (r: TripRef) => call<Claim>('GET', tripPath(r.id, r.secret, '/claim')),
-  lateNow: () => call<LateNow>('GET', '/api/late-now'),
-  backtest: () => call<Backtest>('GET', '/api/backtest'),
-  pushKey: () => call<{ public_key: string }>('GET', '/api/push/key'),
-  recordings: () => call<Recording[]>('GET', '/api/demo/recordings'),
+    run<void>(['PATCH', tripPath(r.id, r.secret), body], () => {
+      if ('push' in body) throw new Blocked()
+      saved(r)
+      updateTrip(r.id, { price_eur: body.price_eur, switched: body.switched })
+    }),
+  deleteTrip: (r: TripRef) => run<void>(['DELETE', tripPath(r.id, r.secret)], () => deleteTrip(r.id)),
+  claim: (r: TripRef) => run<Claim>(['GET', tripPath(r.id, r.secret, '/claim')], () => localize(tripClaim(saved(r)))),
+  // Foreground only: polls the saved trip while the page is visible; returns the stop function.
+  watch: (r: TripRef, onUpdate: () => void) => (MOCK ? () => undefined : watchTrip(r.id, onUpdate, { tr: transitous() })),
+  lateNow: () => run<LateNow>(['GET', '/api/late-now'], () => lateNow(transitous())),
+  backtest: () => run<Backtest>(['GET', '/api/backtest'], async () => {
+    const res = await fetch('/data/backtest.json')
+    if (!res.ok) throw new Error(`backtest.json: HTTP ${res.status}`)
+    return localize((await res.json()) as Backtest)
+  }, `${text('No backtest available')}.`),
+  pushKey: () => run<{ public_key: string }>(['GET', '/api/push/key'], () => { throw new Blocked() }),
+  recordings: () => run<Recording[]>(['GET', '/api/demo/recordings'], () => []),
   demoReplay: (recording?: string) =>
-    call<Created & { recording: Recording }>('POST', '/api/demo/replay', recording ? { recording } : {}),
+    run<Created & { recording: Recording }>(['POST', '/api/demo/replay', recording ? { recording } : {}], () => { throw new Blocked() }),
 }

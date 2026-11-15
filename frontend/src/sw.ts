@@ -1,6 +1,8 @@
 /// <reference lib="webworker" />
 import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, getCacheKeyForURL } from 'workbox-precaching'
-import { getLang, notificationText, type Lang } from './i18n-core'
+import { ExpirationPlugin } from 'workbox-expiration'
+import { registerRoute } from 'workbox-routing'
+import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies'
 import { ADDON_ZIP } from './addon'
 
 declare const self: ServiceWorkerGlobalScope
@@ -12,49 +14,23 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
   if (event.request.mode === 'navigate' && url.origin === self.location.origin
       && url.pathname !== '/' && !getCacheKeyForURL(url.origin + url.pathname)
-      && !/^\/api(?:\/|$)/.test(url.pathname) && url.pathname !== ADDON_ZIP) {
+      && !/^\/(?:data|duckdb)\//.test(url.pathname) && url.pathname !== ADDON_ZIP) {
     event.respondWith(appShell({ event, request: event.request, url }))
   }
 })
+
+// Odds shards change only with a data rebuild. History Parquet is read with Range requests, which the
+// Cache API can't serve correctly, so only whole-file reads (meta.json) go through the cache.
+const sameOrigin = (url: URL) => url.origin === self.location.origin
+registerRoute(({ url }) => sameOrigin(url) && url.pathname.startsWith('/data/odds/'),
+  new CacheFirst({ cacheName: 'kurt-odds', plugins: [new ExpirationPlugin({ maxAgeSeconds: 7 * 24 * 3600, maxEntries: 500 })] }))
+registerRoute(({ url, request }) => sameOrigin(url) && url.pathname.startsWith('/data/history/') && !request.headers.has('range'),
+  new StaleWhileRevalidate({ cacheName: 'kurt-history' }))
+
 self.skipWaiting()
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()))
 
-const LANGUAGE_CACHE = 'kurt-preferences'
-const LANGUAGE_KEY = '/__kurt_language'
-self.addEventListener('message', (event) => {
-  const lang = event.data?.lang
-  if (event.data?.type === 'language' && (lang === 'de' || lang === 'en')) {
-    event.waitUntil(caches.open(LANGUAGE_CACHE).then(cache => cache.put(LANGUAGE_KEY, new Response(lang))))
-  }
-})
-
-self.addEventListener('push', (event) => {
-  let data: { title?: string; body?: string; url?: string; trip_id?: string; lang?: Lang } = {}
-  try {
-    data = event.data?.json() ?? {}
-  } catch {
-    data = { body: event.data?.text() }
-  }
-  const url = data.url ?? (data.trip_id ? `/trip/${data.trip_id}` : '/trips')
-  event.waitUntil(
-    (async () => {
-      let lang = data.lang
-      if (lang !== 'de' && lang !== 'en') {
-        const cached = await caches.open(LANGUAGE_CACHE).then(cache => cache.match(LANGUAGE_KEY)).catch(() => undefined)
-        const saved = await cached?.text()
-        if (saved === 'de' || saved === 'en') lang = saved
-      }
-      const fallback = notificationText(lang === 'de' || lang === 'en' ? lang : getLang())
-      await self.registration.showNotification(data.title ?? fallback.title, {
-        body: data.body ?? fallback.body,
-        icon: '/icon-192.png',
-        badge: '/icon-192.png',
-        data: { url },
-      })
-    })(),
-  )
-})
-
+// Trip alerts are local notifications shown by watchTrip; a click opens the trip.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
   const url: string = event.notification.data?.url ?? '/trips'

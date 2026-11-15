@@ -1,10 +1,11 @@
 import { tx, tr, useT } from '../i18n'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { api, ApiError, type Trip, type TripRef, type TripState } from '../api'
 import { IconBack, IconBell, IconClose, IconTrash } from '../components/Icons'
 import { Flap } from '../components/Flap'
+import { Interested } from '../components/Interested'
 import { Kurt } from '../components/Kurt'
 import { Meter } from '../components/Meter'
 import { hasOdds } from '../components/PickCard'
@@ -14,8 +15,8 @@ import { Banners } from '../components/Signals'
 import { Empty, ErrorState, Loading } from '../components/States'
 import { changesLabel, dayLabel, eur, hhmm, longDate, minLabel, pctNum, signedMin, stopName, timeAgo } from '../format'
 import { useAsync } from '../hooks'
-import { enablePush, pushSupported } from '../push'
-import { findTrip, removeTrip } from '../store'
+import { enableAlerts, pushSupported } from '../push'
+import { findTrip, oldServerTrip, removeTrip } from '../store'
 
 const LABEL = (): Record<TripState, string> => ({
   on_time: tr('onTimeSoFar'),
@@ -55,12 +56,14 @@ function alertFor(prev: TripState, t: Trip): string | null {
 export function TripScreen() {
   useT()
   const { id = '' } = useParams()
+  const { search } = useLocation()
   const ref = findTrip(id)
   if (!ref) {
+    const old = oldServerTrip(id, search)
     return (
       <>
         <ScreenHeader title={tr('yourTrip')} back={<BackLink />} />
-        <Empty title={tr('tripNotFound')} action={<Link to="/trips" className="btn-primary">{tr('myTrips')}</Link>}>{tr('thisTripIsNotSavedOnThis413')} </Empty>
+        <Empty title={old ? tr('tripGone') : tr('tripNotFound')} action={<Link to="/trips" className="btn-primary">{tr('myTrips')}</Link>}>{old ? tr('oldServerTrip') : tr('thisTripIsNotSavedOnThis413')} </Empty>
       </>
     )
   }
@@ -83,6 +86,8 @@ function TripBody({ ref_ }: { ref_: TripRef }) {
   const [alert, setAlert] = useState<string | null>(null)
   const [gone, setGone] = useState(false)
   const [deleteError, setDeleteError] = useState('')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => api.watch(ref_, retry), [ref_.id, retry])
 
   useEffect(() => {
     if (state.status === 'error' && state.error instanceof ApiError && state.error.status === 404) {
@@ -103,7 +108,7 @@ function TripBody({ ref_ }: { ref_: TripRef }) {
     return (
       <>
         <ScreenHeader title={tr('yourTrip')} back={<BackLink />} />
-        <Empty title={tr('tripNotFound')} action={<Link to="/trips" className="btn-primary">{tr('myTrips')}</Link>}>{tr('theServerDoesNotKnowThisTrip')} </Empty>
+        <Empty title={tr('tripNotFound')} action={<Link to="/trips" className="btn-primary">{tr('myTrips')}</Link>}>{tr('thisTripIsNotSavedOnThis413')} </Empty>
       </>
     )
 
@@ -302,7 +307,7 @@ function TripView({
         )}
 
         {!done && !t.is_replay && <BannerLoader t={t} />}
-        {!done && <PushButton ref_={ref_} />}
+        {!done && <PushButton />}
         <DeleteButton onDelete={onDelete} />
       </div>
     </div>
@@ -420,7 +425,7 @@ function SwitchOrStay({ t, ref_, reload }: { t: Trip; ref_: TripRef; reload: () 
             ? tr('aReplayDoesNotLookUpOther')
             : t.switching_before_departure_only
               ? tr('switchingIsOnlyOfferedBeforeDepartureFrom')
-              : tr('noOtherTrainYouCanStillCatch')}
+              : tr('noAlternativesStatic')}
         </p>
       )}
       {alts.map((a, i) => (
@@ -466,19 +471,13 @@ function vsExpected(d: number | null) {
   return tx('alternativeArrivalDifference', Math.abs(d), d < 0 ? tr('before') : tr('after'))
 }
 
-function PushButton({ ref_ }: { ref_: TripRef }) {
+// Local alerts while Kurt is open; alerts with the app closed need a server.
+function PushButton() {
   useT()
-  const key = `spaetkauf.push.${ref_.id}`
-  const [res, setRes] = useState<string>(() => {
-    try {
-      return localStorage.getItem(key) ?? ''
-    } catch {
-      return ''
-    }
-  })
+  const [res, setRes] = useState(() => (pushSupported() && Notification.permission === 'granted' ? 'ok' : ''))
   const [busy, setBusy] = useState(false)
   const msg: Record<string, string> = {
-    ok: tr('notificationsAreOnForThisTrip'),
+    ok: tr('alertsWhileOpen'),
     unsupported: tr('thisBrowserCannotShowNotificationsOnIphone'),
     denied: tr('notificationsAreBlockedForThisSiteAllow'),
     failed: tr('couldNotTurnNotificationsOnTryAgain'),
@@ -490,21 +489,15 @@ function PushButton({ ref_ }: { ref_: TripRef }) {
         disabled={busy || res === 'ok'}
         className="btn-ghost"
         onClick={async () => {
-          if (!pushSupported()) return setRes('unsupported')
           setBusy(true)
-          const r = await enablePush(ref_)
+          setRes(await enableAlerts())
           setBusy(false)
-          setRes(r)
-          try {
-            if (r === 'ok') localStorage.setItem(key, 'ok')
-          } catch {
-            /* ignore */
-          }
         }}
       >
         <IconBell size={18} /> {res === 'ok' ? tr('notificationsOn') : tr('notifyMeAboutThisTrip')}
       </button>
       {res && <p className="text-[12px] leading-snug text-muted" role="status">{msg[res]}</p>}
+      <Interested feature="push" />
     </div>
   )
 }

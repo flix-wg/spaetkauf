@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { Banner, SignalItem, SignalsResponse, Strike } from '../api'
 import { dayLabel, hhmm } from '../format'
 import { IconAlert, IconExternal, IconInfo } from './Icons'
+import { Interested } from './Interested'
 
 const SHOW = 3
 // Only a change on a watched union page counts as a strike signal (Strike, banners); the per-article
@@ -120,7 +121,9 @@ export function SignalsArea({
   const [all, setAll] = useState(false)
   const day = date ? dayLabel(`${date}T12:00:00Z`) : tr('thisDay')
   let body
-  if (loading) {
+  if (s?.blocked) {
+    body = <Interested feature="signals" />
+  } else if (loading) {
     body = (
       <div className="flex min-h-[88px] flex-col justify-center gap-2 rounded-2xl border border-line p-3.5" role="status">
         <span className="text-[13px] text-muted">{tr('checkingTheNews')}</span>
