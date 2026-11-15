@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
 import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, getCacheKeyForURL } from 'workbox-precaching'
+import { ADDON_ZIP } from './addon'
 
 declare const self: ServiceWorkerGlobalScope
 
@@ -10,7 +11,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
   if (event.request.mode === 'navigate' && url.origin === self.location.origin
       && url.pathname !== '/' && !getCacheKeyForURL(url.origin + url.pathname)
-      && !/^\/api(?:\/|$)/.test(url.pathname)) {
+      && !/^\/api(?:\/|$)/.test(url.pathname) && url.pathname !== ADDON_ZIP) {
     event.respondWith(appShell({ event, request: event.request, url }))
   }
 })

@@ -1,7 +1,8 @@
 import { useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
-export type SheetName = 'sources' | 'backtest'
+export type SheetName = 'sources' | 'backtest' | 'addon'
+const NAMES: readonly string[] = ['sources', 'backtest', 'addon']
 
 export function useSheet() {
   const [sp, setSp] = useSearchParams()
@@ -27,5 +28,5 @@ export function useSheet() {
     [setSp],
   )
   const current = sp.get('sheet')
-  return { current: current === 'sources' || current === 'backtest' ? (current as SheetName) : null, open, close }
+  return { current: current && NAMES.includes(current) ? (current as SheetName) : null, open, close }
 }

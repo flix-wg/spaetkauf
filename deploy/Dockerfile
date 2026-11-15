@@ -14,6 +14,11 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY backend/app ./app
 COPY data /app/data
 COPY --from=web /web/dist /app/frontend/dist
+# The Chrome add-on as a download, zipped from this build's own extension/ files.
+COPY extension/manifest.json /tmp/kurt-extension/manifest.json
+COPY extension/icons /tmp/kurt-extension/icons
+COPY extension/src /tmp/kurt-extension/src
+RUN python -c "import shutil; shutil.make_archive('/app/frontend/dist/kurt-extension', 'zip', '/tmp/kurt-extension')" && rm -r /tmp/kurt-extension
 RUN useradd --system --uid 10001 app && mkdir /data && chown app /data
 USER app
 ENV PATH=/app/backend/.venv/bin:$PATH \

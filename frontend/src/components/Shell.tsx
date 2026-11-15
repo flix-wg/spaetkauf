@@ -5,6 +5,7 @@ import { Kurt } from './Kurt'
 import { IconClock, IconHistory, IconInfo, IconTicket, IconTrain } from './Icons'
 import { Sheet } from './Sheet'
 import { SourcesSheet, BacktestSheet } from './InfoSheets'
+import { AddonSheet } from './Addon'
 import { useSheet } from '../sheets'
 import { MOCK } from '../api'
 
@@ -168,6 +169,11 @@ export function Shell() {
       {current === 'backtest' && (
         <Sheet title="How good is Kurt?" onClose={close}>
           <BacktestSheet />
+        </Sheet>
+      )}
+      {current === 'addon' && (
+        <Sheet title="Kurt for bahn.de" onClose={close}>
+          <AddonSheet />
         </Sheet>
       )}
     </>

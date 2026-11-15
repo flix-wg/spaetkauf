@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { api, ApiError, type HistoryQuery, type Pick } from '../api'
+import { AddonCard } from '../components/Addon'
 import { ArriveKurtsPick, ArrivePick } from '../components/ArriveCard'
 import { HistorySheet } from '../components/HistorySheet'
 import { BookSheet } from '../components/BookSheet'
@@ -144,6 +145,7 @@ export function Picks() {
                   Ride instead: also up to 1 h earlier
                 </label>
               )}
+              <AddonCard />
             </>
           )}
         </div>

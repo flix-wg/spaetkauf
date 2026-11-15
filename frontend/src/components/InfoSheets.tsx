@@ -44,6 +44,9 @@ export function SourcesSheet() {
       <button type="button" className="btn-ghost" onClick={() => open('backtest')}>
         How good is Kurt?
       </button>
+      <button type="button" className="btn-ghost" onClick={() => open('addon')}>
+        Chrome add-on for bahn.de
+      </button>
     </div>
   )
 }
