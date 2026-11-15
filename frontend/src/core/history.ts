@@ -2,7 +2,7 @@ import type { HistoryRuns, TrainStops, RouteTrains } from '../api'
 
 type Cell = string | number | bigint | boolean | null
 type Query = (sql: string, args?: Cell[]) => Promise<Cell[][]>
-interface Meta { date_from: string; date_to: string; source: string }
+interface Meta { date_from: string; date_to: string; source: string; files?: string[] }
 const SOURCE = 'Deutsche Bahn arrival data via piebro/deutsche-bahn-data, CC BY 4.0'
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 export class NotFound extends Error {}
@@ -28,7 +28,10 @@ function weekdayFilter(column: string, weekday?: number, parameter = 1): [string
   if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) throw new RangeError('weekday must be between 0 and 6')
   return [` AND isodow(${column}) - 1 = $${parameter}`, [weekday]]
 }
-const round = (n: number, digits = 4) => Math.round(n * 10 ** digits) / 10 ** digits
+function round(n: number, digits = 4) {
+  const scale = 10 ** digits, value = n * scale, floor = Math.floor(value)
+  return (value - floor === 0.5 ? floor + (floor % 2 === 0 ? 0 : 1) : Math.round(value)) / scale
+}
 const hhmm = (n: Cell) => n === null ? null : `${String(Math.floor(Number(n) / 60) % 24).padStart(2, '0')}:${String(Number(n) % 60).padStart(2, '0')}`
 const late = (alias: string, min: number) => `coalesce(${alias}.arr_cancelled OR ${alias}.arr_delay >= ${min}, false)`
 const berlin = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Berlin', timeZoneName: 'longOffset' })
@@ -74,18 +77,22 @@ export function createHistory(query: Query, meta: Meta) {
     async historyRoute(from: string, to: string, weekday?: number): Promise<RouteTrains> {
       const stops = await allStops()
       const [a, aName] = stopMatch(from, stops, 'in the history'), [b, bName] = stopMatch(to, stops, 'in the history')
-      const [extra, args] = weekdayFilter('f.dep_planned', weekday, 3)
+      const fromIds = (await query('SELECT id FROM stops WHERE station_key = $1', [a])).map(row => row[0])
+      const toIds = (await query('SELECT id FROM stops WHERE station_key = $1', [b])).map(row => row[0])
+      // Literal ids (from our own stops table) let DuckDB prune row groups; bound parameters do not.
+      const literals = (ids: Cell[]) => ids.map(Number).filter(Number.isSafeInteger).join(',') || 'NULL'
+      const [extra, args] = weekdayFilter('f.dep_planned', weekday, 1)
       const rows = await query(`WITH f AS (
         SELECT e.run_id, e.seq, e.train_id, e.dep_planned FROM events e
-        WHERE e.stop_id IN (SELECT id FROM stops WHERE station_key = $1) AND e.run_id IS NOT NULL AND e.dep_planned IS NOT NULL),
+        WHERE e.stop_id IN (${literals(fromIds)}) AND e.run_id IS NOT NULL AND e.dep_planned IS NOT NULL),
         j AS (SELECT f.train_id, e.arr_delay, e.arr_cancelled,
         date_part('hour', f.dep_planned) * 60 + date_part('minute', f.dep_planned) AS dep_min,
         date_part('hour', e.arr_planned) * 60 + date_part('minute', e.arr_planned) AS arr_min
         FROM f JOIN events e ON e.run_id = f.run_id AND e.seq > f.seq
-        WHERE e.stop_id IN (SELECT id FROM stops WHERE station_key = $2) AND e.arr_planned IS NOT NULL ${extra})
+        WHERE e.stop_id IN (${literals(toIds)}) AND e.arr_planned IS NOT NULL ${extra})
         SELECT t.train_type::VARCHAR, t.train_number, count(*) AS n,
         sum(${late('j', 20)}::INT), sum(${late('j', 60)}::INT), median(j.arr_delay), mode(j.dep_min ORDER BY j.dep_min), mode(j.arr_min ORDER BY j.arr_min)
-        FROM j JOIN trains t ON t.id = j.train_id GROUP BY t.train_type, t.train_number ORDER BY n DESC, t.train_type::VARCHAR, t.train_number LIMIT 100`, [a, b, ...args])
+        FROM j JOIN trains t ON t.id = j.train_id GROUP BY t.train_type, t.train_number ORDER BY n DESC, t.train_type::VARCHAR, t.train_number LIMIT 100`, args)
       const trains = rows.map(([kind, number, n, l20, l60, med, dep, arr]) => ({ train: `${kind} ${number}`, n: Number(n), dep: hhmm(dep), arr: hhmm(arr), late20: Number(l20), late20_share: round(Number(l20) / Number(n)), late60: Number(l60), late60_share: round(Number(l60) / Number(n)), median_delay_min: med === null ? null : round(Number(med), 1) }))
       trains.sort((a, b) => a.dep! < b.dep! ? -1 : a.dep! > b.dep! ? 1 : a.train < b.train ? -1 : a.train > b.train ? 1 : 0)
       return { from: aName, to: bName, weekday: weekday === undefined ? null : WEEKDAYS[weekday], trains, source: SOURCE }
@@ -105,22 +112,27 @@ async function loadHistory() {
   return loading
 }
 async function initialize() {
+  let meta: Meta
+  try {
+    const response = await fetch('/data/history/meta.json')
+    if (!response.ok) throw new Error()
+    meta = await response.json()
+    if (!meta || typeof meta.date_from !== 'string' || typeof meta.date_to !== 'string'
+      || !Array.isArray(meta.files) || !meta.files.length
+      || !meta.files.every(file => typeof file === 'string' && /^[a-z0-9-]+\.parquet$/.test(file))) throw new Error()
+  } catch { throw new Error('Run history unavailable') }
   const duck = await import('@duckdb/duckdb-wasm')
-  const bundle = await duck.selectBundle({ mvp: { mainModule: '/duckdb/duckdb-mvp.wasm', mainWorker: '/duckdb/duckdb-browser-mvp.worker.js' }, eh: { mainModule: '/duckdb/duckdb-eh.wasm', mainWorker: '/duckdb/duckdb-browser-eh.worker.js' } })
-  const worker = new Worker(bundle.mainWorker!)
+  const response = await fetch('/duckdb/duckdb-eh.wasm.gz')
+  if (!response.ok || !response.body) throw new Error('Run history unavailable')
+  const bytes = await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer()
+  const moduleURL = URL.createObjectURL(new Blob([bytes], { type: 'application/wasm' }))
+  const worker = new Worker('/duckdb/duckdb-browser-eh.worker.js')
   const db = new duck.AsyncDuckDB(new duck.VoidLogger(), worker)
   try {
-    await db.instantiate(bundle.mainModule)
-    const response = await fetch('/data/history/meta.json')
-    if (!response.ok) throw new Error('Run history unavailable')
-    const meta: Meta = await response.json()
-    const files = ['trains.parquet', 'stops.parquet']
-    for (let month = meta.date_from.slice(0, 7); month <= meta.date_to.slice(0, 7);) {
-      files.push(`events-${month}.parquet`)
-      const d = new Date(`${month}-01T00:00:00Z`)
-      d.setUTCMonth(d.getUTCMonth() + 1)
-      month = d.toISOString().slice(0, 7)
-    }
+    try { await db.instantiate(moduleURL) }
+    finally { URL.revokeObjectURL(moduleURL) }
+    await db.open({ filesystem: { reliableHeadRequests: true, allowFullHTTPReads: false, forceFullHTTPReads: false } })
+    const files = meta.files!
     for (const file of files) await db.registerFileURL(file, new URL(`/data/history/${file}`, location.href).href, duck.DuckDBDataProtocol.HTTP, false)
     const conn = await db.connect()
     await conn.query(`SET custom_extension_repository = '${location.origin}/duckdb/extensions'`)
@@ -131,7 +143,7 @@ async function initialize() {
       try { return (await stmt.query(...args)).toArray().map(row => [...row].map(([, value]) => value as Cell)) }
       finally { await stmt.close() }
     }, meta)
-  } catch (error) { await db.terminate(); worker.terminate(); throw error }
+  } catch (error) { await db.terminate(); throw error }
 }
 export async function historyRuns(train: string, stop: string, weekday?: number) { return (await loadHistory()).historyRuns(train, stop, weekday) }
 export async function historyTrain(train: string, weekday?: number) { return (await loadHistory()).historyTrain(train, weekday) }

@@ -71,7 +71,7 @@ def export_odds(source, out):
 
 
 def export_part(db, query, path, count):
-    db.execute(f"COPY ({query}) TO ? (FORMAT PARQUET, COMPRESSION ZSTD)", [str(path)])
+    db.execute(f"COPY ({query}) TO ? (FORMAT PARQUET, COMPRESSION ZSTD, ROW_GROUP_SIZE 8192)", [str(path)])
     if path.stat().st_size >= LIMIT:
         path.unlink()
         if count < 2:
@@ -95,7 +95,6 @@ def export_history(source, out):
             old.unlink()
     with duckdb.connect(str(source), read_only=True) as db:
         meta = dict(db.execute("SELECT key, value FROM meta").fetchall())
-        write_json(out / "meta.json", {k: meta[k] for k in ("date_from", "date_to", "source")})
         for table, query in (
             (
                 "trains",
@@ -111,9 +110,13 @@ def export_history(source, out):
         for month, count in months:
             query = (
                 f"SELECT * FROM events WHERE strftime(day, '%Y-%m') = '{month}' "
-                "ORDER BY train_id, day, stop_id, arr_planned, dep_planned, run_id, seq"
+                "ORDER BY stop_id, train_id, day, arr_planned, dep_planned, run_id, seq"
             )
             export_part(db, query, out / f"events-{month}.parquet", count)
+        write_json(out / "meta.json", {
+            **{k: meta[k] for k in ("date_from", "date_to", "source")},
+            "files": sorted(p.name for p in out.glob("*.parquet")),
+        })
 
 
 def main():

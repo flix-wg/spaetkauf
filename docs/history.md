@@ -51,3 +51,5 @@ endpoint; the route cases are real from/to pairs, plus all pairs among the 6 bus
 | route + weekday | 16 ms | 20 ms |
 
 Before frontend build/test in CI or a fresh checkout, run `scripts/fetch_duckdb_ext.sh` to fetch and verify the self-hosted DuckDB-WASM Parquet extension.
+
+Static history uses gzip-compressed EH WASM; CSP needs `script-src 'wasm-unsafe-eval'` and `connect-src 'self' blob:` (alongside the app’s existing sources).

@@ -2,7 +2,7 @@ import { before, after, test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { createHistory, NotFound } from '../../src/core/history.ts'
+import { createHistory, NotFound, historyRoute } from '../../src/core/history.ts'
 
 const require = createRequire(import.meta.url)
 const dist = new URL('../../node_modules/@duckdb/duckdb-wasm/dist/', import.meta.url).pathname
@@ -10,11 +10,12 @@ const data = new URL('../../public/data/history/', import.meta.url)
 const golden = JSON.parse(readFileSync(new URL('./golden/history.json', import.meta.url), 'utf8'))
 let db, conn, history
 before(async () => {
+  assert.ok(existsSync(data), 'History Parquet data missing; run scripts/export_static.py --history <history.duckdb> --out frontend/public/data')
   const extensions = new URL('../../public/duckdb/extensions/', import.meta.url).pathname
   const parquet = extensions + 'v1.4.3/wasm_eh/parquet.duckdb_extension.wasm'
   assert.ok(existsSync(parquet), `Offline DuckDB-WASM Parquet extension missing: ${parquet}; run scripts/fetch_duckdb_ext.sh`)
   const duck = require('@duckdb/duckdb-wasm/dist/duckdb-node-blocking.cjs')
-  db = await duck.createDuckDB({ eh: { mainModule: dist + 'duckdb-eh.wasm' }, mvp: { mainModule: dist + 'duckdb-mvp.wasm' } }, new duck.VoidLogger(), duck.NODE_RUNTIME)
+  db = await duck.createDuckDB({ eh: { mainModule: dist + 'duckdb-eh.wasm' } }, new duck.VoidLogger(), duck.NODE_RUNTIME)
   await db.instantiate()
   conn = db.connect()
   // The pinned WASM extension loader uses synchronous XHR even in Node.
@@ -56,4 +57,22 @@ test('DST stop-day matches Python', async () => {
 test('unknown train and out-of-range date retain the Python errors', async () => {
   await assert.rejects(history.historyRuns('ICE 99999', 'München Hbf'), new NotFound('No history for ICE 99999'))
   await assert.rejects(history.historyStopDay('München Hbf', '2027-01-01'), new NotFound('The history covers 2025-12-14 to 2026-10-31, not 2027-01-01'))
+})
+
+test('shares round exact halves to even like Python', async () => {
+  const h = createHistory(async sql => sql.startsWith('SELECT id,')
+    ? [[1, 'ICE', '785']] : [['muenchen', 'München Hbf', 32, 1]],
+    { date_from: '2025-12-14', date_to: '2026-10-31', source: '' })
+  assert.equal((await h.historyTrain('ICE 785')).stops[0].late20_share, 0.0312)
+})
+test('missing or HTML history metadata fails before any WASM download', async () => {
+  const original = globalThis.fetch
+  try {
+    for (const response of [new Response('', { status: 404 }), new Response('<!doctype html>')]) {
+      const urls = []
+      globalThis.fetch = async url => { urls.push(url); return response }
+      await assert.rejects(historyRoute('Hamburg', 'München'), new Error('Run history unavailable'))
+      assert.deepEqual(urls, ['/data/history/meta.json'])
+    }
+  } finally { globalThis.fetch = original }
 })
