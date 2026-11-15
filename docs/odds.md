@@ -1,52 +1,38 @@
-# Odds data
+# How the odds are computed
 
-`data/odds.sqlite` (path in the app: `SPAETKAUF_ODDS_PATH`, relative to the repo root; `backtest.json` is read from the same directory) is built by `uv run scripts/build_odds.py` (downloads missing months into `data/raw/`, about 10 s once downloaded). Table `train_stop_stats` as in design D4, index `idx_train_weekday (train_type, train_number, weekday)`, table `meta (key, value)` with source, date range, row counts and build time.
+## The table
 
-## Source and attribution
+`data/odds.sqlite` is built by `uv run scripts/build_odds.py`. The script downloads the monthly files of [piebro/deutsche-bahn-data](https://huggingface.co/datasets/piebro/deutsche-bahn-data) (CC BY 4.0) into `data/raw/` and takes about 10 seconds once they are there. The app finds the file through `SPAETKAUF_ODDS_PATH` and reads `backtest.json` from the same directory.
 
-Delay history: [piebro/deutsche-bahn-data](https://huggingface.co/datasets/piebro/deutsche-bahn-data) on Hugging Face, licence CC BY 4.0. Files `monthly_processed_data/data-2025-12.parquet` to `data-2026-10.parquet`.
+The current build covers planned arrivals from 2025-12-14 to 2026-10-31: 2,687,871 long-distance arrivals in 209,962 rows, 22.9 MB. `train_stop_stats` has one row per train (type and number), stop (EVA) and weekday, with the run count `n`, the cancellations `n_cancel` and how many runs arrived at least 5, 10, 15, 20, 30, 45, 60, 90 and 120 minutes late (`ge5` to `ge120`). `meta` records the source, date range and build time.
 
-Attribution line for the app: "Delay history: piebro/deutsche-bahn-data (CC BY 4.0), arrivals 14 Dec 2025 to 31 Oct 2026."
+Choices made while building it:
 
-## Date range and size
+- Delay is `arrival_change_time - arrival_planned_time`. The dataset's `delay_in_min` is the departure delay at every stop except the last, so it is not used.
+- A cancelled arrival counts as late at every threshold.
+- Long-distance types only: ICE, IC, EC, ECE, EN, NJ, RJ, RJX, FLX, TGV, WB, ES, EST, EUR and D. Replacement trains are dropped because they run under another number.
+- The same arrival can appear twice in the source. Rows are deduplicated on type, number, EVA and planned arrival, keeping the latest observation.
+- The weekday is that of the planned arrival in Berlin time, 0 = Monday.
+- Some stations have two EVAs (Berlin Hbf). The lookup sums all rows that share a `station_key`, computed by `backend/app/matching.py`.
 
-- Arrivals with planned time from 2025-12-14 to 2026-10-31 (current timetable year up to the last full month).
-- 2,687,871 long-distance arrival events after filters and deduplication.
-- 209,962 rows (train, stop, weekday), 22.9 MB. No `n` cut needed (`--min-n 1`); `--min-n 3` is available if the file has to shrink.
+## From table to odds
 
-| type | rows | trains | arrivals | share 20+ late or cancelled |
-|---|---|---|---|---|
-| ICE | 146,329 | 1,296 | 1,834,610 | 26.1 % |
-| IC | 47,341 | 615 | 556,624 | 24.9 % |
-| FLX | 2,930 | 56 | 51,859 | 38.7 % |
-| RJ | 2,917 | 113 | 52,132 | 23.0 % |
-| NJ | 2,853 | 67 | 52,542 | 36.1 % |
-| ECE | 2,629 | 173 | 32,798 | 25.2 % |
-| EC | 1,928 | 115 | 37,767 | 22.2 % |
-| EN | 666 | 29 | 20,376 | 31.1 % |
-| TGV | 654 | 61 | 12,978 | 25.8 % |
-| WB | 554 | 12 | 16,626 | 9.3 % |
-| RJX | 468 | 18 | 9,377 | 23.5 % |
-| EUR | 248 | 16 | 5,303 | 28.0 % |
-| EST | 238 | 15 | 2,393 | 21.1 % |
-| D | 144 | 14 | 1,266 | 33.3 % |
-| ES | 63 | 6 | 1,220 | 41.6 % |
+`backend/app/odds.py` does the lookup. For a direct train, the odds are the share of past runs on that weekday that reached your destination 20 or more minutes late. With changes, each change can be missed: the chance of a miss is the share of runs of the incoming train that arrived later than the change time minus 2 minutes, and the result is `1 - prod(1 - p_miss) * (1 - p_last)`. Those connections are labelled "estimate". The 60-minute odds use the last train only.
 
-## Decisions from the data
+With fewer than 10 runs on that weekday, or a leg without a train number (FlixTrain legs often carry only "FLX10"), the connection gets no odds.
 
-- **Delay column.** `delay_in_min` is the departure delay wherever the train departs: it equals `departure_change_time - departure_planned_time` on 100 % of ICE/IC rows with a departure (2,253,052 rows) but the arrival delay on only 40.6 % of them. Only at terminal stops (246,815 rows) does it equal the arrival delay. The odds therefore use `arrival_change_time - arrival_planned_time`. `arrival_change_time` is never empty when a planned arrival exists (the processed data fills it with the planned time when no change was reported), so the "0 when no change" rule from D4 is already applied upstream.
-- **Cancellations.** `arrival_is_canceled` rows keep their planned times and count in every `ge*` column and in `n_cancel`. Cancelled share of ICE arrivals per month: 3.5 % to 12.5 % (January 2026).
-- **Train types.** The data has many more types (regional operators, buses). Long-distance kept: ICE, IC, EC, ECE, EN, NJ, RJ, RJX, FLX, TGV, plus WB (Westbahn), ES (European Sleeper), EST and EUR (Eurostar), D (Hamburg–Malmö) because they appear with long-distance stops. `IR`, `EX`, lower-case `ice` (6 rows) and numeric junk types are left out. RJX has 18 trains, TGV 61; both are in.
-- **Replacement trains** (`is_replacement_train`) are dropped: they run under another number than the scheduled train. Rows without a plan record (`has_plan_record = false`, about 7 % of ICE/IC arrivals) and additional stops are kept; they are real arrivals of that train.
-- **Duplicates.** `id` is unique, but the same arrival can appear twice (2 of 525,530 ICE arrivals in Jan–Mar). Arrivals are deduplicated on (type, number, EVA, planned arrival), keeping the latest observation. `train_line_ride_id` is not a run id (it repeats across days).
-- **Weekday** is that of the planned arrival at the stop, local time, 0 = Monday. The backend must use the leg's `scheduledArrival` converted to Europe/Berlin.
-- **Station names.** Each EVA gets its most frequent `station_name`; `station_key` is computed from it with `backend/app/matching.py`. Some stations have two EVAs (Berlin Hbf 08011160 and 08098160); the lookup sums rows that share a key.
-- **Monthly coverage** is complete: every day from Dec 2025 to Oct 2026 has ICE arrivals (about 164k–189k per month).
+Every percentage is shrunk toward the same train at the same stop on all weekdays, which is itself shrunk toward the train type's overall rate: `p = (k + m * p_parent) / (n + m)` with m = 50. The counts shown next to it ("late 19 of 30 Fridays") stay raw.
 
-## Spot check
+## Backtest
 
-ICE 785 at München Hbf on Fridays, manual DuckDB query on the parquet files: 46 runs, 3 cancelled, 12 at 20+ min, 5 at 60+ min. Same numbers in `odds.sqlite` (`n=46, n_cancel=3, ge20=12, ge60=5`, 2025-12-19 to 2026-10-30).
+`uv run scripts/backtest.py` (needs the files in `data/raw/`; add `--write` to update `data/backtest.json`) trains on arrivals from 2025-12-14 to 2026-08-31 and scores every long-distance arrival from 2026-09-01 to 2026-10-31. Only arrivals whose cell had at least 10 training runs count: 414,655 of 511,709. m = 50 was picked using the training period alone (trained through July, scored on August).
 
-## Odds in the app
+| | Brier | skill over a constant 26.0 % |
+|---|---|---|
+| constant rate | 0.1855 | 0 |
+| plain k / n | 0.1680 | 9.5 % |
+| shrunk, m = 50 | 0.1649 | 11.1 % |
 
-`backend/app/odds.py` (design D6): direct connections use the last leg's history at the destination for the weekday of the scheduled arrival in Berlin time; connections with changes are labelled "estimate" and add the chance of missing each change. Every percentage is shrunk toward the same train and stop on all weekdays and the train type's rate (m = 50, see `docs/backtest.md`); `late` and `n` stay raw counts. Fewer than 10 runs, or a leg without a train number (FlixTrain "FLX10"), gives no odds for the whole connection.
+Plain shares overstate the top: trains predicted at 93 % were late 67 % of the time. After shrinkage the top bucket predicts 74 % and sees 78 %, and nothing is predicted above 80 %. The cost is that the 40 to 70 % range now comes out 4 to 6 points below what happened. Higher odds were late more often across the whole range, from about 8 % to about 78 %.
+
+What the backtest does not cover: runs on the same day are not independent (one storm or strike hits many trains), the multi-leg formula assumes changes are independent, and the backtest scores single EVAs while the app pools station aliases. A gradient-boosted model and a recency-weighted variant were also tried; neither beat the shrunk rates.

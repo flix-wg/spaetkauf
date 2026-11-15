@@ -2,7 +2,6 @@
 .env
 .env.*
 !.env.example
-design/
 data/raw
 backend/var
 **/node_modules
