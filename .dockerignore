@@ -2,7 +2,6 @@
 .env
 .env.*
 !.env.example
-design/
 data/raw
 backend/var
 **/node_modules
@@ -11,6 +10,5 @@ backend/var
 **/.pytest_cache
 **/.ruff_cache
 frontend/dist
-openspec/
 docs/
 data/history.*
