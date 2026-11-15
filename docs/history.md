@@ -49,3 +49,5 @@ endpoint; the route cases are real from/to pairs, plus all pairs among the 6 bus
 | route | 18 ms | 23 ms |
 | route, busiest stops | 22 ms | 24 ms |
 | route + weekday | 16 ms | 20 ms |
+
+Before frontend build/test in CI or a fresh checkout, run `scripts/fetch_duckdb_ext.sh` to fetch and verify the self-hosted DuckDB-WASM Parquet extension.

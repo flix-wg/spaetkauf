@@ -1934,6 +1934,17 @@
     "weekday": "Friday",
     "trains": [
       {
+        "train": "ICE 2849",
+        "n": 11,
+        "dep": "05:01",
+        "arr": "21:10",
+        "late20": 5,
+        "late20_share": 0.4545,
+        "late60": 3,
+        "late60_share": 0.2727,
+        "median_delay_min": 9.0
+      },
+      {
         "train": "ICE 581",
         "n": 23,
         "dep": "05:01",
@@ -1954,17 +1965,6 @@
         "late60": 2,
         "late60_share": 0.6667,
         "median_delay_min": 65.0
-      },
-      {
-        "train": "ICE 595",
-        "n": 1,
-        "dep": "05:34",
-        "arr": "15:14",
-        "late20": 1,
-        "late20_share": 1.0,
-        "late60": 1,
-        "late60_share": 1.0,
-        "median_delay_min": 75.0
       },
       {
         "train": "ICE 515",
@@ -1989,6 +1989,17 @@
         "median_delay_min": 7.0
       },
       {
+        "train": "ICE 2819",
+        "n": 3,
+        "dep": "05:49",
+        "arr": "13:08",
+        "late20": 2,
+        "late20_share": 0.6667,
+        "late60": 2,
+        "late60_share": 0.6667,
+        "median_delay_min": 39.0
+      },
+      {
         "train": "ICE 505",
         "n": 41,
         "dep": "05:49",
@@ -2009,6 +2020,28 @@
         "late60": 1,
         "late60_share": 0.2,
         "median_delay_min": 9.0
+      },
+      {
+        "train": "ICE 2817",
+        "n": 2,
+        "dep": "06:01",
+        "arr": "11:50",
+        "late20": 1,
+        "late20_share": 0.5,
+        "late60": 1,
+        "late60_share": 0.5,
+        "median_delay_min": 4.0
+      },
+      {
+        "train": "ICE 2823",
+        "n": 6,
+        "dep": "06:01",
+        "arr": "11:50",
+        "late20": 2,
+        "late20_share": 0.3333,
+        "late60": 1,
+        "late60_share": 0.1667,
+        "median_delay_min": 1.5
       },
       {
         "train": "ICE 783",
@@ -2033,6 +2066,28 @@
         "median_delay_min": 12.0
       },
       {
+        "train": "ICE 2821",
+        "n": 7,
+        "dep": "07:01",
+        "arr": "12:52",
+        "late20": 3,
+        "late20_share": 0.4286,
+        "late60": 2,
+        "late60_share": 0.2857,
+        "median_delay_min": 6.0
+      },
+      {
+        "train": "ICE 2829",
+        "n": 5,
+        "dep": "07:01",
+        "arr": "06:17",
+        "late20": 2,
+        "late20_share": 0.4,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 0.0
+      },
+      {
         "train": "ICE 2833",
         "n": 13,
         "dep": "07:01",
@@ -2042,6 +2097,17 @@
         "late60": 1,
         "late60_share": 0.0769,
         "median_delay_min": 2.0
+      },
+      {
+        "train": "ICE 2835",
+        "n": 11,
+        "dep": "07:01",
+        "arr": "16:49",
+        "late20": 3,
+        "late20_share": 0.2727,
+        "late60": 2,
+        "late60_share": 0.1818,
+        "median_delay_min": 0.0
       },
       {
         "train": "ICE 583",
@@ -2077,6 +2143,17 @@
         "median_delay_min": 39.0
       },
       {
+        "train": "ICE 2847",
+        "n": 9,
+        "dep": "07:27",
+        "arr": "17:09",
+        "late20": 6,
+        "late20_share": 0.6667,
+        "late60": 3,
+        "late60_share": 0.3333,
+        "median_delay_min": 17.5
+      },
+      {
         "train": "ICE 597",
         "n": 2,
         "dep": "07:34",
@@ -2102,12 +2179,45 @@
         "train": "ICE 2287",
         "n": 2,
         "dep": "07:50",
-        "arr": "16:49",
+        "arr": "15:08",
         "late20": 1,
         "late20_share": 0.5,
         "late60": 0,
         "late60_share": 0.0,
         "median_delay_min": 10.5
+      },
+      {
+        "train": "ICE 2825",
+        "n": 7,
+        "dep": "07:50",
+        "arr": "01:18",
+        "late20": 3,
+        "late20_share": 0.4286,
+        "late60": 1,
+        "late60_share": 0.1429,
+        "median_delay_min": 6.0
+      },
+      {
+        "train": "ICE 2841",
+        "n": 3,
+        "dep": "07:50",
+        "arr": "15:08",
+        "late20": 1,
+        "late20_share": 0.3333,
+        "late60": 1,
+        "late60_share": 0.3333,
+        "median_delay_min": 6.0
+      },
+      {
+        "train": "ICE 2863",
+        "n": 5,
+        "dep": "07:50",
+        "arr": "21:10",
+        "late20": 3,
+        "late20_share": 0.6,
+        "late60": 3,
+        "late60_share": 0.6,
+        "median_delay_min": 14.0
       },
       {
         "train": "ICE 2911",
@@ -2124,7 +2234,7 @@
         "train": "ICE 2921",
         "n": 2,
         "dep": "07:50",
-        "arr": "15:03",
+        "arr": "06:40",
         "late20": 1,
         "late20_share": 0.5,
         "late60": 1,
@@ -2154,26 +2264,15 @@
         "median_delay_min": 17.0
       },
       {
-        "train": "ICE 2821",
-        "n": 7,
-        "dep": "08:01",
-        "arr": "23:50",
-        "late20": 3,
-        "late20_share": 0.4286,
-        "late60": 2,
-        "late60_share": 0.2857,
-        "median_delay_min": 6.0
-      },
-      {
-        "train": "ICE 2825",
-        "n": 7,
+        "train": "ICE 2827",
+        "n": 14,
         "dep": "08:01",
         "arr": "13:50",
-        "late20": 3,
-        "late20_share": 0.4286,
-        "late60": 1,
+        "late20": 4,
+        "late20_share": 0.2857,
+        "late60": 2,
         "late60_share": 0.1429,
-        "median_delay_min": 6.0
+        "median_delay_min": 10.0
       },
       {
         "train": "ICE 2861",
@@ -2187,6 +2286,17 @@
         "median_delay_min": null
       },
       {
+        "train": "ICE 2935",
+        "n": 2,
+        "dep": "08:01",
+        "arr": "13:42",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 6.0
+      },
+      {
         "train": "ICE 785",
         "n": 37,
         "dep": "08:01",
@@ -2198,15 +2308,48 @@
         "median_delay_min": 5.0
       },
       {
+        "train": "ICE 1201",
+        "n": 1,
+        "dep": "08:13",
+        "arr": "14:26",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 0.0
+      },
+      {
+        "train": "ICE 2843",
+        "n": 5,
+        "dep": "08:34",
+        "arr": "00:41",
+        "late20": 2,
+        "late20_share": 0.4,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 4.0
+      },
+      {
         "train": "ICE 2865",
         "n": 3,
         "dep": "08:34",
-        "arr": "19:50",
+        "arr": "01:17",
         "late20": 3,
         "late20_share": 1.0,
         "late60": 1,
         "late60_share": 0.3333,
         "median_delay_min": 33.0
+      },
+      {
+        "train": "ICE 29003",
+        "n": 1,
+        "dep": "08:34",
+        "arr": "15:08",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 3.0
       },
       {
         "train": "ICE 1915",
@@ -2220,15 +2363,15 @@
         "median_delay_min": 29.0
       },
       {
-        "train": "ICE 2863",
-        "n": 5,
+        "train": "ICE 2845",
+        "n": 9,
         "dep": "09:01",
-        "arr": "21:10",
-        "late20": 3,
-        "late20_share": 0.6,
-        "late60": 3,
-        "late60_share": 0.6,
-        "median_delay_min": 14.0
+        "arr": "17:49",
+        "late20": 2,
+        "late20_share": 0.2222,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 6.0
       },
       {
         "train": "ICE 585",
@@ -2297,21 +2440,10 @@
         "median_delay_min": 13.0
       },
       {
-        "train": "ICE 2817",
-        "n": 2,
-        "dep": "09:48",
-        "arr": "17:09",
-        "late20": 1,
-        "late20_share": 0.5,
-        "late60": 1,
-        "late60_share": 0.5,
-        "median_delay_min": 4.0
-      },
-      {
         "train": "ICE 2913",
         "n": 2,
         "dep": "09:49",
-        "arr": "17:02",
+        "arr": "00:50",
         "late20": 2,
         "late20_share": 1.0,
         "late60": 0,
@@ -2341,28 +2473,6 @@
         "median_delay_min": 26.0
       },
       {
-        "train": "ICE 2823",
-        "n": 6,
-        "dep": "10:01",
-        "arr": "12:52",
-        "late20": 2,
-        "late20_share": 0.3333,
-        "late60": 1,
-        "late60_share": 0.1667,
-        "median_delay_min": 1.5
-      },
-      {
-        "train": "ICE 2847",
-        "n": 9,
-        "dep": "10:01",
-        "arr": "17:09",
-        "late20": 6,
-        "late20_share": 0.6667,
-        "late60": 3,
-        "late60_share": 0.3333,
-        "median_delay_min": 17.5
-      },
-      {
         "train": "ICE 2859",
         "n": 1,
         "dep": "10:01",
@@ -2377,7 +2487,7 @@
         "train": "ICE 2915",
         "n": 3,
         "dep": "10:01",
-        "arr": "23:50",
+        "arr": "15:42",
         "late20": 1,
         "late20_share": 0.3333,
         "late60": 0,
@@ -2407,17 +2517,6 @@
         "median_delay_min": 20.0
       },
       {
-        "train": "ICE 2835",
-        "n": 11,
-        "dep": "11:01",
-        "arr": "16:49",
-        "late20": 3,
-        "late20_share": 0.2727,
-        "late60": 2,
-        "late60_share": 0.1818,
-        "median_delay_min": 0.0
-      },
-      {
         "train": "ICE 2837",
         "n": 13,
         "dep": "11:01",
@@ -2429,26 +2528,26 @@
         "median_delay_min": 27.5
       },
       {
-        "train": "ICE 2943",
+        "train": "ICE 2853",
         "n": 1,
         "dep": "11:01",
-        "arr": "16:40",
+        "arr": "16:49",
         "late20": 0,
         "late20_share": 0.0,
         "late60": 0,
         "late60_share": 0.0,
-        "median_delay_min": 1.0
+        "median_delay_min": 2.0
       },
       {
-        "train": "ICE 2945",
-        "n": 1,
+        "train": "ICE 2937",
+        "n": 2,
         "dep": "11:01",
-        "arr": "16:40",
+        "arr": "16:52",
         "late20": 0,
         "late20_share": 0.0,
         "late60": 0,
         "late60_share": 0.0,
-        "median_delay_min": 19.0
+        "median_delay_min": 5.5
       },
       {
         "train": "ICE 587",
@@ -2484,17 +2583,6 @@
         "median_delay_min": 18.5
       },
       {
-        "train": "ICE 2843",
-        "n": 5,
-        "dep": "11:49",
-        "arr": "19:08",
-        "late20": 2,
-        "late20_share": 0.4,
-        "late60": 0,
-        "late60_share": 0.0,
-        "median_delay_min": 4.0
-      },
-      {
         "train": "ICE 601",
         "n": 42,
         "dep": "11:49",
@@ -2517,26 +2605,15 @@
         "median_delay_min": 21.0
       },
       {
-        "train": "ICE 2845",
-        "n": 9,
-        "dep": "12:01",
-        "arr": "17:49",
-        "late20": 2,
-        "late20_share": 0.2222,
-        "late60": 0,
-        "late60_share": 0.0,
-        "median_delay_min": 6.0
-      },
-      {
-        "train": "ICE 2923",
+        "train": "ICE 2855",
         "n": 1,
         "dep": "12:01",
-        "arr": "17:43",
+        "arr": "17:49",
         "late20": 0,
         "late20_share": 0.0,
         "late60": 0,
         "late60_share": 0.0,
-        "median_delay_min": 0.0
+        "median_delay_min": 19.0
       },
       {
         "train": "ICE 789",
@@ -2564,7 +2641,7 @@
         "train": "ICE 2839",
         "n": 9,
         "dep": "13:01",
-        "arr": "16:49",
+        "arr": "10:49",
         "late20": 1,
         "late20_share": 0.1111,
         "late60": 1,
@@ -2605,10 +2682,21 @@
         "median_delay_min": 60.0
       },
       {
+        "train": "ICE 2887",
+        "n": 2,
+        "dep": "13:27",
+        "arr": "01:36",
+        "late20": 1,
+        "late20_share": 0.5,
+        "late60": 1,
+        "late60_share": 0.5,
+        "median_delay_min": 30.0
+      },
+      {
         "train": "ICE 693",
         "n": 2,
         "dep": "13:32",
-        "arr": "23:32",
+        "arr": "23:15",
         "late20": 2,
         "late20_share": 1.0,
         "late60": 1,
@@ -2660,6 +2748,17 @@
         "median_delay_min": 9.5
       },
       {
+        "train": "ICE 2919",
+        "n": 2,
+        "dep": "14:01",
+        "arr": "19:43",
+        "late20": 1,
+        "late20_share": 0.5,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 16.5
+      },
+      {
         "train": "ICE 881",
         "n": 37,
         "dep": "14:01",
@@ -2685,12 +2784,23 @@
         "train": "ICE 2905",
         "n": 2,
         "dep": "14:19",
-        "arr": "20:50",
+        "arr": "00:18",
         "late20": 1,
         "late20_share": 0.5,
         "late60": 1,
         "late60_share": 0.5,
         "median_delay_min": 43.0
+      },
+      {
+        "train": "ICE 2797",
+        "n": 1,
+        "dep": "14:34",
+        "arr": "21:10",
+        "late20": 1,
+        "late20_share": 1.0,
+        "late60": 1,
+        "late60_share": 1.0,
+        "median_delay_min": null
       },
       {
         "train": "ICE 2799",
@@ -2704,15 +2814,15 @@
         "median_delay_min": 41.0
       },
       {
-        "train": "ICE 2819",
-        "n": 3,
-        "dep": "15:01",
-        "arr": "13:08",
-        "late20": 2,
-        "late20_share": 0.6667,
-        "late60": 2,
-        "late60_share": 0.6667,
-        "median_delay_min": 39.0
+        "train": "ICE 29001",
+        "n": 1,
+        "dep": "14:34",
+        "arr": "21:10",
+        "late20": 1,
+        "late20_share": 1.0,
+        "late60": 1,
+        "late60_share": 1.0,
+        "median_delay_min": null
       },
       {
         "train": "ICE 681",
@@ -2726,15 +2836,15 @@
         "median_delay_min": 1.0
       },
       {
-        "train": "ICE 2841",
-        "n": 3,
+        "train": "ICE 2893",
+        "n": 1,
         "dep": "15:19",
-        "arr": "15:08",
-        "late20": 1,
-        "late20_share": 0.3333,
-        "late60": 1,
-        "late60_share": 0.3333,
-        "median_delay_min": 6.0
+        "arr": "22:00",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 5.0
       },
       {
         "train": "ICE 615",
@@ -2746,50 +2856,6 @@
         "late60": 7,
         "late60_share": 0.1842,
         "median_delay_min": 13.0
-      },
-      {
-        "train": "ICE 2827",
-        "n": 14,
-        "dep": "15:48",
-        "arr": "13:50",
-        "late20": 4,
-        "late20_share": 0.2857,
-        "late60": 2,
-        "late60_share": 0.1429,
-        "median_delay_min": 10.0
-      },
-      {
-        "train": "ICE 2829",
-        "n": 5,
-        "dep": "15:48",
-        "arr": "12:52",
-        "late20": 2,
-        "late20_share": 0.4,
-        "late60": 0,
-        "late60_share": 0.0,
-        "median_delay_min": 0.0
-      },
-      {
-        "train": "ICE 2929",
-        "n": 1,
-        "dep": "15:48",
-        "arr": "23:02",
-        "late20": 1,
-        "late20_share": 1.0,
-        "late60": 0,
-        "late60_share": 0.0,
-        "median_delay_min": 26.0
-      },
-      {
-        "train": "ICE 2935",
-        "n": 2,
-        "dep": "15:48",
-        "arr": "13:42",
-        "late20": 0,
-        "late20_share": 0.0,
-        "late60": 0,
-        "late60_share": 0.0,
-        "median_delay_min": 6.0
       },
       {
         "train": "ICE 605",
@@ -2814,17 +2880,6 @@
         "median_delay_min": 63.5
       },
       {
-        "train": "ICE 2953",
-        "n": 1,
-        "dep": "16:01",
-        "arr": "21:43",
-        "late20": 0,
-        "late20_share": 0.0,
-        "late60": 0,
-        "late60_share": 0.0,
-        "median_delay_min": 0.0
-      },
-      {
         "train": "ICE 883",
         "n": 35,
         "dep": "16:01",
@@ -2836,37 +2891,26 @@
         "median_delay_min": 3.0
       },
       {
+        "train": "ICE 29005",
+        "n": 1,
+        "dep": "16:34",
+        "arr": "23:10",
+        "late20": 1,
+        "late20_share": 1.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 44.0
+      },
+      {
         "train": "ICE 2909",
         "n": 2,
         "dep": "16:34",
-        "arr": "23:11",
+        "arr": "06:09",
         "late20": 1,
         "late20_share": 0.5,
         "late60": 1,
         "late60_share": 0.5,
         "median_delay_min": 30.0
-      },
-      {
-        "train": "ICE 2919",
-        "n": 2,
-        "dep": "17:01",
-        "arr": "22:50",
-        "late20": 1,
-        "late20_share": 0.5,
-        "late60": 0,
-        "late60_share": 0.0,
-        "median_delay_min": 16.5
-      },
-      {
-        "train": "ICE 2937",
-        "n": 2,
-        "dep": "17:01",
-        "arr": "16:52",
-        "late20": 0,
-        "late20_share": 0.0,
-        "late60": 0,
-        "late60_share": 0.0,
-        "median_delay_min": 5.5
       },
       {
         "train": "ICE 683",
@@ -2891,17 +2935,6 @@
         "median_delay_min": 12.0
       },
       {
-        "train": "ICE 2849",
-        "n": 11,
-        "dep": "18:01",
-        "arr": "21:10",
-        "late20": 5,
-        "late20_share": 0.4545,
-        "late60": 3,
-        "late60_share": 0.2727,
-        "median_delay_min": 9.0
-      },
-      {
         "train": "ICE 2903",
         "n": 1,
         "dep": "18:01",
@@ -2911,28 +2944,6 @@
         "late60": 0,
         "late60_share": 0.0,
         "median_delay_min": 4.0
-      },
-      {
-        "train": "ICE 2927",
-        "n": 1,
-        "dep": "18:01",
-        "arr": "23:44",
-        "late20": 1,
-        "late20_share": 1.0,
-        "late60": 1,
-        "late60_share": 1.0,
-        "median_delay_min": 98.0
-      },
-      {
-        "train": "ICE 2957",
-        "n": 1,
-        "dep": "18:01",
-        "arr": "00:06",
-        "late20": 1,
-        "late20_share": 1.0,
-        "late60": 0,
-        "late60_share": 0.0,
-        "median_delay_min": 37.0
       },
       {
         "train": "ICE 885",
@@ -2946,20 +2957,9 @@
         "median_delay_min": 8.0
       },
       {
-        "train": "ICE 2887",
-        "n": 2,
-        "dep": "18:19",
-        "arr": "01:36",
-        "late20": 1,
-        "late20_share": 0.5,
-        "late60": 1,
-        "late60_share": 0.5,
-        "median_delay_min": 30.0
-      },
-      {
         "train": "ICE 2867",
         "n": 2,
-        "dep": "19:01",
+        "dep": "18:19",
         "arr": "00:50",
         "late20": 1,
         "late20_share": 0.5,
@@ -2968,15 +2968,15 @@
         "median_delay_min": 40.0
       },
       {
-        "train": "ICE 2949",
+        "train": "ICE 2895",
         "n": 1,
-        "dep": "19:01",
-        "arr": "00:41",
+        "dep": "18:19",
+        "arr": "00:50",
         "late20": 0,
         "late20_share": 0.0,
         "late60": 0,
         "late60_share": 0.0,
-        "median_delay_min": 5.0
+        "median_delay_min": -5.0
       },
       {
         "train": "ICE 685",

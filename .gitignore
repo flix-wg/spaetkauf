@@ -19,3 +19,5 @@ data/history.tmp
 data/history.duckdb.wal
 
 frontend/public/data/
+
+frontend/public/duckdb/extensions/

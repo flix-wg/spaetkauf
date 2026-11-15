@@ -84,8 +84,8 @@ export function createHistory(query: Query, meta: Meta) {
         FROM f JOIN events e ON e.run_id = f.run_id AND e.seq > f.seq
         WHERE e.stop_id IN (SELECT id FROM stops WHERE station_key = $2) AND e.arr_planned IS NOT NULL ${extra})
         SELECT t.train_type::VARCHAR, t.train_number, count(*) AS n,
-        sum(${late('j', 20)}::INT), sum(${late('j', 60)}::INT), median(j.arr_delay), mode(j.dep_min), mode(j.arr_min)
-        FROM j JOIN trains t ON t.id = j.train_id GROUP BY t.train_type, t.train_number ORDER BY n DESC LIMIT 100`, [a, b, ...args])
+        sum(${late('j', 20)}::INT), sum(${late('j', 60)}::INT), median(j.arr_delay), mode(j.dep_min ORDER BY j.dep_min), mode(j.arr_min ORDER BY j.arr_min)
+        FROM j JOIN trains t ON t.id = j.train_id GROUP BY t.train_type, t.train_number ORDER BY n DESC, t.train_type::VARCHAR, t.train_number LIMIT 100`, [a, b, ...args])
       const trains = rows.map(([kind, number, n, l20, l60, med, dep, arr]) => ({ train: `${kind} ${number}`, n: Number(n), dep: hhmm(dep), arr: hhmm(arr), late20: Number(l20), late20_share: round(Number(l20) / Number(n)), late60: Number(l60), late60_share: round(Number(l60) / Number(n)), median_delay_min: med === null ? null : round(Number(med), 1) }))
       trains.sort((a, b) => a.dep! < b.dep! ? -1 : a.dep! > b.dep! ? 1 : a.train < b.train ? -1 : a.train > b.train ? 1 : 0)
       return { from: aName, to: bName, weekday: weekday === undefined ? null : WEEKDAYS[weekday], trains, source: SOURCE }
@@ -93,7 +93,7 @@ export function createHistory(query: Query, meta: Meta) {
     async historyStopDay(stop: string, date: string) {
       const [key, name] = stopMatch(stop, await allStops(), 'in the history')
       if (date < meta.date_from || date > meta.date_to) throw new NotFound(`The history covers ${meta.date_from} to ${meta.date_to}, not ${date}`)
-      const rows = await query(`SELECT t.train_type::VARCHAR, t.train_number, e.arr_planned::VARCHAR, e.arr_delay, e.arr_cancelled, e.dep_planned::VARCHAR, e.dep_delay, e.dep_cancelled FROM events e JOIN trains t ON t.id = e.train_id JOIN stops s ON s.id = e.stop_id WHERE s.station_key = $1 AND e.day = $2 AND e.arr_planned IS NOT NULL ORDER BY e.arr_planned, t.train_type, t.train_number LIMIT 1001`, [key, date])
+      const rows = await query(`SELECT t.train_type::VARCHAR, t.train_number, e.arr_planned::VARCHAR, e.arr_delay, e.arr_cancelled, e.dep_planned::VARCHAR, e.dep_delay, e.dep_cancelled FROM events e JOIN trains t ON t.id = e.train_id JOIN stops s ON s.id = e.stop_id WHERE s.station_key = $1 AND e.day = $2 AND e.arr_planned IS NOT NULL ORDER BY e.arr_planned, t.train_type::VARCHAR, t.train_number, e.arr_delay, e.arr_cancelled, e.dep_planned, e.dep_delay, e.dep_cancelled LIMIT 1001`, [key, date])
       return { stop: name, date, truncated: rows.length > 1000, arrivals: rows.slice(0, 1000).map(([kind, number, planned, delay, cancelled, dep, depDelay, depCancelled]) => ({ train: `${kind} ${number}`, planned: iso(planned), delay_min: delay === null ? null : Number(delay), cancelled, departs: iso(dep), dep_delay_min: depDelay === null ? null : Number(depDelay), dep_cancelled: depCancelled })), source: SOURCE }
     },
   }
@@ -124,6 +124,7 @@ async function initialize() {
     for (const file of files) await db.registerFileURL(file, new URL(`/data/history/${file}`, location.href).href, duck.DuckDBDataProtocol.HTTP, false)
     const conn = await db.connect()
     await conn.query(`SET custom_extension_repository = '${location.origin}/duckdb/extensions'`)
+    await conn.query('LOAD parquet')
     for (const [view, pattern] of [['events', 'events-*.parquet'], ['stops', 'stops.parquet'], ['trains', 'trains.parquet']]) await conn.query(`CREATE VIEW ${view} AS SELECT * FROM read_parquet('${pattern}')`)
     return createHistory(async (sql, args = []) => {
       const stmt = await conn.prepare(sql)

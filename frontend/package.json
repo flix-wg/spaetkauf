@@ -7,7 +7,7 @@
     "build:mock": "VITE_MOCK=1 tsc && VITE_MOCK=1 vite build",
     "preview": "vite preview",
     "typecheck": "tsc",
-    "test": "node --test tests/"
+    "test": "node --test tests/*.test.ts tests/core/*.test.ts"
   },
   "type": "module",
   "dependencies": {

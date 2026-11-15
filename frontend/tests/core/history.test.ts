@@ -12,12 +12,22 @@ let db, conn, history
 before(async () => {
   const extensions = new URL('../../public/duckdb/extensions/', import.meta.url).pathname
   const parquet = extensions + 'v1.4.3/wasm_eh/parquet.duckdb_extension.wasm'
-  assert.ok(existsSync(parquet), `Offline DuckDB-WASM Parquet extension missing: ${parquet}`)
+  assert.ok(existsSync(parquet), `Offline DuckDB-WASM Parquet extension missing: ${parquet}; run scripts/fetch_duckdb_ext.sh`)
   const duck = require('@duckdb/duckdb-wasm/dist/duckdb-node-blocking.cjs')
   db = await duck.createDuckDB({ eh: { mainModule: dist + 'duckdb-eh.wasm' }, mvp: { mainModule: dist + 'duckdb-mvp.wasm' } }, new duck.VoidLogger(), duck.NODE_RUNTIME)
   await db.instantiate()
   conn = db.connect()
-  conn.query(`SET custom_extension_repository = '${extensions}'`)
+  // The pinned WASM extension loader uses synchronous XHR even in Node.
+  globalThis.XMLHttpRequest = class {
+    open(method, url) {
+      assert.equal(method, 'GET')
+      assert.equal(url, 'https://history.test/duckdb/extensions/v1.4.3/wasm_eh/parquet.duckdb_extension.wasm')
+    }
+    setRequestHeader() {}
+    send() { this.response = Uint8Array.from(readFileSync(parquet)).buffer; this.status = 200 }
+  }
+  conn.query("SET custom_extension_repository = 'https://history.test/duckdb/extensions'")
+  conn.query('LOAD parquet')
   for (const name of readdirSync(data).filter(n => n.endsWith('.parquet'))) {
     db.registerFileBuffer(name, new Uint8Array(readFileSync(new URL(name, data))))
   }
@@ -30,7 +40,7 @@ before(async () => {
     finally { stmt.close() }
   }, JSON.parse(readFileSync(new URL('meta.json', data), 'utf8')))
 })
-after(() => { conn?.close() })
+after(() => { conn?.close(); delete globalThis.XMLHttpRequest })
 test('runs match Python including Berlin timestamps across DST', async () => {
   assert.deepEqual(await history.historyRuns('ICE 785', 'München Hbf'), golden.runs)
 })
