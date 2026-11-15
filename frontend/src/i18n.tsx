@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { changeLang, getLang, en, de, type Lang } from './i18n-core'
+import { api } from './api'
+import { loadTrips } from './store'
 export { tr, tx } from './i18n-core'
 export type { Lang } from './i18n-core'
 export type Theme = 'system' | 'light' | 'dark'
@@ -17,7 +19,12 @@ const Context = createContext<{
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, updateLang] = useState(getLang)
   const [theme, setTheme] = useState(initialTheme)
-  const setLang = (value: Lang) => { changeLang(value); updateLang(value) }
+  const setLang = (value: Lang) => {
+    changeLang(value)
+    updateLang(value)
+    // Saved trips keep their own language for push alerts.
+    for (const ref of loadTrips()) api.patchTrip(ref, { lang: value }).catch(() => undefined)
+  }
   useEffect(() => {
     document.documentElement.lang = lang
     if ('serviceWorker' in navigator) {

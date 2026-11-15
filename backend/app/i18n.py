@@ -5,7 +5,16 @@ from fastapi import Request
 
 
 def lang_from(request: Request) -> str:
-    return "de" if request.headers.get("accept-language", "").lower().startswith("de") else "en"
+    best, best_q = "en", 0.0
+    for part in request.headers.get("accept-language", "").split(","):
+        tag, _, params = part.strip().lower().partition(";")
+        try:
+            q = float(params.split("=", 1)[1]) if params.strip().startswith("q=") else 1.0
+        except ValueError:
+            q = 0.0
+        if q > best_q and tag.split("-")[0] in ("de", "en"):
+            best, best_q = tag.split("-")[0], q
+    return best
 
 
 STRINGS = {
@@ -69,7 +78,7 @@ def text(value: str, lang: str) -> str:
         (r"(\d+) of (\d+) connections have too little history for odds(.*)\.",
          lambda m: f"{m[1]} von {m[2]} Verbindungen haben zu wenige vergangene Fahrten für eine Chance"
          + (" (keine Daten für FlixTrain-Abschnitte)" if m[3] else "") + "."),
-        (r"Under 60 minutes late \((\d+) min\): no compensation is due\.",
+        (r"Under 60 minutes late \((-?\d+) min\): no compensation is due\.",
          lambda m: f"Unter 60 Minuten verspätet ({m[1]} Min.): keine Entschädigung."),
         (r"(\d+) % of the ticket price is owed\. Enter the price to see the amount\.",
          lambda m: f"Du hast Anspruch auf {m[1]} % des Ticketpreises. Gib den Preis für den Betrag ein."),

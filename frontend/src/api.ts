@@ -1,5 +1,5 @@
 import { tx } from './i18n-core'
-import { getLang, tr } from './i18n-core'
+import { getLang, tr, type Lang } from './i18n-core'
 // Types follow design.md D12 and what the backend really returns. Trip calls carry the trip secret as ?secret=.
 
 export type Basis = 'history' | 'estimate' | 'none'
@@ -350,7 +350,7 @@ export const api = {
   createTrip: (pick: Pick, price_eur?: number) =>
     call<Created>('POST', '/api/trips', { pick, price_eur, lang: getLang() }),
   trip: (r: TripRef) => call<Trip>('GET', tripPath(r.id, r.secret)),
-  patchTrip: (r: TripRef, body: { price_eur?: number; switched?: boolean; push?: unknown }) =>
+  patchTrip: (r: TripRef, body: { price_eur?: number; switched?: boolean; push?: unknown; lang?: Lang }) =>
     call<void>('PATCH', tripPath(r.id, r.secret), { ...body, ...('push' in body ? { lang: getLang() } : {}) }),
   deleteTrip: (r: TripRef) => call<void>('DELETE', tripPath(r.id, r.secret)),
   claim: (r: TripRef) => call<Claim>('GET', tripPath(r.id, r.secret, '/claim')),
