@@ -1,0 +1,10 @@
+schema: spec-driven
+
+context: |
+  Hackathon project (Junction 2026). Final submission 2026-11-15 10:00 Helsinki time; scope freeze 2026-11-14 20:00.
+  The system must never send requests to bahn.de or other Deutsche Bahn sites; it only links there.
+  All code is written during the event; the repository is MIT-licensed and becomes public.
+  Keep secrets in .env (gitignored). Never log keys, push subscriptions or prices.
+  Few, meaningful tests; few comments. Cut unused code instead of testing it.
+  Commits and PRs carry no AI attribution or tool mentions.
+  UI text is English; station names stay German.

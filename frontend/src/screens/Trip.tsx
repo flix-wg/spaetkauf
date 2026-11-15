@@ -166,7 +166,7 @@ function TripView({
   const showClaim = !t.booking_delay_excluded && !waiting && !doneOk && (done || delay >= 60)
   const showSwitch = !done && wonUnlocked && !t.switched && !t.stale && !t.booking_delay_excluded
   const notYet = waiting && Date.now() < new Date(b.dep).getTime() - 3 * 3600_000
-  // History runs carry Berlin local times stamped as UTC (docs/replays.md), so they are shown as UTC.
+  // History runs carry Berlin local times stamped as UTC, so they are shown as UTC.
   const atStop = t.delay_basis === 'at_stop'
   const tz = atStop ? 'UTC' : undefined
   const stop = t.at_stop ? stopName(t.at_stop.name) : ''
