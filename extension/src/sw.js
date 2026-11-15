@@ -1,8 +1,20 @@
 'use strict';
+importScripts('../dist/odds.js');
 const DEFAULT_SERVER = 'https://65-108-33-75.sslip.io';
 const oddsCache = new Map();
 const pending = new Map();
-let specWrite = Promise.resolve();
+const sources = new Map();
+let budget;
+let transitous;
+// Extension requests carry no useful Referer, so Transitous asks for a User-Agent instead.
+const userAgent = chrome.declarativeNetRequest.updateSessionRules({
+  removeRuleIds: [1],
+  addRules: [{
+    id: 1, priority: 1,
+    action: { type: 'modifyHeaders', requestHeaders: [{ header: 'User-Agent', operation: 'set', value: `kurt-extension/${chrome.runtime.getManifest().version} (+https://github.com/flix-wg/spaetkauf)` }] },
+    condition: { requestDomains: ['api.transitous.org'], initiatorDomains: [chrome.runtime.id], tabIds: [chrome.tabs.TAB_ID_NONE], resourceTypes: ['xmlhttprequest'] }
+  }]
+});
 async function settings() {
   return chrome.storage.sync.get({ enabled: true, server: DEFAULT_SERVER });
 }
@@ -12,37 +24,28 @@ function serverURL(value) {
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || /(^|\.)(bahn\.de|db\.de|bahn\.com|deutschebahn\.com)$/i.test(hostname)) throw new Error('Invalid Kurt server URL');
   return url.origin;
 }
-function nextBerlinMidnight(now = Date.now()) {
-  const format = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
-  });
-  const parts = time => Object.fromEntries(format.formatToParts(time).map(p => [p.type, p.value]));
-  const today = parts(now);
-  const target = Date.UTC(+today.year, +today.month - 1, +today.day + 1);
-  let midnight = target;
-  for (let i = 0; i < 2; i++) {
-    const local = parts(midnight);
-    const offset = Date.UTC(+local.year, +local.month - 1, +local.day, +local.hour, +local.minute, +local.second) - midnight;
-    midnight = target - offset;
-  }
-  return midnight;
+function oddsSource(server) {
+  if (!sources.has(server)) sources.set(server, KurtOdds.httpOddsSource(server + '/data'));
+  return sources.get(server);
 }
-async function request(server, path, body, timeout = 8000) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeout);
-  try {
-    const response = await fetch(server + path, {
-      method: body === undefined ? 'GET' : 'POST',
-      headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
-      body: body === undefined ? undefined : JSON.stringify(body),
-      signal: controller.signal, credentials: 'omit', redirect: 'error'
-    });
-    const data = await response.json().catch(() => ({}));
-    return response.ok ? { ok: true, status: response.status, data } : { ok: false, status: response.status, error: typeof data.detail === 'string' ? data.detail : `Server returned ${response.status}` };
-  } catch (error) {
-    return { ok: false, status: 0, error: error.name === 'AbortError' ? 'Server request timed out' : 'Server unreachable' };
-  } finally { clearTimeout(timer); }
+// The daily /plan cap needs to outlive the service worker, but the Transitous client reads it synchronously.
+function planBudget() {
+  return budget ??= chrome.storage.local.get({ planBudget: {} }).then(saved => {
+    const values = new Map(Object.entries(saved.planBudget));
+    const save = () => chrome.storage.local.set({ planBudget: Object.fromEntries(values) });
+    return {
+      get length() { return values.size; }, key: i => [...values.keys()][i] ?? null, getItem: key => values.get(key) ?? null,
+      setItem(key, value) { values.set(key, String(value)); save(); }, removeItem(key) { values.delete(key); save(); }
+    };
+  });
+}
+async function route() {
+  await userAgent;
+  return transitous ??= KurtOdds.createTransitous({ storage: await planBudget(), cacheStorage: null });
+}
+function within(work, ms, message) {
+  let timer;
+  return Promise.race([work, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(message)), ms); })]).finally(() => clearTimeout(timer));
 }
 async function handle(message, sender) {
   if (message.type === 'status') {
@@ -56,8 +59,10 @@ async function handle(message, sender) {
   const config = await settings();
   const server = serverURL(config.server);
   if (message.type === 'health') {
-    const response = await request(server, '/api/health', undefined, 5000);
-    return { ok: response.ok && response.data?.ok !== false, version: response.data?.version, adapter: response.data?.sources?.adapter ?? response.data?.adapter, error: response.error };
+    try {
+      const index = await within(oddsSource(server).index(), 5000, 'Server request timed out');
+      return { ok: true, dateTo: index.meta?.date_to };
+    } catch (error) { return { ok: false, error: error.message }; }
   }
   if (!config.enabled) return { ok: false, status: 0, error: 'Extension disabled' };
   if (message.type === 'odds') {
@@ -65,37 +70,19 @@ async function handle(message, sender) {
     const cached = oddsCache.get(key);
     if (cached && cached.until > Date.now()) return cached.response;
     if (pending.has(key)) return pending.get(key);
-    const work = request(server, '/api/ext/odds', message.body).then(response => {
-      if (response.ok) {
-        oddsCache.delete(key);
-        oddsCache.set(key, { until: Date.now() + 600000, response });
-        while (oddsCache.size > 100) oddsCache.delete(oddsCache.keys().next().value);
-      }
+    const source = oddsSource(server);
+    const work = (async () => {
+      const data = await within(KurtOdds.extensionOdds(message.body, { odds: source, tr: await route() }), 8000, 'Server request timed out');
+      // Odds degrade to "none" when files are missing; an unreachable server is an error the page retries.
+      await source.index().catch(() => { throw new Error('Server unreachable'); });
+      const response = { ok: true, status: 200, data };
+      oddsCache.delete(key);
+      oddsCache.set(key, { until: Date.now() + 600000, response });
+      while (oddsCache.size > 100) oddsCache.delete(oddsCache.keys().next().value);
       return response;
-    }).finally(() => pending.delete(key));
+    })().catch(error => ({ ok: false, status: 0, error: error.message })).finally(() => pending.delete(key));
     pending.set(key, work);
     return work;
-  }
-  if (message.type === 'adapt') {
-    const { failures = {}, specs = {} } = await chrome.storage.local.get(['failures', 'specs']);
-    if (specs[message.hash]) return { ok: true, status: 200, spec: specs[message.hash] };
-    if (failures[message.hash] > Date.now()) return { ok: false, status: 422, error: 'Layout adaptation unavailable today' };
-    const response = await request(server, '/api/ext/adapt', { skeleton: message.skeleton, hash: message.hash }, 60000);
-    specWrite = specWrite.catch(() => {}).then(async () => {
-      const saved = await chrome.storage.local.get({ specs: {}, failures: {} });
-      if (response.ok && response.data.spec) {
-        delete saved.specs[message.hash];
-        saved.specs[message.hash] = response.data.spec;
-        const entries = Object.entries(saved.specs).slice(-20);
-        await chrome.storage.local.set({ specs: Object.fromEntries(entries) });
-      } else if ([422, 429, 503].includes(response.status)) {
-        saved.failures = Object.fromEntries(Object.entries(saved.failures).filter(([, until]) => until > Date.now()));
-        saved.failures[message.hash] = nextBerlinMidnight();
-        await chrome.storage.local.set({ failures: saved.failures });
-      }
-    });
-    await specWrite;
-    return response.ok ? { ok: true, status: response.status, spec: response.data.spec } : response;
   }
   return { ok: false, status: 0, error: 'Unknown message' };
 }
@@ -103,4 +90,5 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
   handle(message, sender).then(respond, error => respond({ ok: false, status: 0, error: error.message }));
   return true;
 });
+chrome.runtime.onInstalled.addListener(() => { chrome.storage.local.remove(['specs', 'failures']); });
 chrome.tabs.onRemoved.addListener(tabId => { chrome.storage.session.remove('tab:' + tabId); });

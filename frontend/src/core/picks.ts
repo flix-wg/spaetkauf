@@ -105,6 +105,40 @@ export function rankArrive(picks: Pick[]): Pick[] {
   return mark(picks, p => p.group === 'late_ok' && safe(p) && !p.already_posted && (p.odds?.p20 ?? 0) >= 0.30)
 }
 
+export async function fetchPages(tr: Transitous, src: string, dst: string, start: Date, day: string, arrive = false, before = 0): Promise<[Connection[], Page]> {
+  const found = new Map<string, Connection>()
+  let first: Page = {}, cursor: string | undefined
+  for (let pageNo = 0; pageNo < 3; pageNo++) {
+    const page = await tr.plan({ from: src, to: dst, arriveBy: arrive,
+      ...(cursor ? { cursor } : { time: iso(new Date(+start - before * 60_000)) }) }) as Page
+    if (!pageNo) first = page
+    const its = (await Promise.all((page.itineraries ?? []).map(connection))).filter((p): p is Connection => p !== null)
+    for (const p of its) {
+      const fits = arrive ? Date.parse(p.arr) >= +start - 180 * 60_000 && Date.parse(p.arr) <= +start &&
+        berlinDate(p.dep) === day && berlinDate(p.arr) === day : berlinDate(p.dep) === day
+      if (fits && !found.has(p.id)) found.set(p.id, p)
+    }
+    cursor = arrive ? page.previousPageCursor : page.nextPageCursor
+    const times = (page.itineraries ?? []).map(it => it.startTime).sort()
+    const earliest = its.map(p => p.arr).sort()[0]
+    const done = arrive ? earliest && Date.parse(earliest) < +start - 180 * 60_000 : times.length && berlinDate(times.at(-1)!) > day
+    const shown = [...found.values()].filter(p => arrive || Date.parse(p.dep) >= +start).length
+    if (shown >= 10 || !cursor || done) break
+  }
+  return [[...found.values()], first]
+}
+
+export function fillNames(legs: Leg[], srcName: string, dstName: string) {
+  for (let i = 0; i < legs.length; i++) {
+    const leg = legs[i]
+    if (!stationTokens(leg.from).length) leg.from = i ? legs[i - 1].to : srcName
+    if (!stationTokens(leg.to).length) {
+      const next = legs[i + 1]?.from ?? dstName
+      if (stationTokens(next).length) leg.to = next
+    }
+  }
+}
+
 export async function getPicks(deps: { tr: Transitous; odds: OddsSource; now?: Date }, q: {
   from: string; to: string; date: string; time?: string; mode?: 'depart' | 'arrive'; before?: number
 }): Promise<PicksResponse> {
@@ -116,36 +150,11 @@ export async function getPicks(deps: { tr: Transitous; odds: OddsSource; now?: D
   if (q.time && !/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(q.time)) throw new BadRequest('time must be HH:MM')
   const start = q.time ? new Date(+zonedToUtc(q.date, q.time.slice(0, 5)) + Number(q.time.slice(6) || 0) * 1000) : q.date === today ? now : zonedToUtc(q.date, '06:00')
   const [src, srcLabel] = await resolve(tr, q.from), [dst, dstLabel] = await resolve(tr, q.to)
-  const found = new Map<string, Connection>()
-  let first: Page = {}, cursor: string | undefined
-  for (let pageNo = 0; pageNo < 3; pageNo++) {
-    const page = await tr.plan({ from: src, to: dst, arriveBy: arrive,
-      ...(cursor ? { cursor } : { time: iso(new Date(+start - before * 60_000)) }) }) as Page
-    if (!pageNo) first = page
-    const its = (await Promise.all((page.itineraries ?? []).map(connection))).filter((p): p is Connection => p !== null)
-    for (const p of its) {
-      const fits = arrive ? Date.parse(p.arr) >= +start - 180 * 60_000 && Date.parse(p.arr) <= +start &&
-        berlinDate(p.dep) === q.date && berlinDate(p.arr) === q.date : berlinDate(p.dep) === q.date
-      if (fits && !found.has(p.id)) found.set(p.id, p)
-    }
-    cursor = arrive ? page.previousPageCursor : page.nextPageCursor
-    const times = (page.itineraries ?? []).map(it => it.startTime).sort()
-    const earliest = its.map(p => p.arr).sort()[0]
-    const done = arrive ? earliest && Date.parse(earliest) < +start - 180 * 60_000 : times.length && berlinDate(times.at(-1)!) > q.date
-    const shown = [...found.values()].filter(p => arrive || Date.parse(p.dep) >= +start).length
-    if (shown >= 10 || !cursor || done) break
-  }
+  const [candidates, first] = await fetchPages(tr, src, dst, start, q.date, arrive, before)
   const from = srcLabel || first.from?.name || q.from, to = dstLabel || first.to?.name || q.to
-  const candidates = [...found.values()], catchable = candidates.filter(p => Date.parse(p.dep) >= +now)
+  const catchable = candidates.filter(p => Date.parse(p.dep) >= +now)
   for (const p of candidates) {
-    for (let i = 0; i < p.legs.length; i++) {
-      const leg = p.legs[i]
-      if (!stationTokens(leg.from).length) leg.from = i ? p.legs[i - 1].to : from
-      if (!stationTokens(leg.to).length) {
-        const next = p.legs[i + 1]?.from ?? to
-        if (stationTokens(next).length) leg.to = next
-      }
-    }
+    fillNames(p.legs, from, to)
     p.odds = await connectionOdds(odds, p.legs)
     p.ride_instead = rideInstead(p, catchable, before)
     p.bahn_url = await bahnUrl(from, to, p.dep, odds)

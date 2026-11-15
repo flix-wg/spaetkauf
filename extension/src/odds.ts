@@ -1,0 +1,103 @@
+import type { Leg, Pick } from '../../frontend/src/api'
+import { berlinLocal, weekdayBerlin, zonedToUtc } from '../../frontend/src/core/berlin.ts'
+import { LONG_DISTANCE_TYPES, parseTrain } from '../../frontend/src/core/matching.ts'
+import { connectionOdds, WEEKDAYS } from '../../frontend/src/core/odds.ts'
+import type { Odds } from '../../frontend/src/core/odds'
+import { httpOddsSource } from '../../frontend/src/core/oddsSource.ts'
+import type { OddsSource } from '../../frontend/src/core/oddsSource'
+import { fetchPages, fillNames, resolve, rideInstead } from '../../frontend/src/core/picks.ts'
+import { createTransitous } from '../../frontend/src/core/transitous.ts'
+import type { Transitous } from '../../frontend/src/core/transitous'
+
+export { createTransitous, httpOddsSource }
+export interface Connection { dep: string; arr: string; trains: string[]; date?: string | null; posted?: boolean }
+export interface OddsRequest { from?: string | null; to: string; to_eva?: string | null; date: string; connections: Connection[] }
+export interface Result extends Omit<Odds, 'basis'> { i: number; basis: Odds['basis'] | 'last_train'; train: string | null; kurt: boolean }
+export interface OddsResponse { to: string; date: string; kurt: number | null; link: string; results: Result[] }
+
+const TRANSIT_WAIT = 4000
+const KURT_MIN_P20 = 0.30
+const CLOCK = /^([01]\d|2[0-3]):[0-5]\d$/
+const DAY = /^\d{4}-\d{2}-\d{2}$/
+const nextDay = (day: string) => new Date(Date.parse(`${day}T12:00:00Z`) + 86_400_000).toISOString().slice(0, 10)
+const quotePlus = (s: string) => encodeURIComponent(s).replace(/[!'()*]/g, c => `%${c.charCodeAt(0).toString(16).toUpperCase()}`).replace(/%20/g, '+')
+const optional = <T>(work: Promise<T>) => work.catch(() => null)
+
+function valid(body: OddsRequest): boolean {
+  const text = (value: unknown, max: number) => typeof value === 'string' && value.length <= max
+  return text(body.to, 80) && body.to.length > 0 && (body.from == null || text(body.from, 80)) &&
+    (body.to_eva == null || /^\d{6,9}$/.test(body.to_eva)) && text(body.date, 10) && DAY.test(body.date) &&
+    Array.isArray(body.connections) && body.connections.length <= 30 && body.connections.every(c =>
+      CLOCK.test(c.dep) && CLOCK.test(c.arr) && (c.date == null || DAY.test(c.date)) &&
+      Array.isArray(c.trains) && c.trains.length <= 12 && c.trains.every(t => text(t, 20)))
+}
+
+// Transitous legs for the page's route, keyed by local departure and last train, so a change counts
+// as in the app. Empty without a start station, or when Transitous fails or takes over TRANSIT_WAIT.
+async function routeLegs(tr: Transitous, body: OddsRequest): Promise<Map<string, Leg[]>> {
+  const out = new Map<string, Leg[]>()
+  if (!body.from || !body.connections.length) return out
+  const first = body.connections.reduce((a, c) => {
+    const ka = a.date || body.date, kc = c.date || body.date
+    return kc < ka || (kc === ka && c.dep < a.dep) ? c : a
+  })
+  const day = first.date || body.date
+  const look = async () => {
+    const [src, srcName] = await resolve(tr, body.from!)
+    const [dst, dstName] = await resolve(tr, body.to)
+    const [found] = await fetchPages(tr, src, dst, zonedToUtc(day, first.dep), day)
+    for (const p of found) {
+      fillNames(p.legs, srcName || body.from!, dstName || body.to)
+      const last = parseTrain(p.legs.at(-1)!.train)
+      const key = `${berlinLocal(p.dep).slice(11, 16)} ${last?.join(' ')}`
+      if (last && !out.has(key)) out.set(key, p.legs)
+    }
+    return out
+  }
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const late = new Promise<Map<string, Leg[]>>(done => { timer = setTimeout(() => done(new Map()), TRANSIT_WAIT) })
+  // Any failure keeps the last train's odds.
+  try { return await Promise.race([look().catch(() => new Map<string, Leg[]>()), late]) }
+  finally { clearTimeout(timer) }
+}
+
+export async function extensionOdds(body: OddsRequest, deps: { odds: OddsSource; tr: Transitous }): Promise<OddsResponse> {
+  if (!valid(body)) throw new Error('Invalid odds request')
+  const { odds, tr } = deps
+  const byRoute = await routeLegs(tr, body)
+  let stop = body.to
+  if (body.to_eva) stop = (await optional(odds.index()))?.eva_names[body.to_eva] || stop
+  const results: Result[] = [], page: Pick[] = []
+  for (const [i, connection] of body.connections.entries()) {
+    const day = connection.date || body.date
+    const dep = zonedToUtc(day, connection.dep).toISOString()
+    const arr = zonedToUtc(connection.arr <= connection.dep ? nextDay(day) : day, connection.arr).toISOString()
+    const result: Result = { i, p20: null, p60: null, n: null, late: null, weekday: WEEKDAYS[weekdayBerlin(arr)], basis: 'none', train: null, kurt: false }
+    const trains = connection.trains.map(t => parseTrain(t.replace(/(?<=[A-Za-z])(?=\d)/g, ' ')))
+    const names = trains.map((t, j) => t ? t.join(' ') : connection.trains[j])
+    page.push({ id: String(i), dep, arr, changes: names.length - 1, cancelled: !!connection.posted,
+      legs: names.map(n => ({ trip_id: `${day}:${n}`, train: n, from: '', to: '' })) } as unknown as Pick)
+    const last = trains.at(-1)
+    if (last && LONG_DISTANCE_TYPES.includes(last[0])) {
+      const train = last.join(' ')
+      const history = await optional(connectionOdds(odds, [{ train, to: stop, dep, arr }]))
+      if (history) Object.assign(result, history)
+      if (result.p20 !== null) Object.assign(result, { train, basis: trains.length === 1 ? 'history' : 'last_train' })
+      const legs = byRoute.get(`${connection.dep} ${train}`)
+      if (result.p20 !== null && legs && legs.length > 1) {
+        const both = await optional(connectionOdds(odds, legs))
+        if (both && both.p20 !== null) Object.assign(result, both, { train }) // basis "estimate", the same number as the app
+      }
+    }
+    results.push(result)
+  }
+  // Same rule as the app: a pick needs another train on this page to switch to.
+  const eligible = results.filter(r => !body.connections[r.i].posted && r.p20 !== null && r.p20 >= KURT_MIN_P20 && rideInstead(page[r.i], page))
+  const kurt = eligible.length ? eligible.reduce((best, r) => r.p20! > best.p20! ? r : best).i : null
+  if (kurt !== null) results[kurt].kurt = true
+  const selected = body.connections[kurt ?? 0]
+  const params: [string, string][] = [['tn', body.to], ['date', selected?.date || body.date], ['time', selected?.dep ?? '00:00']]
+  if (body.from) params.push(['from', body.from], ['to', body.to], ['fn', body.from])
+  const link = (body.from ? '/picks?' : '/?') + params.map(([k, v]) => `${k}=${quotePlus(v)}`).join('&')
+  return { to: body.to, date: body.date, kurt, link, results }
+}

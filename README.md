@@ -12,7 +12,7 @@ Built at Junction 2026. Not affiliated with Deutsche Bahn. Kurt never calls bahn
 
 - `backend/`: FastAPI app, SQLite for saved trips, odds from `data/odds.sqlite`.
 - `frontend/`: React PWA (installable, Web Push alerts).
-- `extension/`: optional Chrome extension (load it unpacked) that shows Kurt's odds on a bahn.de results page you have open. It reads that page, asks your Kurt server for the odds and adds badges; it never clicks, fills or loads anything on bahn.de. See [docs/extension.md](docs/extension.md).
+- `extension/`: optional Chrome extension (load it unpacked) that shows Kurt's odds on a bahn.de results page you have open. It reads that page, works out the odds from the Kurt site's static odds files and adds badges; it never clicks, fills or loads anything on bahn.de. See [docs/extension.md](docs/extension.md).
 - `deploy/`: Dockerfile, Docker Compose with Caddy (automatic HTTPS).
 - `scripts/`: rebuild the odds table and the history from the source data.
 

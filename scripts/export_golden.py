@@ -202,8 +202,72 @@ def main():
     snaps = [dict(at=str(i), delay_min=d, cancelled=c) for i, (d, c) in enumerate([(None, False), (18, False), (20, False), (19, False), (22, False), (60, False), (61, True), (62, True)])]
     payload = dict(now=frozen_now.isoformat(), plan=plan, picks=pick_cases, claims=claims, timeline=dict(args=snaps, expected=claim.timeline(snaps)))
     (out.parent / 'picks.json').write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n')
+    ext_cases = extension_cases(db)
     db.close()
-    print(f'Wrote {len(cases)} odds, {len(pick_cases)} picks, {len(claims)} claim and 1 timeline cases from {REVISION}')
+    print(f'Wrote {len(cases)} odds, {len(pick_cases)} picks, {len(claims)} claim, 1 timeline and {len(ext_cases)} extension cases from {REVISION}')
+
+
+def extension_cases(db):
+    """POST /api/ext/odds on the shapes of backend/tests/test_ext.py, with a fake Transitous."""
+    module = types.ModuleType('golden_backend.ext')
+    sys.modules[module.__name__] = module
+    source = subprocess.check_output(['git', 'show', f'{REVISION}:backend/app/ext.py'], cwd=ROOT, text=True)
+    exec(compile(source, f'{REVISION}/ext.py', 'exec'), module.__dict__)
+    unavailable = sys.modules['golden_backend.transitous'].SourceUnavailable
+    def stop(id, name):
+        return dict(type='STOP', id=id, name=name, lat=0, lon=0, modes=['HIGHSPEED_RAIL'])
+    geocode = {'Hamburg Hbf': [stop('de_ham', 'Hamburg Hbf')], 'München Hbf': [stop('de_muc', 'München Hbf')]}
+    def leg(trip, train, origin, destination, dep, arr):
+        return dict(tripId=trip, routeShortName=train, from_={'name': origin}, to={'name': destination},
+                    scheduledStartTime=f'2026-11-20T{dep}:00Z', scheduledEndTime=f'2026-11-20T{arr}:00Z')
+    plan = {'itineraries': [
+        {'startTime': '2026-11-20T05:00:00Z', 'legs': [
+            leg('a', 'ICE 591', 'Hamburg Hbf', 'Fulda', '05:00', '08:00'),
+            leg('b', 'ICE 599', 'Fulda', 'Hauptbahnhof', '08:12', '11:00')]},
+        {'startTime': '2026-11-20T05:30:00Z', 'legs': [leg('c', 'ICE 599', 'Hamburg Hbf', 'München Hbf', '05:30', '11:30')]},
+    ]}
+    plan = json.loads(json.dumps(plan).replace('"from_"', '"from"'))
+
+    class Route:
+        async def geocode(self, text):
+            return geocode.get(text, [])
+        async def plan(self, *args, **kwargs):
+            return plan
+
+    class Down:
+        async def geocode(self, text):
+            raise unavailable('down')
+
+    def journey(dep, arr, *trains, **extra):
+        return dict(dep=dep, arr=arr, trains=list(trains), **extra)
+    route = {'from': 'Hamburg Hbf', 'to': 'München Hbf', 'date': '2026-11-20'}
+    bodies = [
+        ('route', route | {'connections': [
+            journey('06:00', '12:00', 'ICE 591', 'ICE 599'), journey('06:30', '12:30', 'ICE0599'),
+            journey('07:00', '13:00', 'RE 4', 'ICE 785'), journey('07:10', '13:30', 'ICE 785', 'RE 4'),
+            journey('06:40', '12:10', 'RB 2'), journey('07:30', '13:40', 'ICE 99999'),
+            journey('08:00', '12:20', 'ICE 1015', posted=True)]}),
+        ('none', {'to': 'Unmatched destination', 'to_eva': '08000261', 'date': '2026-11-20', 'connections': [
+            journey('23:00', '01:00', 'ICE 785'), journey('10:00', '14:00', 'ICE 785', date='2026-11-21'),
+            journey('10:30', '14:10', 'RB 2', date='2026-11-21')]}),
+        ('down', route | {'connections': [journey('06:00', '12:00', 'ICE 591', 'ICE 599'), journey('06:40', '12:10', 'RB 2')]}),
+    ]
+    out = []
+    async def run():
+        for transitous, body in bodies:
+            tr = {'route': Route(), 'down': Down(), 'none': None}[transitous]
+            request = types.SimpleNamespace(app=types.SimpleNamespace(state=types.SimpleNamespace(transitous=tr)))
+            expected = await module.extension_odds(module.OddsRequest.model_validate(body), request)
+            out.append(dict(transitous=transitous, body=body, expected=expected))
+    asyncio.run(run())
+    route_case, eva_case, down_case = (c['expected'] for c in out)
+    assert [r['basis'] for r in route_case['results']] == ['estimate', 'history', 'last_train', 'none', 'none', 'none', 'history']
+    assert route_case['kurt'] is not None and not route_case['results'][6]['kurt']
+    assert eva_case['results'][0]['weekday'] == 'Saturday' and eva_case['results'][0]['p20'] is not None
+    assert down_case['results'][0]['basis'] == 'last_train'
+    payload = dict(geocode=geocode, plan=plan, cases=out)
+    (ROOT / 'extension/test/golden.json').write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n')
+    return out
 
 
 if __name__ == '__main__':
