@@ -10,8 +10,7 @@ for (const element of document.querySelectorAll('[data-i18n]')) element.textCont
   toggle.addEventListener('change', () => chrome.storage.sync.set({ enabled: toggle.checked }));
   document.getElementById('server').textContent = msg("server", "Kurt server: $1", config.server);
   chrome.runtime.sendMessage({ type: 'health' }).then(health => {
-    const adapter = health.adapter === true || health.adapter?.configured === true || health.adapter === 'configured';
-    document.getElementById('health').textContent = health.ok ? msg('reachable', 'Reachable · $1 · $2', health.version || msg('versionUnknown', 'version unknown'), adapter ? msg('adapterOn', 'backup page reader on') : msg('adapterOff', 'no backup page reader')) : msg("unreachable", "Unreachable: no odds until the server is back");
+    document.getElementById('health').textContent = health.ok ? msg('reachable', 'Reachable · history up to $1', health.dateTo || msg('dateUnknown', 'an unknown date')) : msg("unreachable", "Unreachable: no odds until the server is back");
   }).catch(() => { document.getElementById('health').textContent = msg("unreachable", "Unreachable: no odds until the server is back"); });
   const query = new URLSearchParams(location.search).get('tab');
   const tabs = query === null ? await chrome.tabs.query({ active: true, currentWindow: true }) : [];
@@ -21,7 +20,7 @@ for (const element of document.querySelectorAll('[data-i18n]')) element.textCont
     if (!status) return;
     document.getElementById('tab').textContent = msg("connections", "$1 connections on this page, $2 long-distance", status.count, status.ldCount);
     document.getElementById('checked').textContent = status.at ? msg("checked", "Checked at $1", new Date(status.at).toLocaleTimeString(document.documentElement.lang === 'de' ? 'de-DE' : 'en-GB')) : '';
-    document.getElementById('hash').textContent = [status.path && msg("readBy", "Read by: $1", msg('path' + status.path[0].toUpperCase() + status.path.slice(1), status.path)), status.hash && msg("layout", "layout $1", status.hash.slice(0, 8))].filter(Boolean).join(' · ');
+    document.getElementById('path').textContent = status.path ? msg("readBy", "Read by: $1", msg('path' + status.path[0].toUpperCase() + status.path.slice(1), status.path)) : '';
     document.getElementById('error').textContent = status.error || '';
     const sample = document.getElementById('sample');
     sample.replaceChildren();

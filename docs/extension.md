@@ -6,16 +6,20 @@ The extension only reads the page. It never clicks, fills in or loads anything o
 
 ## Install
 
-Open `chrome://extensions`, turn on Developer mode, choose Load unpacked and select `extension/`. Set your Kurt server in the extension's settings (HTTPS, or HTTP on localhost).
+Run `npm ci && npm run build` in `extension/` (this bundles the app's odds code from `frontend/src/core/` into `extension/dist/odds.js`). Then open `chrome://extensions`, turn on Developer mode, choose Load unpacked and select `extension/`. In the settings, set the Kurt site that serves `/data/odds/` (HTTPS, or HTTP on localhost).
+
+## How it works
+
+The service worker computes the odds with the same code as the app. It fetches `/data/odds/index.json` and one file per train from the Kurt site, and looks the route up on Transitous (`api.transitous.org`) to count a missed change, at most 60 `/plan` calls a day. A session `declarativeNetRequest` rule sets `User-Agent: kurt-extension/<version> (+https://github.com/flix-wg/spaetkauf)` on those Transitous requests, since extension requests carry no Referer. Odds are cached for ten minutes. A missing train file means no odds on that card; an unreachable site shows an error and the page retries.
 
 ## What it sends
 
-Odds requests go to your Kurt server only and contain station names, the destination EVA, date, times and train names. If bahn.de changes its layout and the built-in parser fails, the extension can send the server an outline of the page: tag and class names with no text, prices or station names. With `ANTHROPIC_API_KEY` set, the server asks a model for new selectors (at most 50 calls a day, `SPAETKAUF_ADAPT_DAILY_CAP`). Without the key it sticks to the built-in parser.
+The Kurt site sees which train files are requested. Transitous gets the start and destination names and the departure time. Nothing goes to bahn.de beyond the page you loaded. No tracking.
 
 ## Tests
 
-From `extension/`: `node --test`. The browser test, `SPK_SERVER=http://127.0.0.1:8000 node test/e2e.mjs`, needs Playwright with Chromium installed and runs against local fixtures with bahn.de blocked.
+From `extension/`: `npm test` (builds the bundle; golden cases in `test/golden.json` come from `scripts/export_golden.py`). `npm run e2e` needs Playwright with Chromium and serves the fixtures and static odds locally, with bahn.de and Transitous blocked.
 
 ## Limits
 
-The pick only sees backups shown on the page, so it can miss one the app would find. A bigger layout change can break both the parser and the suggested selectors.
+The static version has not been tried on live bahn.de yet. The pick only sees backups shown on the page, so it can miss one the app would find. A bahn.de layout change can break the built-in parser. When Transitous fails, takes over 4 seconds or the start station is unknown, only the last train's history counts.

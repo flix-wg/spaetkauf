@@ -30,19 +30,10 @@
     "message": "Auf Standard zurücksetzen"
   },
   "privacy": {
-    "message": "Bahnhofsnamen, Daten, Zeiten und Zugnamen gehen nur an deinen Kurt-Server.\nWenn Kurt die Seite nicht lesen kann, schickt er eventuell auch die Seitenstruktur dorthin – alle Texte durch Platzhalter ersetzt. Kein Tracking."
+    "message": "Die Chancen-Dateien kommen von deiner Kurt-Seite, die nur die angefragten Zugnamen sieht.\nUm einen Umstieg wie die App zu zählen, gehen Start, Ziel und Abfahrtszeit an Transitous (api.transitous.org). Kein Tracking."
   },
   "unreachable": {
     "message": "Nicht erreichbar: keine Chancen, bis der Server wieder da ist"
-  },
-  "versionUnknown": {
-    "message": "Version unbekannt"
-  },
-  "adapterOn": {
-    "message": "Ersatz-Seitenleser aktiv"
-  },
-  "adapterOff": {
-    "message": "kein Ersatz-Seitenleser"
   },
   "originRequired": {
     "message": "Gib eine HTTP(S)-Server-Adresse ohne Pfad, Zugangsdaten, Suchparameter oder Fragment ein."
@@ -107,9 +98,6 @@
   "disabled": {
     "message": "Erweiterung deaktiviert"
   },
-  "adaptationUnavailable": {
-    "message": "Layout-Anpassung heute nicht verfügbar"
-  },
   "server": {
     "message": "Kurt-Server: $ARG1$",
     "placeholders": {
@@ -119,13 +107,10 @@
     }
   },
   "reachable": {
-    "message": "Erreichbar · $ARG1$ · $ARG2$",
+    "message": "Erreichbar · Verlauf bis $ARG1$",
     "placeholders": {
       "arg1": {
         "content": "$1"
-      },
-      "arg2": {
-        "content": "$2"
       }
     }
   },
@@ -150,14 +135,6 @@
   },
   "readBy": {
     "message": "Gelesen mit: $ARG1$",
-    "placeholders": {
-      "arg1": {
-        "content": "$1"
-      }
-    }
-  },
-  "layout": {
-    "message": "Layout $ARG1$",
     "placeholders": {
       "arg1": {
         "content": "$1"
@@ -227,14 +204,6 @@
       }
     }
   },
-  "serverError": {
-    "message": "Server meldet $ARG1$",
-    "placeholders": {
-      "arg1": {
-        "content": "$1"
-      }
-    }
-  },
   "dayMonday": {
     "message": "Montagen"
   },
@@ -259,10 +228,10 @@
   "pathHeuristic": {
     "message": "eingebauter Leser"
   },
-  "pathAdapted": {
-    "message": "Ersatzleser"
-  },
   "pathNone": {
     "message": "kein Leser"
+  },
+  "dateUnknown": {
+    "message": "unbekanntes Datum"
   }
 }

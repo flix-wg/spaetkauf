@@ -1,0 +1,357 @@
+{
+  "geocode": {
+    "Hamburg Hbf": [
+      {
+        "type": "STOP",
+        "id": "de_ham",
+        "name": "Hamburg Hbf",
+        "lat": 0,
+        "lon": 0,
+        "modes": [
+          "HIGHSPEED_RAIL"
+        ]
+      }
+    ],
+    "München Hbf": [
+      {
+        "type": "STOP",
+        "id": "de_muc",
+        "name": "München Hbf",
+        "lat": 0,
+        "lon": 0,
+        "modes": [
+          "HIGHSPEED_RAIL"
+        ]
+      }
+    ]
+  },
+  "plan": {
+    "itineraries": [
+      {
+        "startTime": "2026-11-20T05:00:00Z",
+        "legs": [
+          {
+            "tripId": "a",
+            "routeShortName": "ICE 591",
+            "from": {
+              "name": "Hamburg Hbf"
+            },
+            "to": {
+              "name": "Fulda"
+            },
+            "scheduledStartTime": "2026-11-20T05:00:00Z",
+            "scheduledEndTime": "2026-11-20T08:00:00Z"
+          },
+          {
+            "tripId": "b",
+            "routeShortName": "ICE 599",
+            "from": {
+              "name": "Fulda"
+            },
+            "to": {
+              "name": "Hauptbahnhof"
+            },
+            "scheduledStartTime": "2026-11-20T08:12:00Z",
+            "scheduledEndTime": "2026-11-20T11:00:00Z"
+          }
+        ]
+      },
+      {
+        "startTime": "2026-11-20T05:30:00Z",
+        "legs": [
+          {
+            "tripId": "c",
+            "routeShortName": "ICE 599",
+            "from": {
+              "name": "Hamburg Hbf"
+            },
+            "to": {
+              "name": "München Hbf"
+            },
+            "scheduledStartTime": "2026-11-20T05:30:00Z",
+            "scheduledEndTime": "2026-11-20T11:30:00Z"
+          }
+        ]
+      }
+    ]
+  },
+  "cases": [
+    {
+      "transitous": "route",
+      "body": {
+        "from": "Hamburg Hbf",
+        "to": "München Hbf",
+        "date": "2026-11-20",
+        "connections": [
+          {
+            "dep": "06:00",
+            "arr": "12:00",
+            "trains": [
+              "ICE 591",
+              "ICE 599"
+            ]
+          },
+          {
+            "dep": "06:30",
+            "arr": "12:30",
+            "trains": [
+              "ICE0599"
+            ]
+          },
+          {
+            "dep": "07:00",
+            "arr": "13:00",
+            "trains": [
+              "RE 4",
+              "ICE 785"
+            ]
+          },
+          {
+            "dep": "07:10",
+            "arr": "13:30",
+            "trains": [
+              "ICE 785",
+              "RE 4"
+            ]
+          },
+          {
+            "dep": "06:40",
+            "arr": "12:10",
+            "trains": [
+              "RB 2"
+            ]
+          },
+          {
+            "dep": "07:30",
+            "arr": "13:40",
+            "trains": [
+              "ICE 99999"
+            ]
+          },
+          {
+            "dep": "08:00",
+            "arr": "12:20",
+            "trains": [
+              "ICE 1015"
+            ],
+            "posted": true
+          }
+        ]
+      },
+      "expected": {
+        "to": "München Hbf",
+        "date": "2026-11-20",
+        "kurt": 0,
+        "link": "/picks?tn=M%C3%BCnchen+Hbf&date=2026-11-20&time=06%3A00&from=Hamburg+Hbf&to=M%C3%BCnchen+Hbf&fn=Hamburg+Hbf",
+        "results": [
+          {
+            "i": 0,
+            "p20": 0.6927,
+            "p60": 0.2264,
+            "n": 43,
+            "late": 31,
+            "weekday": "Friday",
+            "basis": "estimate",
+            "train": "ICE 599",
+            "kurt": true
+          },
+          {
+            "i": 1,
+            "p20": 0.6465,
+            "p60": 0.2264,
+            "n": 43,
+            "late": 31,
+            "weekday": "Friday",
+            "basis": "history",
+            "train": "ICE 599",
+            "kurt": false
+          },
+          {
+            "i": 2,
+            "p20": 0.2408,
+            "p60": 0.0999,
+            "n": 46,
+            "late": 12,
+            "weekday": "Friday",
+            "basis": "last_train",
+            "train": "ICE 785",
+            "kurt": false
+          },
+          {
+            "i": 3,
+            "p20": null,
+            "p60": null,
+            "n": null,
+            "late": null,
+            "weekday": "Friday",
+            "basis": "none",
+            "train": null,
+            "kurt": false
+          },
+          {
+            "i": 4,
+            "p20": null,
+            "p60": null,
+            "n": null,
+            "late": null,
+            "weekday": "Friday",
+            "basis": "none",
+            "train": null,
+            "kurt": false
+          },
+          {
+            "i": 5,
+            "p20": null,
+            "p60": null,
+            "n": null,
+            "late": null,
+            "weekday": "Friday",
+            "basis": "none",
+            "train": null,
+            "kurt": false
+          },
+          {
+            "i": 6,
+            "p20": 0.4525,
+            "p60": 0.121,
+            "n": 42,
+            "late": 20,
+            "weekday": "Friday",
+            "basis": "history",
+            "train": "ICE 1015",
+            "kurt": false
+          }
+        ]
+      }
+    },
+    {
+      "transitous": "none",
+      "body": {
+        "to": "Unmatched destination",
+        "to_eva": "08000261",
+        "date": "2026-11-20",
+        "connections": [
+          {
+            "dep": "23:00",
+            "arr": "01:00",
+            "trains": [
+              "ICE 785"
+            ]
+          },
+          {
+            "dep": "10:00",
+            "arr": "14:00",
+            "trains": [
+              "ICE 785"
+            ],
+            "date": "2026-11-21"
+          },
+          {
+            "dep": "10:30",
+            "arr": "14:10",
+            "trains": [
+              "RB 2"
+            ],
+            "date": "2026-11-21"
+          }
+        ]
+      },
+      "expected": {
+        "to": "Unmatched destination",
+        "date": "2026-11-20",
+        "kurt": null,
+        "link": "/?tn=Unmatched+destination&date=2026-11-20&time=23%3A00",
+        "results": [
+          {
+            "i": 0,
+            "p20": 0.2223,
+            "p60": 0.0693,
+            "n": 45,
+            "late": 10,
+            "weekday": "Saturday",
+            "basis": "history",
+            "train": "ICE 785",
+            "kurt": false
+          },
+          {
+            "i": 1,
+            "p20": 0.2223,
+            "p60": 0.0693,
+            "n": 45,
+            "late": 10,
+            "weekday": "Saturday",
+            "basis": "history",
+            "train": "ICE 785",
+            "kurt": false
+          },
+          {
+            "i": 2,
+            "p20": null,
+            "p60": null,
+            "n": null,
+            "late": null,
+            "weekday": "Saturday",
+            "basis": "none",
+            "train": null,
+            "kurt": false
+          }
+        ]
+      }
+    },
+    {
+      "transitous": "down",
+      "body": {
+        "from": "Hamburg Hbf",
+        "to": "München Hbf",
+        "date": "2026-11-20",
+        "connections": [
+          {
+            "dep": "06:00",
+            "arr": "12:00",
+            "trains": [
+              "ICE 591",
+              "ICE 599"
+            ]
+          },
+          {
+            "dep": "06:40",
+            "arr": "12:10",
+            "trains": [
+              "RB 2"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "to": "München Hbf",
+        "date": "2026-11-20",
+        "kurt": 0,
+        "link": "/picks?tn=M%C3%BCnchen+Hbf&date=2026-11-20&time=06%3A00&from=Hamburg+Hbf&to=M%C3%BCnchen+Hbf&fn=Hamburg+Hbf",
+        "results": [
+          {
+            "i": 0,
+            "p20": 0.6465,
+            "p60": 0.2264,
+            "n": 43,
+            "late": 31,
+            "weekday": "Friday",
+            "basis": "last_train",
+            "train": "ICE 599",
+            "kurt": true
+          },
+          {
+            "i": 1,
+            "p20": null,
+            "p60": null,
+            "n": null,
+            "late": null,
+            "weekday": "Friday",
+            "basis": "none",
+            "train": null,
+            "kurt": false
+          }
+        ]
+      }
+    }
+  ]
+}

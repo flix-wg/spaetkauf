@@ -122,32 +122,6 @@
     ],
     "date": "2026-11-21"
   },
-  "adapter.html": {
-    "cards": [
-      {
-        "dep": "05:50",
-        "arr": "09:21",
-        "trains": [
-          "ICE 1015"
-        ]
-      },
-      {
-        "dep": "06:50",
-        "arr": "10:21",
-        "trains": [
-          "ICE 599"
-        ]
-      }
-    ],
-    "date": "2026-11-21",
-    "heuristic": [],
-    "spec": {
-      "card": ".connection",
-      "dep": ".clock time:first-child",
-      "arr": ".clock time:last-child",
-      "train": ".trains"
-    }
-  },
   "e2e.html": {
     "cards": [
       {

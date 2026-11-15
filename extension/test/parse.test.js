@@ -6,18 +6,16 @@ const P=require('../src/parse');
 const {document,fixture}=require('./helpers');
 const expected=require('../fixtures/expected.json');
 const clean=cards=>cards.map(({dep,arr,trains})=>({dep,arr,trains}));
-test('synthetic layouts and selector recovery preserve scheduled connections',()=>{
+test('synthetic layouts preserve scheduled connections',()=>{
   for(const [name,e] of Object.entries(expected)) {
     const doc=fixture(name), result=P.parseCards(doc);
     assert.equal(result.looksLikeResults,true,name);
-    assert.deepEqual(clean(result.cards),e.heuristic||e.cards,name);
-    const cards=e.spec?P.applySpec(doc,e.spec):result.cards;
-    assert.deepEqual(clean(cards),e.cards,name+' spec');
-    if(name==='shadow.html') assert.deepEqual(clean(P.applySpec(doc,{card:'li',train:'.trains',dep:':scope .clock time',arr:':scope .clock time'})),e.cards);
+    assert.deepEqual(clean(result.cards),e.cards,name);
+    const cards=result.cards;
     P.assignDates(cards,'2020-01-01');
     assert.deepEqual(cards.map(c=>c.date),e.dates||cards.map(()=>e.date),name+' dates');
     for(const c of cards) { const badge=doc.createElement('spk-badge'); badge.textContent='ICE 999 23:59'; c.core.append(badge); }
-    assert.deepEqual(clean(P.parseCards(doc).cards),e.heuristic||e.cards,name+' badge');
+    assert.deepEqual(clean(P.parseCards(doc).cards),e.cards,name+' badge');
   }
 });
 test('real captured results and URL use the same public entry points',()=>{
@@ -37,15 +35,13 @@ test('real captured results and URL use the same public entry points',()=>{
     }
   }
 });
-test('normalization, authoritative times, fallback dates and invalid specs',()=>{
+test('normalization, authoritative times and fallback dates',()=>{
   assert.equal(P.parseCards(document('<li>08:00 12:00 13:00 14:00 RE 4 Hanau</li>')).cards[0].arr,'13:00');
   assert.equal(P.normTrain('ice00042'),'ICE 42'); assert.equal(P.normTrain('D 4'),null);assert.equal(P.isLongDistance('RE 4'),false);
   const doc=document('<p>To: München Hbf</p><ul><li><time datetime="23:10">23:20</time> <span>01:10</span> ICE 42</li><li>01:00 03:00 RE 4</li></ul>');
   const cards=P.parseCards(doc).cards;P.assignDates(cards,'2026-12-31');assert.deepEqual(cards.map(c=>c.date),['2026-12-31','2027-01-01']);assert.equal(cards[0].dep,'23:10');
   assert.equal(P.pageContext('https://example.org/?zoid=A%401%40L%3D8000261%40',doc).toEva,'8000261');
   assert.equal(P.pageContext('https://example.org/',doc).to,'München Hbf');
-  assert.equal(P.applySpec(doc,{card:'[',train:'span',dep:'time',arr:'time'}),null);
-  assert.equal(P.applySpec(doc,{card:'ul,li',train:'span',dep:'time',arr:'time'}),null);
 });
 
 test('a shared heading allows midnight rollover and a new heading resets the date',()=>{

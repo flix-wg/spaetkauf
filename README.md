@@ -19,7 +19,7 @@ Then open http://localhost:5710. No API keys are needed. Tests: `cd backend && u
 
 ## Browser extension
 
-The extension shows Kurt's odds on a bahn.de results page. Until the store versions are out, install it by hand: download or clone this repo, open `chrome://extensions`, turn on Developer mode, click Load unpacked and pick the `extension/` folder. Then set your Kurt server in the extension's options.
+The extension shows Kurt's odds on a bahn.de results page. Until the store versions are out, install it by hand: clone this repo, run `npm ci && npm run build` in `extension/`, open `chrome://extensions`, turn on Developer mode, click Load unpacked and pick the `extension/` folder. It works out the odds itself from the Kurt site's static files; set that site in the extension's options.
 
 More in `docs/`: [how the odds are computed](docs/odds.md), [run history](docs/history.md), [the extension](docs/extension.md) and [self-hosting](docs/self-hosting.md).
 

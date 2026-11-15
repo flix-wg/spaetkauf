@@ -1,6 +1,7 @@
 import { GE_COLUMNS } from './oddsSource.ts'
 import type { OddsSource, Rates } from './oddsSource'
 
+export const LONG_DISTANCE_TYPES = ['ICE', 'IC', 'EC', 'ECE', 'EN', 'NJ', 'RJ', 'RJX', 'FLX', 'TGV', 'WB', 'ES', 'EST', 'EUR', 'D']
 export const MIN_RUNS = 10
 const DROP = new Set(['hbf', 'hauptbahnhof', 'bahnhof', 'bf', 'am', 'tief'])
 const SPELL: Record<string, string> = { m: 'main', fernbf: 'fernbahnhof' }

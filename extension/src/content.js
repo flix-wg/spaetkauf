@@ -38,39 +38,9 @@
   }
   async function run(token) {
     const ctx = SpkParse.pageContext(location, document);
-    const words = [ctx.from, ctx.to].filter(Boolean).flatMap(name => name.split(/[^\p{L}]+/u)).filter(word => word.length >= 3);
-    const saved = await chrome.storage.local.get({ specs: {}, failures: {} });
-    let hash = null;
-    let skeleton;
-    let cards;
-    let path = 'none';
-    if (Object.keys(saved.specs).length) {
-      skeleton = SpkSkeleton.build(document.body, { words });
-      hash = await SpkSkeleton.hash(skeleton);
-      if (saved.specs[hash]) {
-        cards = SpkParse.applySpec(document, saved.specs[hash]);
-        if (cards?.length) path = 'adapted';
-      }
-    }
-    if (!cards?.length) {
-      const parsed = SpkParse.parseCards(document);
-      cards = parsed.cards;
-      if (cards.length) path = 'heuristic';
-      else if (parsed.looksLikeResults) {
-        skeleton ??= SpkSkeleton.build(document.body, { words });
-        hash ??= await SpkSkeleton.hash(skeleton);
-        if (!(saved.failures[hash] > Date.now())) {
-          const response = await send({ type: 'adapt', skeleton, hash });
-          if (response.spec) {
-            cards = SpkParse.applySpec(document, response.spec) || [];
-            if (cards.length) path = 'adapted';
-          }
-        }
-      }
-    }
-    cards = SpkParse.assignDates(cards || [], ctx.date);
+    const cards = SpkParse.assignDates(SpkParse.parseCards(document).cards, ctx.date);
     if (!enabled || token !== generation) return;
-    const status = { path, count: cards.length, ldCount: cards.filter(c => c.ldTrains.length).length, to: ctx.to, date: cards[0]?.date || ctx.date, hash, sample: cards.slice(0, 3).map(({ dep, arr, trains }) => ({ dep, arr, trains })), error: null };
+    const status = { path: cards.length ? 'heuristic' : 'none', count: cards.length, ldCount: cards.filter(c => c.ldTrains.length).length, to: ctx.to, date: cards[0]?.date || ctx.date, sample: cards.slice(0, 3).map(({ dep, arr, trains }) => ({ dep, arr, trains })), error: null };
     const selected = cards.filter(c => c.ldTrains.length).slice(0, 30);
     const current = new Set(selected.map(c => c.el));
     for (const old of rendered) if (!current.has(old)) SpkOverlay.clear(old);

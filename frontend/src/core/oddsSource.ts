@@ -14,13 +14,18 @@ export interface OddsSource {
   train(type: string, number: string): Promise<TrainShard | null>
 }
 
-export function httpOddsSource(base: string): OddsSource {
+// Only answers that will not change (404, or the Pages HTML fallback) stay memoized as missing;
+// 5xx, network errors and timeouts are retried on the next call.
+export function httpOddsSource(base: string, init: RequestInit = {}, timeoutMs = 10000): OddsSource {
   const memo = new Map<string, Promise<unknown>>()
   function read<T>(path: string, missing = false): Promise<T> {
     const cached = memo.get(path)
     if (cached) return cached as Promise<T>
-    const request = fetch(`${base}/odds/${path}`).then(async response => {
-      if (missing && !response.ok) return null as T
+    const request = fetch(`${base}/odds/${path}`, { ...init, signal: AbortSignal.timeout(timeoutMs) }).then(async response => {
+      if (missing && !response.ok) {
+        if (response.status !== 404) memo.delete(path)
+        return null as T
+      }
       if (!response.ok) throw new Error(`Odds source returned ${response.status}`)
       try { return await response.json() as T }
       catch (error) { if (missing) return null as T; throw error }

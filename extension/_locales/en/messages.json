@@ -30,19 +30,10 @@
     "message": "Reset to default"
   },
   "privacy": {
-    "message": "Station names, dates, times and train names go only to your Kurt server.\nIf Kurt can’t read the page, it may also send the page’s structure there, with all text replaced by placeholders. No tracking."
+    "message": "The odds files come from your Kurt site, which sees only the train names it is asked for.\nTo count a change like the app, the start and destination names and the departure time go to Transitous (api.transitous.org). No tracking."
   },
   "unreachable": {
     "message": "Unreachable: no odds until the server is back"
-  },
-  "versionUnknown": {
-    "message": "version unknown"
-  },
-  "adapterOn": {
-    "message": "backup page reader on"
-  },
-  "adapterOff": {
-    "message": "no backup page reader"
   },
   "originRequired": {
     "message": "Enter an http(s) server origin without a path, credentials, query or fragment."
@@ -107,9 +98,6 @@
   "disabled": {
     "message": "Extension disabled"
   },
-  "adaptationUnavailable": {
-    "message": "Layout adaptation unavailable today"
-  },
   "server": {
     "message": "Kurt server: $ARG1$",
     "placeholders": {
@@ -119,13 +107,10 @@
     }
   },
   "reachable": {
-    "message": "Reachable · $ARG1$ · $ARG2$",
+    "message": "Reachable · history up to $ARG1$",
     "placeholders": {
       "arg1": {
         "content": "$1"
-      },
-      "arg2": {
-        "content": "$2"
       }
     }
   },
@@ -150,14 +135,6 @@
   },
   "readBy": {
     "message": "Read by: $ARG1$",
-    "placeholders": {
-      "arg1": {
-        "content": "$1"
-      }
-    }
-  },
-  "layout": {
-    "message": "layout $ARG1$",
     "placeholders": {
       "arg1": {
         "content": "$1"
@@ -227,14 +204,6 @@
       }
     }
   },
-  "serverError": {
-    "message": "Server returned $ARG1$",
-    "placeholders": {
-      "arg1": {
-        "content": "$1"
-      }
-    }
-  },
   "dayMonday": {
     "message": "Mondays"
   },
@@ -259,10 +228,10 @@
   "pathHeuristic": {
     "message": "built-in reader"
   },
-  "pathAdapted": {
-    "message": "backup reader"
-  },
   "pathNone": {
     "message": "no reader"
+  },
+  "dateUnknown": {
+    "message": "an unknown date"
   }
 }
