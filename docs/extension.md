@@ -1,13 +1,21 @@
-# Kurt for bahn.de
+# Browser extension
 
-Shows historical late-arrival odds beside long-distance connections and marks Kurt’s pick: the highest chance of at least 30 % with another connection on the page that leaves within 2 hours and arrives at most 20 minutes later, the same rule as the app. It reads results already loaded by the traveller; it does not book or navigate. When a card already shows a delay or cancellation, its badge starts with "Delay already posted: won’t count", keeps its odds and loses Kurt’s mark; no other card gets it. Seat and occupancy notices are ignored.
+The extension in `extension/` adds Kurt's odds to a bahn.de results page you already have open. Each long-distance connection gets a badge, and one gets Kurt's mark: the highest odds of at least 30 % that has a backup on the same page leaving within 2 hours and arriving at most 20 minutes later. That is the rule the app uses. A card that already shows a delay or cancellation keeps its odds, loses the mark and says the posted delay won't count.
 
-Install: open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select `extension/`. In the extension’s settings, set the Kurt server URL (HTTPS, or HTTP on localhost). Custom HTTPS servers ask for access on save. The popup toggles overlays and shows server health, adapter availability, parser path, counts, last check, layout hash and three parsed connections.
+The extension only reads the page. It never clicks, fills in or loads anything on bahn.de.
 
-Privacy: odds requests send origin/destination names and destination EVA, date, times and train names to the configured Kurt server only. When the heuristic fails, the adapter sends a structure-only skeleton of tags, classes, attribute names and content tokens: no text, prices or station names. Class and attribute names containing 3+ consecutive digits or words from the searched station names are dropped. Nothing is sent to bahn.de beyond the page the user loads. No tracking.
+## Install
 
-The server uses `claude-haiku-5-5` to suggest selectors when heuristics fail: one call per layout hash per day, at most 50 calls/day by default (`SPAETKAUF_ADAPT_DAILY_CAP`). Set `ANTHROPIC_API_KEY` on the server to enable it. A 503 means heuristics only. Successful selectors are kept locally (20 layouts); unavailable layouts are remembered until the next day in Berlin. Adaptation waits up to 60 seconds. Odds are cached for ten minutes in the service worker.
+Open `chrome://extensions`, turn on Developer mode, choose Load unpacked and select `extension/`. Set your Kurt server in the extension's settings (HTTPS, or HTTP on localhost).
 
-Tests from `extension/`: `node --test`; for the local browser integration run `SPK_SERVER=http://127.0.0.1:8000 node test/e2e.mjs`. Playwright and its Chromium channel must already be installed. Optional `SPK_SHOTS` sets the screenshot directory (default `~/tmp/spk-shots-real`). The integration test checks local fixtures and service-worker requests without backend CORS middleware; it blocks bahn.de network access.
+## What it sends
 
-Limits: checked by hand on live bahn.de on 2026-11-14 (badges, Kurt’s pick, the explainer and Open in Kurt); the retry after a failed odds request and the popup were not tried live. The pick only sees backups shown on the page, so it can miss one the app finds. Layout changes can defeat both heuristics and suggested selectors. Odds describe past runs, not a prediction; with a change, the server looks the route up on Transitous and counts a missed change like the app; when that fails, takes over 4 seconds, or the start station is unknown, only the last train’s history counts.
+Odds requests go to your Kurt server only and contain station names, the destination EVA, date, times and train names. If bahn.de changes its layout and the built-in parser fails, the extension can send the server an outline of the page: tag and class names with no text, prices or station names. With `ANTHROPIC_API_KEY` set, the server asks a model for new selectors (at most 50 calls a day, `SPAETKAUF_ADAPT_DAILY_CAP`). Without the key it sticks to the built-in parser.
+
+## Tests
+
+From `extension/`: `node --test`. The browser test, `SPK_SERVER=http://127.0.0.1:8000 node test/e2e.mjs`, needs Playwright with Chromium installed and runs against local fixtures with bahn.de blocked.
+
+## Limits
+
+The pick only sees backups shown on the page, so it can miss one the app would find. A bigger layout change can break both the parser and the suggested selectors.
