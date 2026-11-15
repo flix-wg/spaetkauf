@@ -7,14 +7,15 @@ const { JSDOM } = require('jsdom');
 const result = { p20: 0.41, late: 14, n: 34, weekday: 'Saturday', basis: 'history', kurt: false };
 const card = { trains: ['ICE 599'] };
 test('odds text, Kurt, changes and missing history', () => {
-  assert.deepEqual(text(result, card), { line: '41 % 20+ late (14 of 34 Saturdays)', kurt: false });
-  assert.equal(text({ ...result, kurt: true }, card).line, 'Kurt: 41 % 20+ late (14 of 34 Saturdays)');
-  assert.equal(text({ ...result, p20: 0.416, basis: 'last_train' }, card).line, '42 % last train 20+ late (14 of 34 Saturdays)');
-  assert.equal(text({ ...result, p20: null, basis: 'none', train: 'ICE 599' }, card).line, 'No history for this train yet');
-  assert.deepEqual(text({ ...result, kurt: true }, { ...card, posted: true }), { line: 'Delay already posted: won’t count · 41 % 20+ late (14 of 34 Saturdays)', kurt: false });
+  assert.deepEqual(text(result, card), { line: '41 % chance of 20+ min late', kurt: false, detail: 'Late 14 of 34 Saturdays.' });
+  assert.equal(text({ ...result, kurt: true }, card).line, 'Kurt’s pick: 41 % chance of 20+ min late');
+  assert.equal(text({ ...result, p20: 0.416, basis: 'last_train', train: 'ICE 599' }, card).line, '42 % chance ICE 599 is 20+ min late');
+  assert.deepEqual(text({ ...result, basis: 'estimate', train: 'ICE 599' }, card), { line: '41 % chance of 20+ min late', kurt: false, detail: 'Counts a missed change. ICE 599 alone: late 14 of 34 Saturdays.' });
+  assert.equal(text({ ...result, p20: null, basis: 'none', train: 'ICE 599' }, card).line, 'Not enough history for odds');
+  assert.deepEqual(text({ ...result, kurt: true }, { ...card, posted: true }), { line: 'Already posted: does not count', kurt: false, detail: null });
   for (const s of ['Verspätung aus vorheriger Fahrt', 'Zug fällt aus', 'Halt entfällt', 'Delayed by 12 min']) assert.ok(globalThis.SpkParse.posted(s), s);
   for (const s of ['Es liegen Meldungen vor.', 'Sitzplätze ausgebucht (1. Klasse)', 'Hohe Auslastung erwartet']) assert.ok(!globalThis.SpkParse.posted(s), s);
-  assert.equal(text({ ...result, p20: NaN }, { trains: ['ICE 599', 'RE 4'] }).line, 'No odds: last leg is a regional train');
+  assert.equal(text({ ...result, p20: NaN }, { trains: ['ICE 599', 'RE 4'] }).line, 'No odds: ends on a regional train');
 });
 test('closed badge stays outside interactive controls and clears after removal', () => {
   const dom = new JSDOM('<article><button><span>Train</span></button><button>Weiter</button></article>');

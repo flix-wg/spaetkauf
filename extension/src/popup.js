@@ -4,20 +4,20 @@
   const toggle = document.getElementById('enabled');
   toggle.checked = config.enabled;
   toggle.addEventListener('change', () => chrome.storage.sync.set({ enabled: toggle.checked }));
-  document.getElementById('server').textContent = config.server;
+  document.getElementById('server').textContent = 'Kurt server: ' + config.server;
   chrome.runtime.sendMessage({ type: 'health' }).then(health => {
     const adapter = health.adapter === true || health.adapter?.configured === true || health.adapter === 'configured';
-    document.getElementById('health').textContent = health.ok ? `Reachable · ${health.version || 'version unknown'} · adapter ${adapter ? 'configured' : 'missing'}` : 'Unreachable';
-  }).catch(() => { document.getElementById('health').textContent = 'Unreachable'; });
+    document.getElementById('health').textContent = health.ok ? `Reachable · ${health.version || 'version unknown'} · ${adapter ? 'backup page reader on' : 'no backup page reader'}` : 'Unreachable: no odds until the server is back';
+  }).catch(() => { document.getElementById('health').textContent = 'Unreachable: no odds until the server is back'; });
   const query = new URLSearchParams(location.search).get('tab');
   const tabs = query === null ? await chrome.tabs.query({ active: true, currentWindow: true }) : [];
   const tabId = query === null ? tabs[0]?.id : Number(query);
   const key = 'tab:' + tabId;
   function display(status) {
     if (!status) return;
-    document.getElementById('tab').textContent = `${status.count} connections (${status.ldCount} long-distance) · parser: ${status.path}`;
-    document.getElementById('checked').textContent = status.at ? 'Last check: ' + new Date(status.at).toLocaleTimeString() : '';
-    document.getElementById('hash').textContent = status.hash ? 'Layout: ' + status.hash.slice(0, 8) : '';
+    document.getElementById('tab').textContent = `${status.count} connections on this page, ${status.ldCount} long-distance`;
+    document.getElementById('checked').textContent = status.at ? 'Checked at ' + new Date(status.at).toLocaleTimeString() : '';
+    document.getElementById('hash').textContent = [status.path && 'Read by: ' + status.path, status.hash && 'layout ' + status.hash.slice(0, 8)].filter(Boolean).join(' · ');
     document.getElementById('error').textContent = status.error || '';
     const sample = document.getElementById('sample');
     sample.replaceChildren();
