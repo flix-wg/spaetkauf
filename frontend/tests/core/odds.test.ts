@@ -46,6 +46,23 @@ test('HTTP source memoizes successes and missing shards; failed loads can retry'
   } finally { globalThis.fetch = original }
 })
 
+test('HTTP odds requests pass fetch options and abort stalled fetches so a retry refetches', async () => {
+  const original = globalThis.fetch
+  const inits: RequestInit[] = []
+  globalThis.fetch = (_url, init) => {
+    inits.push(init!)
+    if (inits.length > 1) return Promise.resolve(Response.json({ numbers: {} }))
+    return new Promise((_, reject) => init!.signal!.addEventListener('abort', () => reject(init!.signal!.reason)))
+  }
+  try {
+    const src = httpOddsSource('/data', { redirect: 'error' }, 20)
+    await assert.rejects(src.index())
+    assert.deepStrictEqual(await src.index(), { numbers: {} })
+    assert.equal(inits.length, 2)
+    assert.equal(inits[0].redirect, 'error')
+  } finally { globalThis.fetch = original }
+})
+
 
 test('HTTP matching skips unindexed shards, including family fallbacks', async () => {
   const original = globalThis.fetch
@@ -74,5 +91,10 @@ test('HTTP train shards return null for non-ok responses and invalid JSON', asyn
       globalThis.fetch = async () => new Response('<html>App</html>', { status })
       assert.equal(await httpOddsSource('/data').train('ICE', '99999'), null)
     }
+    let calls = 0
+    globalThis.fetch = async () => ++calls === 1 ? new Response('', { status: 503 }) : Response.json({ type: 'ICE', number: '1', rows: [] })
+    const src = httpOddsSource('/data')
+    assert.equal(await src.train('ICE', '1'), null)
+    assert.deepStrictEqual(await src.train('ICE', '1'), { type: 'ICE', number: '1', rows: [] })
   } finally { globalThis.fetch = original }
 })

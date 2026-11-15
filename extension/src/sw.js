@@ -25,7 +25,7 @@ function serverURL(value) {
   return url.origin;
 }
 function oddsSource(server) {
-  if (!sources.has(server)) sources.set(server, KurtOdds.httpOddsSource(server + '/data'));
+  if (!sources.has(server)) sources.set(server, KurtOdds.httpOddsSource(server + '/data', { credentials: 'omit', redirect: 'error' }, 8000));
   return sources.get(server);
 }
 // The daily /plan cap needs to outlive the service worker, but the Transitous client reads it synchronously.
