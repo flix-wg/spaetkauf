@@ -7,6 +7,7 @@ import { stationsSearch } from './transitous.ts'
 import type { Transitous } from './transitous'
 
 export class BadRequest extends Error {}
+export class NotFound extends Error {}
 type Connection = Pick & { cancelled: boolean }
 interface Stop { name: string; cancelled?: boolean; arrival?: string; scheduledArrival?: string }
 interface RawLeg {
@@ -18,7 +19,7 @@ interface Page {
   itineraries?: { legs?: RawLeg[]; startTime: string }[];
   from?: Stop; to?: Stop; nextPageCursor?: string; previousPageCursor?: string
 }
-const iso = (value: string | Date) => new Date(value).toISOString().replace('.000Z', 'Z')
+const iso = (value: string | Date) => new Date(value).toISOString().slice(0, 19) + 'Z'
 const minutes = (a: string, b: string) => {
   const n = (Date.parse(b) - Date.parse(a)) / 60_000
   const lower = Math.floor(n)
@@ -30,7 +31,7 @@ export async function resolve(tr: Transitous, place: string): Promise<[string, s
   place = place.trim()
   if (place.includes('_') && !/\s/u.test(place)) return [place, null]
   const hits = await stationsSearch(tr, place)
-  if (!hits.length) throw new Error(`Unknown station: ${place}`)
+  if (!hits.length) throw new NotFound(`Unknown station: ${place}`)
   return [hits[0].id, hits[0].name]
 }
 
@@ -112,8 +113,8 @@ export async function getPicks(deps: { tr: Transitous; odds: OddsSource; now?: D
   if (arrive && !q.time) throw new BadRequest('time (latest arrival, HH:MM) is required with mode=arrive')
   const today = berlinDate(now.toISOString())
   if (q.date < today) throw new BadRequest('Date is in the past')
-  if (q.time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(q.time)) throw new BadRequest('time must be HH:MM')
-  const start = q.time ? zonedToUtc(q.date, q.time) : q.date === today ? now : zonedToUtc(q.date, '06:00')
+  if (q.time && !/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(q.time)) throw new BadRequest('time must be HH:MM')
+  const start = q.time ? new Date(+zonedToUtc(q.date, q.time.slice(0, 5)) + Number(q.time.slice(6) || 0) * 1000) : q.date === today ? now : zonedToUtc(q.date, '06:00')
   const [src, srcLabel] = await resolve(tr, q.from), [dst, dstLabel] = await resolve(tr, q.to)
   const found = new Map<string, Connection>()
   let first: Page = {}, cursor: string | undefined

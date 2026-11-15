@@ -1,5 +1,5 @@
-export interface Claim { due: boolean; pct: number; amount_eur: number | null; reason: string }
-export function computeClaim(price: number | null, delayMin: number | null, switched: boolean): Claim {
+export interface ClaimResult { due: boolean; pct: number; amount_eur: number | null; reason: string }
+export function computeClaim(price: number | null, delayMin: number | null, switched: boolean): ClaimResult {
   if (switched) return { due: false, pct: 0, amount_eur: null, reason: 'You switched trains: compensation depends on your actual arrival on the train you took. If you arrived under 60 minutes late, nothing is owed; 60–119 minutes gives 25 % of the ticket price, 120+ gives 50 % (minimum payout 4 EUR). Fill in your actual arrival yourself.' }
   if (delayMin === null) return { due: false, pct: 0, amount_eur: null, reason: 'No delay recorded yet.' }
   if (delayMin < 60) return { due: false, pct: 0, amount_eur: null, reason: `Under 60 minutes late (${delayMin} min): no compensation is due.` }

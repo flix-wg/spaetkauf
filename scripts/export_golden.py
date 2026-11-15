@@ -1,18 +1,17 @@
 """Regenerate core parity fixtures offline from the pinned Python implementation."""
-import asyncio
 import argparse
+import asyncio
+from datetime import datetime, timedelta
+from decimal import Decimal
 import json
 from pathlib import Path
 import sqlite3
 import subprocess
 import sys
 import types
+from zoneinfo import ZoneInfo
 
 import httpx
-from datetime import datetime
-from decimal import Decimal
-from types import SimpleNamespace
-from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 REVISION = 'f33b3b0'
@@ -106,6 +105,48 @@ def main():
     claim = sys.modules['golden_backend.claim']
     plan = json.loads((ROOT / 'backend/tests/fixtures/plan_ham_muc.json').read_text())
     day = datetime.fromisoformat(plan['itineraries'][0]['legs'][0]['scheduledStartTime']).astimezone(odds.BERLIN).date()
+    template = plan['itineraries'][0]
+    plan['itineraries'] = []
+    for name, departure, arrival, status in [
+        ('ICE 785', '04:30', '11:21', ''),
+        ('ICE 599', '05:15', '11:15', ''),
+        ('ICE 703', '05:30', '12:00', 'posted'),
+        ('ICE 703', '05:45', '12:15', 'cancelled'),
+        ('TGV 123', '06:00', '11:00', ''),
+        ('FLX 123', '06:15', '12:30', ''),
+        ('ICE 785', '06:30', '13:45', ''),
+        ('ICE 703', '06:45', '13:55', ''),
+    ]:
+        dep = datetime.fromisoformat(f'{day}T{departure}').replace(tzinfo=odds.BERLIN)
+        arr = datetime.fromisoformat(f'{day}T{arrival}').replace(tzinfo=odds.BERLIN)
+        delta = dep - datetime.fromisoformat(template['startTime'])
+        def shift(value):
+            if isinstance(value, dict):
+                return {key: shift(item) for key, item in value.items()}
+            if isinstance(value, list):
+                return [shift(item) for item in value]
+            if isinstance(value, str) and value.startswith(f'{day}T'):
+                return picks._iso(datetime.fromisoformat(value) + delta)
+            return value
+        itinerary = shift(template)
+        itinerary['startTime'], itinerary['endTime'] = picks._iso(dep), picks._iso(arr)
+        leg = itinerary['legs'][0]
+        leg['tripId'] = f'golden-{len(plan["itineraries"])}'
+        leg['routeShortName'] = name
+        leg['scheduledEndTime'] = picks._iso(arr)
+        leg['to']['scheduledArrival'] = leg['to']['arrival'] = picks._iso(arr)
+        leg['cancelled'] = status == 'cancelled'
+        leg['realTime'] = status == 'posted'
+        if leg['realTime']:
+            leg['to']['arrival'] = picks._iso(arr + timedelta(minutes=25))
+        leg = {key: leg[key] for key in (
+            'tripId', 'routeShortName', 'scheduledStartTime', 'scheduledEndTime',
+            'from', 'to', 'cancelled', 'realTime', 'intermediateStops',
+        )}
+        leg['from'] = {'name': leg['from']['name']}
+        leg['to'] = {key: leg['to'][key] for key in ('name', 'arrival', 'scheduledArrival')}
+        leg['intermediateStops'] = [{'name': stop['name']} for stop in leg['intermediateStops']]
+        plan['itineraries'].append({'startTime': itinerary['startTime'], 'legs': [leg]})
     frozen_now = datetime.combine(day, datetime.min.time(), odds.BERLIN)
     class FrozenDateTime(datetime):
         @classmethod
@@ -116,17 +157,37 @@ def main():
     class MockTransitous(sys.modules['golden_backend.transitous'].Transitous):
         async def plan(self, *args, **kwargs):
             return (await self._client.get('/api/v1/plan')).json()
-    settings = SimpleNamespace(db_path=None, client_name='kurt-offline-fixtures')
+    settings = types.SimpleNamespace(db_path=None, client_name='kurt-offline-fixtures')
     transport = httpx.MockTransport(lambda request: httpx.Response(200, json=plan))
     tr = MockTransitous(settings, transport)
-    request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(transitous=tr)))
+    request = types.SimpleNamespace(app=types.SimpleNamespace(state=types.SimpleNamespace(transitous=tr)))
     pick_cases = []
     async def generate_picks():
         try:
             for mode in ('depart', 'arrive'):
-                query = dict(from_='de_test_ham', to='de_test_muc', day=day, at='14:00' if mode == 'arrive' else '06:00', mode=mode, before=0)
+                query = dict(from_='de_test_ham', to='de_test_muc', day=day, at='14:00' if mode == 'arrive' else '05:00', mode=mode, before=60)
                 expected = await picks.picks(request=request, **query)
-                pick_cases.append(dict(query={'from': query['from_'], 'to': query['to'], 'date': day.isoformat(), 'time': query['at'], 'mode': mode}, expected=expected))
+                ranked = expected['picks']
+                assert len(ranked) == (8 if mode == 'arrive' else 7)
+                assert expected['note'] == f'2 of {len(ranked)} connections have too little history for odds.'
+                assert expected['kurt_call'] == 'pick'
+                assert [p['legs'][0]['train'] for p in ranked if p['is_kurts_pick']] == ['ICE 599']
+                assert any(p['cancelled'] for p in ranked)
+                assert any(p['already_posted'] and not p['cancelled'] for p in ranked)
+                assert all(not p['is_kurts_pick'] for p in ranked if p['already_posted'])
+                assert all('TGV 123' not in p['ride_instead']['trains'] for p in ranked if p['ride_instead'])
+                if mode == 'depart':
+                    assert ranked[0]['odds']['p20'] > ranked[1]['odds']['p20']
+                    assert ranked[0]['ride_instead']['dep'] < ranked[0]['dep']
+                    assert ranked[0]['ride_instead']['dep'] < picks._iso(picks.start_time(day, query['at'], frozen_now))
+                    without_before = await picks.picks(request=request, **(query | {'before': 0}))
+                    assert without_before['picks'][0]['ride_instead'] is None
+                else:
+                    groups = [p['group'] for p in ranked]
+                    assert groups == ['late_ok'] * 6 + ['on_time'] * 2
+                    assert ranked[0]['p_miss'] <= picks.P_MISS_CAP
+                    assert ranked[-2]['arr'] > ranked[-1]['arr']
+                pick_cases.append(dict(query={'from': query['from_'], 'to': query['to'], 'date': day.isoformat(), 'time': query['at'], 'mode': mode, 'before': query['before']}, expected=expected))
         finally:
             await tr.aclose()
     asyncio.run(generate_picks())

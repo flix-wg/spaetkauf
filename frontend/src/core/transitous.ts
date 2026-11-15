@@ -15,25 +15,64 @@ export interface Transitous {
 const ttl = { plan: 600, trip: 60, stoptimes: 120, geocode: 86400 }
 const modes = 'HIGHSPEED_RAIL,LONG_DISTANCE'
 
-export function createTransitous(opts: { fetch?: typeof fetch; storage?: Storage | null; now?: () => number; planCap?: number } = {}): Transitous {
+export function createTransitous(opts: { fetch?: typeof fetch; storage?: Storage | null; cacheStorage?: Storage | null; now?: () => number; planCap?: number } = {}): Transitous {
   const request = opts.fetch ?? globalThis.fetch
   const now = opts.now ?? Date.now
   let storage = opts.storage
   if (storage === undefined) { try { storage = globalThis.localStorage } catch { storage = null } }
+  let cacheStorage = opts.cacheStorage
+  if (cacheStorage === undefined) { try { cacheStorage = globalThis.sessionStorage } catch { cacheStorage = null } }
   const memory = new Map<string, string>()
   const pending = new Map<string, Promise<unknown>>()
-  function read(key: string): string | null {
-    try { return storage?.getItem(key) ?? memory.get(key) ?? null } catch { storage = null; return memory.get(key) ?? null }
+  function keys(store: Storage): string[] {
+    return Array.from({ length: store.length }, (_, i) => store.key(i)).filter((key): key is string => key !== null)
   }
-  function write(key: string, value: string) {
+  function read(key: string, cache = false): string | null {
+    try { return (cache ? cacheStorage : storage)?.getItem(key) ?? memory.get(key) ?? null }
+    catch {
+      if (cache) cacheStorage = null
+      else storage = null
+      return memory.get(key) ?? null
+    }
+  }
+  function expired(value: string): boolean {
+    try { return !(JSON.parse(value).expires_at > now()) } catch { return true }
+  }
+  function cacheResponse(key: string, body: unknown, seconds: number) {
+    for (const [old, value] of memory) {
+      if (old.startsWith('kurt.http.') && expired(value)) memory.delete(old)
+    }
+    const value = JSON.stringify({ expires_at: now() + seconds * 1000, body })
     memory.set(key, value)
-    try { storage?.setItem(key, value) } catch { storage = null }
+    if (!cacheStorage) return
+    try {
+      for (const old of keys(cacheStorage)) {
+        if (old.startsWith('kurt.http.') && expired(cacheStorage.getItem(old) ?? '')) cacheStorage.removeItem(old)
+      }
+      try { cacheStorage.setItem(key, value) }
+      catch (error) {
+        if (!(error && typeof error === 'object' && 'name' in error && error.name === 'QuotaExceededError')) throw error
+        for (const old of keys(cacheStorage)) {
+          if (old.startsWith('kurt.http.')) cacheStorage.removeItem(old)
+        }
+        cacheStorage.setItem(key, value)
+      }
+    } catch { cacheStorage = null }
   }
   function spend() {
     const key = `kurt.plan-budget.${berlinDate(new Date(now()).toISOString())}`
+    for (const old of memory.keys()) {
+      if (old.startsWith('kurt.plan-budget.') && old !== key) memory.delete(old)
+    }
+    try {
+      if (storage) for (const old of keys(storage)) {
+        if (old.startsWith('kurt.plan-budget.') && old !== key) storage.removeItem(old)
+      }
+    } catch { storage = null }
     const used = Number(read(key) ?? 0)
     if (used >= (opts.planCap ?? 60)) throw new BudgetSpent('limit reached for today')
-    write(key, String(used + 1))
+    memory.set(key, String(used + 1))
+    try { storage?.setItem(key, String(used + 1)) } catch { storage = null }
   }
   async function load(kind: keyof typeof ttl, path: string, params: Record<string, string | number | undefined>) {
     const entries = Object.entries(params).filter((x): x is [string, string | number] => x[1] !== undefined).sort(([a], [b]) => a.localeCompare(b))
@@ -41,8 +80,8 @@ export function createTransitous(opts: { fetch?: typeof fetch; storage?: Storage
     const identity = `{${entries.map(([k, v]) => `${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(', ')}}`
     const key = `kurt.http.${path}?${identity}`
     try {
-      const cached = JSON.parse(read(key) ?? 'null')
-      if (cached && now() - cached.fetched_at < ttl[kind] * 1000) return cached.body
+      const cached = JSON.parse(read(key, true) ?? 'null')
+      if (cached && cached.expires_at > now()) return cached.body
     } catch { /* Ignore damaged cache entries. */ }
     const existing = pending.get(key)
     if (existing) return existing
@@ -73,7 +112,7 @@ export function createTransitous(opts: { fetch?: typeof fetch; storage?: Storage
             throw new Error(`HTTP ${response.status}`)
           }
           const body: unknown = await response.json()
-          write(key, JSON.stringify({ fetched_at: now(), body }))
+          cacheResponse(key, body, ttl[kind])
           return body
         } catch (error) {
           if (error instanceof OutsideTimetable || error instanceof SourceUnavailable) throw error
