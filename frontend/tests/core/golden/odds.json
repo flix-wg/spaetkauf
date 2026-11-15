@@ -411,6 +411,40 @@
     "args": [
       [
         {
+          "train": "ICE 785",
+          "to": "Würzburg Hbf",
+          "dep": "2027-03-26T08:00:00Z",
+          "arr": "2027-03-26T10:00:00Z"
+        },
+        {
+          "train": "ICE 99999",
+          "to": "Nürnberg Hbf",
+          "dep": "2027-03-26T10:23:00Z",
+          "arr": "2027-03-26T11:00:00Z"
+        },
+        {
+          "train": "ICE 785",
+          "to": "München Hbf",
+          "dep": "2027-03-26T11:07:00Z",
+          "arr": "2027-03-26T12:00:00Z"
+        }
+      ]
+    ],
+    "expected": {
+      "p20": null,
+      "p60": null,
+      "late": null,
+      "n": null,
+      "weekday": "Friday",
+      "basis": "none"
+    },
+    "label": "middle leg without history"
+  },
+  {
+    "fn": "connectionOdds",
+    "args": [
+      [
+        {
           "train": "FLX10",
           "to": "München Hbf",
           "dep": "2027-03-26T08:00:00Z",

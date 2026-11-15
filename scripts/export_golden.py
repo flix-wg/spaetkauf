@@ -65,7 +65,7 @@ def main():
     direct = [leg()]
     two = [leg(stop='Würzburg Hbf', arr='2027-03-26T10:00:00Z'), leg(dep='2027-03-26T10:23:00Z')]
     three = [*two[:1], leg(stop='Nürnberg Hbf', dep='2027-03-26T10:23:00Z', arr='2027-03-26T11:00:00Z'), leg(dep='2027-03-26T11:07:00Z')]
-    for label, legs in [('direct', direct), ('two legs', two), ('three legs', three), ('no history', [leg(train='FLX10')]), ('DST', [leg(arr='2027-03-28T01:30:00Z')])]:
+    for label, legs in [('direct', direct), ('two legs', two), ('three legs', three), ('middle leg without history', [three[0], {**three[1], 'train': 'ICE 99999'}, three[2]]), ('no history', [leg(train='FLX10')]), ('DST', [leg(arr='2027-03-28T01:30:00Z')])]:
         case('connectionOdds', [legs], odds.connection_odds(db, legs), label)
     for train in ['ICE 785', 'IC 785', 'FLX10', 'FLX 12345']:
         case('legOdds', [train, 'München Hbf', '2027-03-26T12:00:00Z'], odds.leg_odds(db, train, 'München Hbf', '2027-03-26T12:00:00Z'))

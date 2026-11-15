@@ -1,4 +1,3 @@
-// @ts-expect-error Native Node tests require the TypeScript extension.
 import { GE_COLUMNS } from './oddsSource.ts'
 import type { OddsSource, Rates } from './oddsSource'
 
@@ -33,10 +32,11 @@ export function typeFamily(t: string): Set<string> { return new Set(FAMILIES.fin
 export async function findStats(src: OddsSource, type: string, number: string, stop: string, weekday: number): Promise<Stats> {
   number = /^\d+$/.test(number) ? BigInt(number).toString() : number
   let foundType = type
-  let shard = await src.train(type, number)
+  const types = (await src.index()).numbers[number] ?? []
+  let shard = types.includes(type) ? await src.train(type, number) : null
   if (!shard?.rows.length) {
     const family = typeFamily(type)
-    const alternatives = ((await src.index()).numbers[number] ?? []).filter(t => t !== type && family.has(t))
+    const alternatives = types.filter(t => t !== type && family.has(t))
     if (alternatives.length !== 1) return { status: 'unknown_train', train_type: type, train_number: number }
     foundType = alternatives[0]
     shard = await src.train(foundType, number)

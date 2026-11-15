@@ -20,9 +20,10 @@ export function httpOddsSource(base: string): OddsSource {
     const cached = memo.get(path)
     if (cached) return cached as Promise<T>
     const request = fetch(`${base}/odds/${path}`).then(async response => {
-      if (missing && response.status === 404) return null as T
+      if (missing && !response.ok) return null as T
       if (!response.ok) throw new Error(`Odds source returned ${response.status}`)
-      return response.json() as Promise<T>
+      try { return await response.json() as T }
+      catch (error) { if (missing) return null as T; throw error }
     }).catch(error => { memo.delete(path); throw error })
     memo.set(path, request)
     return request

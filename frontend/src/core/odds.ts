@@ -1,10 +1,7 @@
-// @ts-expect-error Native Node tests require the TypeScript extension.
 import { GE_COLUMNS } from './oddsSource.ts'
 import type { OddsSource, Rates } from './oddsSource'
-// @ts-expect-error Native Node tests require the TypeScript extension.
 import { findStats, parseTrain } from './matching.ts'
 import type { MatchedStats, Stats } from './matching'
-// @ts-expect-error Native Node tests require the TypeScript extension.
 import { weekdayBerlin } from './berlin.ts'
 
 export const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const

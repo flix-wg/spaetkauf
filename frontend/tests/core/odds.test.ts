@@ -45,3 +45,34 @@ test('HTTP source memoizes successes and missing shards; failed loads can retry'
     assert.deepStrictEqual(urls, ['/data/odds/index.json', '/data/odds/index.json', '/data/odds/trains/ICE-99999.json'])
   } finally { globalThis.fetch = original }
 })
+
+
+test('HTTP matching skips unindexed shards, including family fallbacks', async () => {
+  const original = globalThis.fetch
+  const urls: string[] = []
+  globalThis.fetch = async (url) => {
+    const path = String(url)
+    urls.push(path)
+    if (path.endsWith('index.json')) return Response.json(await fileSource.index())
+    if (path.endsWith('ICE-785.json')) return Response.json(await fileSource.train('ICE', '785'))
+    return new Response('<!doctype html><html>App</html>', { headers: { 'Content-Type': 'text/html' } })
+  }
+  try {
+    const src = httpOddsSource('/data')
+    for (const label of ['unknown_train', 'family fallback']) {
+      const c = cases.find(c => c.fn === 'findStats' && c.label === label)
+      assert.deepStrictEqual(await matching.findStats(src, ...c.args), c.expected)
+    }
+    assert.deepStrictEqual(urls, ['/data/odds/index.json', '/data/odds/trains/ICE-785.json'])
+  } finally { globalThis.fetch = original }
+})
+
+test('HTTP train shards return null for non-ok responses and invalid JSON', async () => {
+  const original = globalThis.fetch
+  try {
+    for (const status of [200, 404, 503]) {
+      globalThis.fetch = async () => new Response('<html>App</html>', { status })
+      assert.equal(await httpOddsSource('/data').train('ICE', '99999'), null)
+    }
+  } finally { globalThis.fetch = original }
+})
