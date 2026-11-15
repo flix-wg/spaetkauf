@@ -1,4 +1,5 @@
-"""Regenerate Task 2 parity fixtures offline from the pinned Python implementation."""
+"""Regenerate core parity fixtures offline from the pinned Python implementation."""
+import asyncio
 import argparse
 import json
 from pathlib import Path
@@ -6,7 +7,11 @@ import sqlite3
 import subprocess
 import sys
 import types
+
+import httpx
 from datetime import datetime
+from decimal import Decimal
+from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -85,8 +90,59 @@ def main():
         case('zonedToUtc', [day, time], dt.astimezone(ZoneInfo('UTC')).isoformat().replace('+00:00', '.000Z'))
     out = ROOT / 'frontend/tests/core/golden/odds.json'
     out.write_text(json.dumps(cases, ensure_ascii=False, indent=2) + '\n')
+    for name, attrs in {
+        'db': {'connect': None}, 'config': {'REPO_ROOT': ROOT, 'Settings': object},
+        'signals': {'strike_signal': lambda *args: None},
+    }.items():
+        module = sys.modules.get(f'golden_backend.{name}') or types.ModuleType(f'golden_backend.{name}')
+        module.__dict__.update(attrs)
+        sys.modules[module.__name__] = module
+    for name in ('transitous', 'stations', 'picks', 'claim'):
+        module = types.ModuleType(f'golden_backend.{name}')
+        sys.modules[module.__name__] = module
+        source = subprocess.check_output(['git', 'show', f'{REVISION}:backend/app/{name}.py'], cwd=ROOT, text=True)
+        exec(compile(source, f'{REVISION}/{name}.py', 'exec'), module.__dict__)
+    picks = sys.modules['golden_backend.picks']
+    claim = sys.modules['golden_backend.claim']
+    plan = json.loads((ROOT / 'backend/tests/fixtures/plan_ham_muc.json').read_text())
+    day = datetime.fromisoformat(plan['itineraries'][0]['legs'][0]['scheduledStartTime']).astimezone(odds.BERLIN).date()
+    frozen_now = datetime.combine(day, datetime.min.time(), odds.BERLIN)
+    class FrozenDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return frozen_now.astimezone(tz)
+    picks.datetime = FrozenDateTime
+    picks.odds_conn = lambda request: db
+    class MockTransitous(sys.modules['golden_backend.transitous'].Transitous):
+        async def plan(self, *args, **kwargs):
+            return (await self._client.get('/api/v1/plan')).json()
+    settings = SimpleNamespace(db_path=None, client_name='kurt-offline-fixtures')
+    transport = httpx.MockTransport(lambda request: httpx.Response(200, json=plan))
+    tr = MockTransitous(settings, transport)
+    request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(transitous=tr)))
+    pick_cases = []
+    async def generate_picks():
+        try:
+            for mode in ('depart', 'arrive'):
+                query = dict(from_='de_test_ham', to='de_test_muc', day=day, at='14:00' if mode == 'arrive' else '06:00', mode=mode, before=0)
+                expected = await picks.picks(request=request, **query)
+                pick_cases.append(dict(query={'from': query['from_'], 'to': query['to'], 'date': day.isoformat(), 'time': query['at'], 'mode': mode}, expected=expected))
+        finally:
+            await tr.aclose()
+    asyncio.run(generate_picks())
+    claims = []
+    for price, delay, switched in [
+        (None, None, False), (None, 60, False), ('9.99', 59, False),
+        ('9.99', 60, False), ('79.90', 60, False), ('79.90', 119, False),
+        ('79.90', 120, False), ('34.99', 71, False), ('12.90', 65, False),
+        ('79.90', 120, True),
+    ]:
+        claims.append(dict(args=[float(price) if price else None, delay, switched], expected=claim.compute_claim(Decimal(price) if price else None, delay, switched)))
+    snaps = [dict(at=str(i), delay_min=d, cancelled=c) for i, (d, c) in enumerate([(None, False), (18, False), (20, False), (19, False), (22, False), (60, False), (61, True), (62, True)])]
+    payload = dict(now=frozen_now.isoformat(), plan=plan, picks=pick_cases, claims=claims, timeline=dict(args=snaps, expected=claim.timeline(snaps)))
+    (out.parent / 'picks.json').write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n')
     db.close()
-    print(f'Wrote {len(cases)} golden cases from {REVISION}')
+    print(f'Wrote {len(cases)} odds, {len(pick_cases)} picks, {len(claims)} claim and 1 timeline cases from {REVISION}')
 
 
 if __name__ == '__main__':
