@@ -71,3 +71,24 @@ test('content retries failed odds on its own and caches success', async () => {
   scheduled(); await flush();
   assert.equal(calls, 2); assert.equal(renders, 2);
 });
+
+test('German runtime messages translate interpolated odds and missing-history states', () => {
+  const messages = require('../_locales/de/messages.json');
+  globalThis.chrome = { i18n: { getMessage(key, values = []) {
+    const entry = messages[key];
+    if (!entry) return '';
+    return entry.message.replace(/\$([A-Z0-9]+)\$/gi, (_, name) => {
+      const position = entry.placeholders[name.toLowerCase()].content.slice(1);
+      return values[Number(position) - 1];
+    });
+  } } };
+  try {
+    const german = text(result, card);
+    assert.equal(german.line, '41 % Chance auf 20+ Min. Verspätung');
+    assert.equal(german.detail, 'Verspätet: 14 von 34 Samstagen.');
+    assert.equal(text({ ...result, basis: 'none' }, card).line, 'Zu wenig vergangene Fahrten für Chancen');
+    assert.equal(text(result, { ...card, posted: true }).line, 'Schon angekündigt: zählt nicht');
+  } finally {
+    delete globalThis.chrome;
+  }
+});

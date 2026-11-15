@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Kurt for bahn.de",
+  "name": "__MSG_name__",
+  "default_locale": "en",
   "version": "0.1.0",
-  "description": "Historical late-train odds and Kurt’s pick alongside your connection results.",
+  "description": "__MSG_description__",
   "permissions": ["storage"],
   "host_permissions": ["https://65-108-33-75.sslip.io/*", "http://127.0.0.1/*", "http://localhost/*"],
   "optional_host_permissions": ["https://*/*"],

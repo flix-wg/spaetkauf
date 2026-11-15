@@ -1,3 +1,4 @@
+import { tx } from '../i18n-core'
 const KURT = {
   foot: 'M14 54 C8 54 4.5 51.5 4.5 47 L4.5 33 C4.5 24 19 24 19 33 L19 40 C19 43.5 21 45 24 45 L64 45 C70 45 74 47 77 52.5 C75.5 53.5 73.5 54 70 54 Z',
   stalks: 'M9 26 L7.2 14.5 M15 26 L21.5 13.5',
@@ -11,7 +12,7 @@ const KURT = {
 export function Kurt({
   width = 80,
   shell = '#FD4F00',
-  body = '#14161A',
+  body = 'var(--color-ink)',
   motion,
   className,
 }: {
@@ -22,7 +23,7 @@ export function Kurt({
   className?: string
 }) {
   const small = width < 30
-  const glint = body.toUpperCase() === '#FFFFFF' ? shell : '#FFFFFF'
+  const glint = body === 'var(--color-page)' ? 'var(--color-ink)' : body === 'var(--color-ink)' ? 'var(--color-page)' : body.toUpperCase() === '#FFFFFF' ? shell : '#FFFFFF'
   const line = small ? 4 : 2.6
   return (
     <svg
@@ -65,7 +66,7 @@ export function Snails({ p20 }: { p20: number }) {
   const share = p20 <= 1 ? p20 : p20 / 100
   const filled = Math.min(5, Math.ceil(share * 5))
   return (
-    <span className="flex gap-px" role="img" aria-label={`${filled} of 5 snails`}>
+    <span className="flex gap-px" role="img" aria-label={tx('snailCount', filled)}>
       {[0, 1, 2, 3, 4].map((i) =>
         i < filled ? (
           <Kurt key={i} width={18} />

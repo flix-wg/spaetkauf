@@ -1,6 +1,8 @@
+import { tr, useT } from '../i18n'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import QRCode from 'qrcode'
+import { Settings, SettingsButton } from './Settings'
 import { Kurt } from './Kurt'
 import { IconClock, IconHistory, IconInfo, IconTicket, IconTrain } from './Icons'
 import { Sheet } from './Sheet'
@@ -29,12 +31,13 @@ export function lastSearchPath() {
 }
 
 function InfoButton() {
+  useT()
   const { open } = useSheet()
   return (
     <button
       type="button"
       onClick={() => open('sources')}
-      aria-label="How Kurt works"
+      aria-label={tr('howKurtWorks')}
       className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted hover:bg-surface"
     >
       <IconInfo />
@@ -45,16 +48,17 @@ function InfoButton() {
 // Phone: the title scrolls with the page under the fixed top bar. Desktop: it sticks, since the logo is in the side bar.
 // `deskOnly` hides it on a phone where it would repeat the top bar.
 export function ScreenHeader({ title, back, deskOnly }: { title: string; back?: React.ReactNode; deskOnly?: boolean }) {
+  useT()
   return (
     <header
-      className={`${deskOnly ? 'hidden lg:flex' : 'flex'} items-center justify-between gap-2 bg-white px-5 pb-1 pt-4 lg:sticky lg:top-0 lg:z-10 lg:min-h-[96px] lg:px-10 lg:pb-3 lg:pt-6`}
+      className={`${deskOnly ? 'hidden lg:flex' : 'flex'} items-center justify-between gap-2 bg-page px-5 pb-1 pt-4 lg:sticky lg:top-0 lg:z-10 lg:min-h-[96px] lg:px-10 lg:pb-3 lg:pt-6`}
     >
       <div className="flex min-w-0 items-center gap-1">
         {back}
         <h1 className="truncate font-display text-[26px] font-bold leading-tight lg:text-[38px]">{title}</h1>
       </div>
       <div className="hidden lg:block">
-        <InfoButton />
+        <div className="flex items-center"><SettingsButton /><InfoButton /></div>
       </div>
     </header>
   )
@@ -62,29 +66,31 @@ export function ScreenHeader({ title, back, deskOnly }: { title: string; back?: 
 
 // Phone only. It sits outside the scrolling area, so neither scrolling nor a pull at the top can move it.
 function TopBar() {
+  useT()
   return (
-    <header className="flex h-[60px] shrink-0 items-center justify-between border-b border-line bg-white px-5">
-      <NavLink to="/" aria-label="Kurt, home" className="flex items-center gap-2.5 no-underline">
+    <header className="flex h-[60px] shrink-0 items-center justify-between border-b border-line bg-page px-5">
+      <NavLink to="/" aria-label={tr('kurtHome')} className="flex items-center gap-2.5 no-underline">
         <Kurt width={48} motion="blink" />
-        <span className="font-display text-[26px] font-bold leading-none tracking-[-0.01em] text-ink">Kurt</span>
+        <span className="font-display text-[26px] font-bold leading-none tracking-[-0.01em] text-ink">{tr('kurt')}</span>
       </NavLink>
-      <InfoButton />
+      <div className="flex items-center"><SettingsButton /><InfoButton /></div>
     </header>
   )
 }
 
 const navItems = (pathname: string) => [
-  { to: lastSearchPath(), label: 'Picks', icon: IconTrain, on: pathname === '/' || pathname === '/picks' },
-  { to: '/trips', label: 'My trips', icon: IconTicket, on: pathname.startsWith('/trip') },
-  { to: '/late', label: 'Late now', icon: IconClock, on: pathname === '/late' },
-  { to: '/lookup', label: 'Lookup', icon: IconHistory, on: pathname === '/lookup' },
+  { to: lastSearchPath(), label: tr('picks'), icon: IconTrain, on: pathname === '/' || pathname === '/picks' },
+  { to: '/trips', label: tr('myTrips'), icon: IconTicket, on: pathname.startsWith('/trip') },
+  { to: '/late', label: tr('lateNow'), icon: IconClock, on: pathname === '/late' },
+  { to: '/lookup', label: tr('lookup'), icon: IconHistory, on: pathname === '/lookup' },
 ]
 
 function Nav() {
+  useT()
   const { pathname } = useLocation()
   const items = navItems(pathname)
   return (
-    <nav aria-label="Main" className="grid shrink-0 grid-cols-4 border-t border-line bg-white pb-[env(safe-area-inset-bottom)]">
+    <nav aria-label={tr('main')} className="grid shrink-0 grid-cols-4 border-t border-line bg-page pb-[env(safe-area-inset-bottom)]">
       {items.map(({ to, label, icon: Icon, on }) => (
         <NavLink
           key={label}
@@ -103,6 +109,7 @@ function Nav() {
 
 // Desktop: the bottom tab bar becomes a side bar, with the QR code so the audience can open it on a phone.
 function SideNav() {
+  useT()
   const { pathname } = useLocation()
   const [qr, setQr] = useState('')
   useEffect(() => {
@@ -112,67 +119,69 @@ function SideNav() {
     <aside className="flex w-[264px] shrink-0 flex-col gap-8 border-r border-line bg-surface px-5 py-7">
       <div className="flex items-center gap-3 px-2">
         <Kurt width={60} motion="blink" />
-        <span className="font-display text-[30px] font-bold">Kurt</span>
+        <span className="font-display text-[30px] font-bold">{tr('kurt')}</span>
       </div>
-      <nav aria-label="Main" className="flex flex-col gap-1.5">
+      <nav aria-label={tr('main')} className="flex flex-col gap-1.5">
         {navItems(pathname).map(({ to, label, icon: Icon, on }) => (
           <NavLink
             key={label}
             to={to}
             aria-current={on ? 'page' : undefined}
-            className={`relative flex min-h-[56px] items-center gap-3.5 rounded-2xl px-4 text-[18px] no-underline ${on ? 'bg-white font-bold text-ink shadow-[0_1px_2px_rgba(20,22,26,0.08)]' : 'font-medium text-muted hover:bg-white/60'}`}
+            className={`relative flex min-h-[56px] items-center gap-3.5 rounded-2xl px-4 text-[18px] no-underline ${on ? 'bg-page font-bold text-ink shadow-[0_1px_2px_var(--color-shadow)]' : 'font-medium text-muted hover:bg-page/60'}`}
           >
             {on && <span className="absolute inset-y-0 left-0 my-auto h-7 w-1 rounded-r bg-accent" />}
             <Icon size={24} />
             {label}
           </NavLink>
         ))}
+        <SettingsButton label />
       </nav>
       <div className="mt-auto flex flex-col gap-3 px-2">
         <div
           className="h-[132px] w-[132px] rounded-2xl border border-line bg-white p-2 [&>svg]:h-full [&>svg]:w-full"
           role="img"
-          aria-label="QR code that opens this site on a phone"
+          aria-label={tr('qrCodeThatOpensThisSiteOn')}
           dangerouslySetInnerHTML={{ __html: qr }}
         />
-        <p className="text-[14px] leading-snug text-muted">
-          Scan to open on your phone.
-          <br />
+        <p className="text-[14px] leading-snug text-muted">{tr('scanToOpenOnYourPhone')} <br />
           <span className="mono break-all text-ink">{window.location.host}</span>
         </p>
-        {MOCK && <span className="tag w-fit rounded-md bg-tint px-2 py-1 text-accent-text">MOCK DATA</span>}
+        {MOCK && <span className="tag w-fit rounded-md bg-tint px-2 py-1 text-accent-text">{tr('mockData')}</span>}
       </div>
     </aside>
   )
 }
 
 function Footer() {
+  useT()
   return (
     <footer className="px-5 pb-8 pt-10 text-center text-[13px] text-muted">
-      <Link to="/impressum">Impressum</Link> · <Link to="/datenschutz">Datenschutz</Link> ·{' '}
-      <a href="https://github.com/flix-wg/spaetkauf">Quellcode</a> ·{' '}
-      <a href="https://transitous.org/sources/">Transitous-Quellen</a>
+      <Link to="/impressum">{tr('impressum')}</Link> · <Link to="/datenschutz">{tr('datenschutz')}</Link> ·{' '}
+      <a href="https://github.com/flix-wg/spaetkauf">{tr('quellcode')}</a> ·{' '}
+      <a href="https://transitous.org/sources/">{tr('transitousQuellen')}</a>
     </footer>
   )
 }
 
 export function Shell() {
+  useT()
   const desk = useMedia('(min-width: 1024px)')
   const { current, close } = useSheet()
   const sheets = (
     <>
+      {current === 'settings' && <Sheet title={tr('settings')} onClose={close}><Settings /></Sheet>}
       {current === 'sources' && (
-        <Sheet title="How Kurt works" onClose={close}>
+        <Sheet title={tr('howKurtWorks')} onClose={close}>
           <SourcesSheet />
         </Sheet>
       )}
       {current === 'backtest' && (
-        <Sheet title="How good is Kurt?" onClose={close}>
+        <Sheet title={tr('howGoodIsKurt')} onClose={close}>
           <BacktestSheet />
         </Sheet>
       )}
       {current === 'addon' && (
-        <Sheet title="Kurt for bahn.de" onClose={close}>
+        <Sheet title={tr('kurtForBahnDe')} onClose={close}>
           <AddonSheet />
         </Sheet>
       )}
@@ -180,7 +189,7 @@ export function Shell() {
   )
   if (desk)
     return (
-      <div className="desk-fit relative flex h-dvh w-full overflow-hidden bg-white">
+      <div className="desk-fit relative flex h-dvh w-full overflow-hidden bg-page">
         <SideNav />
         <main className="scroll-y min-h-0 min-w-0 flex-1">
           <div className="mx-auto w-full max-w-[1680px]">
@@ -192,7 +201,7 @@ export function Shell() {
       </div>
     )
   return (
-    <div className="relative mx-auto h-dvh w-full max-w-[480px] overflow-hidden bg-white">
+    <div className="relative mx-auto h-dvh w-full max-w-[480px] overflow-hidden bg-page">
       <div className="flex h-full flex-col">
         <TopBar />
         <main className="scroll-y min-h-0 flex-1">

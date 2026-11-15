@@ -1,3 +1,4 @@
+import { locale, tr, tx } from '../i18n-core'
 import { ApiError, type Banner, type Created, type KurtCall, type Pick, type Recording, type Strike } from '../api'
 import { BACKTEST, STATIONS, at, claimFor, lateNow, picksFor, tripAt } from './fixtures'
 import { arrivePicksFor, historyRuns, routeTrains, trainStops } from './history'
@@ -17,7 +18,7 @@ function mockStrike(date: string): Strike | null {
   if (!mode) return null
   const d = new Date(`${date}T12:00:00Z`)
   const shift = (n: number) => new Date(d.getTime() + n * 86400000).toISOString().slice(0, 10)
-  const human = (iso: string) => new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${iso}T12:00:00Z`))
+  const human = (iso: string) => new Intl.DateTimeFormat(locale(), { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${iso}T12:00:00Z`))
   const day = mode === 'other' ? shift(1) : date
   const base = {
     title: `TEST: GDL ruft zum Streik im Personenverkehr am ${human(day)} auf`,
@@ -27,13 +28,13 @@ function mockStrike(date: string): Strike | null {
     test: true,
   }
   if (mode === 'unclear')
-    return { ...base, title: 'TEST: GDL kündigt Streik im Personenverkehr an', dates: null, covers_date: false, try_date: null, note: 'A strike was announced but its dates are unclear. If it falls on this day, past-run odds do not cover strike days.' }
+    return { ...base, title: 'TEST: GDL kündigt Streik im Personenverkehr an', dates: null, covers_date: false, try_date: null, note: tr('mockUnclearStrike') }
   if (mode === 'other')
-    return { ...base, dates: [day], covers_date: false, try_date: null, note: `A strike is announced for ${human(day)}, not for this day.` }
+    return { ...base, dates: [day], covers_date: false, try_date: null, note: tx('mockOtherStrike', human(day)) }
   const tryDate = shift(-1)
   return {
     ...base, dates: [day], covers_date: true, try_date: tryDate,
-    note: `A strike is announced for this day; past-run odds do not cover strike days, so Kurt makes no pick for it. No strike is announced for ${human(tryDate)}.`,
+    note: tx('mockStrikeDay', human(tryDate)),
   }
 }
 // Fixed, so picks and signals name the same change.
@@ -104,7 +105,7 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
   const p = u.pathname
   const q = u.searchParams
   const out = (v: unknown) => v as T
-  if (flag('fail') === '1' && p !== '/api/health') throw new ApiError(0, 'Could not reach the server.')
+  if (flag('fail') === '1' && p !== '/api/health') throw new ApiError(0, tr('couldNotReachTheServer'))
 
   if (p === '/api/legal') return out({ name: '', address: [], email: '', hosting: '', cdn: '', adapter: false })
   if (p === '/api/health') return out({ ok: true, version: 'mock', sources: { transitous: 'ok', exa: 'configured', context: 'configured' }, plan_budget_left: 641 })
@@ -121,8 +122,8 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
     const tn = name(to, to)
     const arrive = q.get('mode') === 'arrive'
     const by = q.get('time') ?? ''
-    if (arrive && !by) throw new ApiError(400, 'time (latest arrival, HH:MM) is required with mode=arrive.')
-    if (flag('picks') === 'budget') throw new ApiError(429, 'Kurt has used up today’s route searches.')
+    if (arrive && !by) throw new ApiError(400, tr('arrivalTimeRequired'))
+    if (flag('picks') === 'budget') throw new ApiError(429, tr('mockBudgetSpent'))
     if (flag('picks') === 'none') return out({ from: fn, to: tn, date, tz: 'Europe/Berlin', picks: [], note: '' })
     // mock.picks=nopick: the backend flags no Kurt's pick (none at 30 %+ with a ride-instead).
     const strike = mockStrike(date)
@@ -135,7 +136,7 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
     historyPicks = list
     return out({
       from: fn, to: tn, date, tz: 'Europe/Berlin', picks: list,
-      note: 'A delay already posted when you buy does not count.', kurt_call, strike,
+      note: tr('mockPosted'), kurt_call, strike,
       ...(arrive ? { mode: 'arrive', arrive_by: at(date, by) } : {}),
     })
   }
@@ -144,7 +145,7 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
     const checked_at = new Date(Date.now() - 4 * 60000).toISOString()
     const strike = mockStrike(q.get('date') || DATE)
     const page: Banner = {
-      source: 'GDL press page', url: 'https://www.gdl.de/', changed_at: new Date(Date.now() - 2 * 3600000).toISOString(),
+      source: tr('gdlPress'), url: 'https://www.gdl.de/', changed_at: new Date(Date.now() - 2 * 3600000).toISOString(),
       title: 'Pressemitteilungen', test: false, is_strike: false, dates: null, covers_date: false,
     }
     const banners: Banner[] = [
@@ -157,10 +158,10 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
     return out({
       status: 'ok', checked_at, banners, strike,
       items: [
-        { kind: 'event', reason: 'Construction work closes the line between Hamburg Hbf and Harburg for four weeks; some long-distance trains are diverted.', source: 'ndr.de', published: '2026-10-26', url: 'https://www.ndr.de/' },
-        { kind: 'event', reason: 'The high-speed line between Nürnberg and Ingolstadt is closed for renovation until 12 December; ICEs run via Augsburg.', source: 'augsburger-allgemeine.de', published: '2026-11-07', url: 'https://www.augsburger-allgemeine.de/' },
-        { kind: 'weather', reason: 'Storm warning for northern Germany on Friday afternoon.', source: 'dwd.de', published: '2026-11-19', url: 'https://www.dwd.de/' },
-        { kind: 'event', reason: 'S-Bahn and regional services in Munich reduced in November for Stammstrecke works; long-distance trains not mentioned.', source: 'diebayern.de', published: '2026-11-01', url: 'https://www.diebayern.de/' },
+        { kind: 'event', reason: tr('mockHamburgWorks'), source: 'ndr.de', published: '2026-10-26', url: 'https://www.ndr.de/' },
+        { kind: 'event', reason: tr('mockNurembergWorks'), source: 'augsburger-allgemeine.de', published: '2026-11-07', url: 'https://www.augsburger-allgemeine.de/' },
+        { kind: 'weather', reason: tr('mockStorm'), source: 'dwd.de', published: '2026-11-19', url: 'https://www.dwd.de/' },
+        { kind: 'event', reason: tr('mockRegionalWorks'), source: 'diebayern.de', published: '2026-11-01', url: 'https://www.diebayern.de/' },
       ],
     })
   }
@@ -177,7 +178,7 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
       const claim = claimFor(t.final_delay_min ?? t.delay_min ?? 0, t.price_eur)
       return out({
         ...claim, is_replay: t.is_replay, replay_of: t.replay_of, provisional: !t.finished,
-        fields: claim.fields.map((f) => !t.finished && f.label === 'Actual arrival' ? { ...f, label: 'Expected arrival' } : f),
+        fields: claim.fields.map((f) => !t.finished && f.label === tr('actualArrival') ? { ...f, label: tr('expected') } : f),
       })
     }
     if (method === 'GET') return out(trip(id))
@@ -191,11 +192,11 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
   if (p === '/api/push/key') return out({ public_key: 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U' })
   if (p === '/api/demo/recordings') return out(flag('replay') === 'off' ? [] : RECORDINGS)
   if (p === '/api/demo/replay') {
-    if (flag('replay') === 'off') throw new ApiError(404, 'No recording yet.')
+    if (flag('replay') === 'off') throw new ApiError(404, tr('noRecording'))
     const rec = RECORDINGS.find((r) => r.id === (body as { recording?: string } | undefined)?.recording) ?? RECORDINGS[0]
     const id = `replay-${rec.source === 'history' ? 'hist-' : ''}${rec.outcome === 'on_time' ? 'ok-' : ''}${++seq}`
     started.set(id, Date.now())
     return out({ trip_id: id, secret: 'mock', recording: rec })
   }
-  throw new ApiError(404, 'Not found.')
+  throw new ApiError(404, tr('notFound'))
 }

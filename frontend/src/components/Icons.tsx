@@ -34,3 +34,5 @@ export const IconBack = I(<path d="m15 6-6 6 6 6" />)
 export const IconSwap = I(<path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7" />)
 export const IconAlert = I(<><path d="M12 3 2.5 20h19Z" /><path d="M12 10v5M12 17.5v.01" /></>)
 export const IconShield = I(<path d="M12 3 4 6v6c0 4.5 3.2 7.6 8 9 4.8-1.4 8-4.5 8-9V6Z" />)
+
+export const IconSettings = I(<><path d="m9 3-1 3-3 1v4l2 2-1 3 3 3 3-1 2 2h4l1-3 3-1v-4l-2-2 1-3-3-3-3 1-2-2Z"/><circle cx="12" cy="12" r="3"/></>)

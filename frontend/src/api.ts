@@ -1,3 +1,5 @@
+import { tx } from './i18n-core'
+import { getLang, tr } from './i18n-core'
 // Types follow design.md D12 and what the backend really returns. Trip calls carry the trip secret as ?secret=.
 
 export type Basis = 'history' | 'estimate' | 'none'
@@ -281,11 +283,11 @@ async function http<T>(method: string, path: string, body?: unknown): Promise<T>
   try {
     res = await fetch(path, {
       method,
-      headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+      headers: { 'Accept-Language': getLang(), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
       body: body === undefined ? undefined : JSON.stringify(body),
     })
   } catch {
-    throw new ApiError(0, 'Could not reach the server.')
+    throw new ApiError(0, tr('couldNotReachTheServer'))
   }
   if (!res.ok) {
     const detail = await res
@@ -294,14 +296,14 @@ async function http<T>(method: string, path: string, body?: unknown): Promise<T>
       .catch(() => '')
     const msg =
       res.status === 429
-        ? 'Kurt has used up today’s route searches. Saved trips and Late now still work.'
+        ? tr('kurtHasUsedUpTodaySRoute')
         : res.status === 503
-          ? 'The live train source is not answering right now. Try again in a minute.'
+          ? tr('theLiveTrainSourceIsNotAnswering')
           : res.status === 404 && detail.startsWith('Unknown station')
-            ? `${detail}. Pick a station from the list.`
+            ? tx('unknownStationHint', detail)
             : detail
               ? `${detail}.`
-              : `Request failed (${res.status}).`
+              : tx('requestFailed', res.status)
     throw new ApiError(res.status, msg)
   }
   return res.status === 204 ? (undefined as T) : ((await res.json()) as T)
@@ -346,10 +348,10 @@ export const api = {
     call<RouteTrains>('GET', `/api/history/route${qs({ from, to, weekday: weekday?.toString() })}`),
   signals: (p: { from: string; to: string; date: string }) => call<SignalsResponse>('GET', `/api/signals${qs(p)}`),
   createTrip: (pick: Pick, price_eur?: number) =>
-    call<Created>('POST', '/api/trips', price_eur === undefined ? { pick } : { pick, price_eur }),
+    call<Created>('POST', '/api/trips', { pick, price_eur, lang: getLang() }),
   trip: (r: TripRef) => call<Trip>('GET', tripPath(r.id, r.secret)),
   patchTrip: (r: TripRef, body: { price_eur?: number; switched?: boolean; push?: unknown }) =>
-    call<void>('PATCH', tripPath(r.id, r.secret), body),
+    call<void>('PATCH', tripPath(r.id, r.secret), { ...body, ...('push' in body ? { lang: getLang() } : {}) }),
   deleteTrip: (r: TripRef) => call<void>('DELETE', tripPath(r.id, r.secret)),
   claim: (r: TripRef) => call<Claim>('GET', tripPath(r.id, r.secret, '/claim')),
   lateNow: () => call<LateNow>('GET', '/api/late-now'),

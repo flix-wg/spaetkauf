@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS board (
 );
 """
 TRIP_COLUMNS = {
+    "lang": "TEXT",
     "finished_at": "TEXT",
     "final_delay_min": "INTEGER",
     "alts": "TEXT",

@@ -218,3 +218,22 @@ def test_timeline_keeps_threshold_crossings():
 
     snaps = [{"at": str(i), "delay_min": d, "cancelled": 0} for i, d in enumerate([57, 58, 61, 59, 58])]
     assert [r["delay_min"] for r in timeline(snaps)] == [57, 61, 59, 58]
+
+
+def test_trip_language_persisted_and_validated(client, settings):
+    from app.db import connect
+
+    created = client.post("/api/trips", json={"pick": PICK, "lang": "de"}).json()
+    tid, secret = created["trip_id"], created["secret"]
+    conn = connect(settings.db_path)
+    assert conn.execute("SELECT lang FROM trips WHERE id = ?", (tid,)).fetchone()[0] == "de"
+    assert client.patch(f"/api/trips/{tid}", params={"secret": secret},
+                        json={"lang": "en", "push": None}).status_code == 200
+    assert conn.execute("SELECT lang FROM trips WHERE id = ?", (tid,)).fetchone()[0] == "en"
+    assert client.patch(f"/api/trips/{tid}", params={"secret": "wrong"},
+                        json={"lang": "de"}).status_code == 404
+    assert client.post("/api/trips", json={"pick": PICK, "lang": "fr"}).status_code == 422
+    view = client.get(f"/api/trips/{tid}", params={"secret": secret},
+                      headers={"Accept-Language": "de-DE"}).json()
+    assert view["thresholds"][0]["label"] == "Zugbindung aufgehoben"
+    conn.close()

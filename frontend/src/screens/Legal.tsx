@@ -1,3 +1,4 @@
+import { useT } from '../i18n'
 import { api, type LegalInfo } from '../api'
 import { ScreenHeader } from '../components/Shell'
 import { ErrorState, Loading } from '../components/States'
@@ -9,10 +10,12 @@ function Operator({ data }: { data: LegalInfo }) {
 }
 
 export function Legal({ page }: { page: 'impressum' | 'datenschutz' }) {
+  const { t, lang } = useT()
   const [s, retry] = useAsync(() => api.legal(), [])
   const d = s.status === 'ok' ? s.data : null
   return <>
-    <ScreenHeader title={page === 'impressum' ? 'Impressum' : 'Datenschutz'} />
+    <ScreenHeader title={page === 'impressum' ? t.impressum : t.datenschutz} />
+    {lang === 'en' && <p className="mx-auto max-w-[640px] px-5 pt-4 text-muted">{page === 'impressum' ? t.legalGerman : t.privacyGerman}</p>}
     <article lang="de" className="mx-auto max-w-[640px] space-y-5 px-5 pt-5 text-[16px] leading-relaxed text-ink [&_h2]:pt-3 [&_h2]:font-display [&_h2]:text-[22px] [&_h2]:font-bold [&_a]:break-words [&_a]:text-accent-text [&_a]:underline">
       {s.status === 'loading' && <Loading />}
       {s.status === 'error' && <ErrorState error={s.error} retry={retry} />}
@@ -49,7 +52,7 @@ export function Legal({ page }: { page: 'impressum' | 'datenschutz' }) {
         <h2>Push-Nachrichten</h2>
         <p>Wenn du Benachrichtigungen erlaubst, speichert der Server die Push-Adresse deines Browsers bei der Fahrt. Die Nachrichten laufen über den Push-Dienst deines Browsers, zum Beispiel Google (Chrome), Mozilla (Firefox), Apple (Safari) oder Microsoft (Edge). Diese Dienste können Daten auch in den USA verarbeiten. Der Inhalt ist verschlüsselt; der Push-Dienst sieht nur, dass eine Nachricht kommt. Du kannst Benachrichtigungen in den Browser-Einstellungen abschalten oder die Fahrt löschen. Rechtsgrundlage: deine Einwilligung, Art. 6 Abs. 1 lit. a DSGVO; du kannst sie jederzeit widerrufen.</p>
         <h2>Speicher auf deinem Gerät</h2>
-        <p>Kurt setzt keine Cookies. Im Speicher deines Browsers (localStorage und sessionStorage) liegen nur: die Liste deiner gespeicherten Fahrten mit Nummer und Schlüssel, ein paar Einstellungen (etwa ob du schon die Einführung gesehen hast) und deine letzte Suche. Damit die App auch offline startet, legt der Service Worker die Programmdateien im Browser-Cache ab. Das alles ist nötig, damit die App funktioniert, deshalb fragen wir nicht extra (§ 25 Abs. 2 Nr. 2 TDDDG). Löschen kannst du es über die Website-Daten in deinem Browser.</p>
+        <p>Kurt setzt keine Cookies. Im Speicher deines Browsers (localStorage und sessionStorage) liegen nur: die Liste deiner gespeicherten Fahrten mit Nummer und Schlüssel, ein paar Einstellungen (etwa ob du schon die Einführung gesehen hast, deine Sprache und helles/dunkles Design) und deine letzte Suche. Damit die App auch offline startet, legt der Service Worker die Programmdateien im Browser-Cache ab. Das alles ist nötig, damit die App funktioniert, deshalb fragen wir nicht extra (§ 25 Abs. 2 Nr. 2 TDDDG). Löschen kannst du es über die Website-Daten in deinem Browser.</p>
         <h2>Chrome-Erweiterung (optional)</h2>
         <p>Die Erweiterung liest auf einer bahn.de-Ergebnisseite, die du selbst geöffnet hast, die angezeigten Verbindungen: Zeiten, Zugnummern und Bahnhöfe. Diese schickt sie an den Kurt-Server und zeigt die Quoten auf der Seite an. Namen, Preise oder Kontodaten schickt sie nicht mit. Sie klickt nichts an, füllt nichts aus und lädt nichts von bahn.de. Ihre Einstellungen (Server-Adresse, an/aus) liegen im Speicher deines Browsers; mit Chrome-Synchronisierung gleicht Google sie zwischen deinen Geräten ab. Außerdem merkt sie sich auf deinem Gerät, wie sie die Ergebnisliste lesen kann.</p>
         {d.adapter && <p>Erkennt die Erweiterung eine bahn.de-Seite nicht, schickt sie ein Gerüst der Seite an den Kurt-Server: nur den Aufbau, ohne Texte, Namen oder Bahnhöfe. Der Server lässt dieses Gerüst von Anthropic (Anthropic, PBC, USA) auswerten, damit die Erweiterung die Verbindungen wiederfindet. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO (die Erweiterung soll funktionieren).</p>}

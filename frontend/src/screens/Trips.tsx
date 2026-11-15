@@ -1,3 +1,4 @@
+import { tx, tr, useT } from '../i18n'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api, ApiError, type Recording, type TripRef, type TripState } from '../api'
@@ -10,6 +11,7 @@ import { useAsync } from '../hooks'
 import { addTrip, loadTrips, removeTrip } from '../store'
 
 function Row({ r }: { r: TripRef }) {
+  useT()
   const [s] = useAsync(() => api.trip(r), [r.id], 30000)
   if (s.status === 'error' && s.error instanceof ApiError && s.error.status === 404) {
     removeTrip(r.id)
@@ -31,7 +33,7 @@ function Row({ r }: { r: TripRef }) {
             {/* On a narrow phone the day drops under the times instead of running into the delay. */}
             <span className="flex flex-wrap items-baseline gap-x-1.5">
               <span className="mono whitespace-nowrap text-[15px] font-bold lg:text-[20px]">
-                {b.legs[0].dep ? `${hhmm(b.dep, tz)} → ${hhmm(b.arr, tz)}` : `due ${hhmm(b.arr, tz)}`}
+                {b.legs[0].dep ? `${hhmm(b.dep, tz)} → ${hhmm(b.arr, tz)}` : tx('savedTripDueAt', hhmm(b.arr, tz))}
               </span>
               <span className="whitespace-nowrap text-[12px] font-semibold text-muted lg:text-[15px]">{dayLabel(b.arr, tz)}</span>
             </span>
@@ -39,13 +41,11 @@ function Row({ r }: { r: TripRef }) {
               {shortStation(b.legs[0].from) || '…'} → {shortStation(b.legs[b.legs.length - 1].to)} · {changesLabel(b.changes)}
             </span>
             {t!.is_replay && (
-              <span className="tag w-fit rounded bg-ink px-1.5 py-0.5 text-white">
-                REPLAY
-              </span>
+              <span className="tag w-fit rounded bg-ink px-1.5 py-0.5 text-page">{tr('replay')} </span>
             )}
           </>
         ) : (
-          <span className="text-[14px] text-muted">{s.status === 'error' ? 'Could not load this trip' : 'Loading…'}</span>
+          <span className="text-[14px] text-muted">{s.status === 'error' ? tr('couldNotLoadThisTrip') : tr('loading')}</span>
         )}
       </span>
       <span className="flex shrink-0 items-center gap-1.5">
@@ -53,11 +53,11 @@ function Row({ r }: { r: TripRef }) {
           <span className="flex flex-col items-end gap-1">
             <Flap size="sm" text={signedMin(d)} label={minLabel(d)} />
             <span className="text-[11px] font-semibold text-muted lg:text-[14px]">
-              {t.state === 'on_time' ? (t.finished ? 'finished' : 'on time') : t.state === 'unlocked' ? 'unlocked' : t.state === 'cancelled' ? 'cancelled' : t.state === 'cash25' ? '25 % back' : '50 % back'}
+              {t.state === 'on_time' ? (t.finished ? tr('finished') : tr('onTime')) : t.state === 'unlocked' ? tr('ticketUnlocked') : t.state === 'cancelled' ? tr('cancelled') : t.state === 'cash25' ? tr('25Back501') : tr('50Back502')}
             </span>
           </span>
         ) : t ? (
-          <span className="max-w-[72px] text-right text-[12px] leading-tight text-muted">waiting for data</span>
+          <span className="max-w-[72px] text-right text-[12px] leading-tight text-muted">{tr('waitingForData')}</span>
         ) : null}
         <IconChevron size={18} className="text-muted" />
       </span>
@@ -67,21 +67,21 @@ function Row({ r }: { r: TripRef }) {
 
 const crossing = (r: Recording) =>
   r.crosses_60
-    ? 'crosses +20, then +60'
+    ? tr('crosses20Then60')
     : r.crosses_20
-      ? 'crosses +20'
+      ? tr('crosses20')
       : r.max_delay_min >= 20
-        ? 'already +20 at the start'
-        : 'stays under +20'
+        ? tr('already20AtTheStart')
+        : tr('staysUnder20')
 
 // How the run ended, in money. An on-time finish is a pick that did not pay: say so.
-const OUTCOME: Record<TripState, string> = {
-  on_time: 'Ran on time · Kurt was wrong',
-  unlocked: 'Ticket unlocked · no cash back',
-  cash25: '25 % of the ticket back',
-  cash50: '50 % of the ticket back',
-  cancelled: 'Cancelled · ticket unlocked',
-}
+const OUTCOME = (): Record<TripState, string> => ({
+  on_time: tr('ranOnTimeKurtWasWrong'),
+  unlocked: tr('ticketUnlockedNoCashBack'),
+  cash25: tr('25OfTheTicketBack'),
+  cash50: tr('50OfTheTicketBack'),
+  cancelled: tr('cancelledTicketUnlocked512'),
+})
 const HEADLINE = 'history:ice611-2026-10-30'
 
 // The headline run first, then an on-time run so a miss is always in view, then the rest as the server sends them.
@@ -93,6 +93,7 @@ function replayOrder(recs: Recording[]) {
 }
 
 function RecordingRow({ r, busy, onPlay }: { r: Recording; busy: boolean; onPlay: () => void }) {
+  useT()
   const past = r.source === 'history'
   return (
     <button
@@ -110,21 +111,22 @@ function RecordingRow({ r, busy, onPlay }: { r: Recording; busy: boolean; onPlay
           {shortStation(r.from) || '…'} → {shortStation(r.to)} · {crossing(r)}
         </span>
         <span className="text-[13px] font-semibold leading-snug lg:text-[16px]">
-          {r.finished ? OUTCOME[r.outcome] : `Still recording · worst so far +${r.max_delay_min}`}
+          {r.finished ? OUTCOME()[r.outcome] : tx('recordingWorstDelay', r.max_delay_min)}
         </span>
-        <span className={`tag w-fit rounded px-1.5 py-0.5 ${past ? 'bg-ink text-white' : 'bg-tint text-accent-text'}`}>
-          {past ? 'PAST RUN · DB DELAY DATA' : 'RECORDED LIVE'}
+        <span className={`tag w-fit rounded px-1.5 py-0.5 ${past ? 'bg-ink text-page' : 'bg-tint text-accent-text'}`}>
+          {past ? tr('pastRunDbDelayData') : tr('recordedLive515')}
         </span>
       </span>
       <span className="flex shrink-0 flex-col items-end gap-0.5">
         <span className="mono text-[17px] font-bold lg:text-[24px]">+{r.max_delay_min}</span>
-        <span className="text-[11px] font-semibold text-muted lg:text-[14px]">{busy ? 'starting…' : 'worst'}</span>
+        <span className="text-[11px] font-semibold text-muted lg:text-[14px]">{busy ? tr('starting') : tr('worst')}</span>
       </span>
     </button>
   )
 }
 
 function Replays() {
+  useT()
   const nav = useNavigate()
   const [recs] = useAsync(() => api.recordings(), [])
   const [all, setAll] = useState(false)
@@ -148,16 +150,14 @@ function Replays() {
   }
 
   return (
-    <section className="mt-3 flex flex-col gap-2 lg:mt-0 lg:gap-3" aria-label="Replays">
-      <h2 className="font-display text-[18px] font-bold lg:text-[26px]">Watch a replay</h2>
-      <p className="-mt-1 text-[12px] leading-snug text-muted lg:text-[15px]">Real trips, played back in a minute.</p>
+    <section className="mt-3 flex flex-col gap-2 lg:mt-0 lg:gap-3" aria-label={tr('replays')}>
+      <h2 className="font-display text-[18px] font-bold lg:text-[26px]">{tr('watchAReplay')}</h2>
+      <p className="-mt-1 text-[12px] leading-snug text-muted lg:text-[15px]">{tr('realTripsPlayedBackInAMinute')}</p>
       {list.map((r) => (
         <RecordingRow key={r.id} r={r} busy={busy === r.id} onPlay={() => play(r.id)} />
       ))}
       {recs.data.length > list.length && (
-        <button type="button" onClick={() => setAll(true)} className="btn-ghost">
-          All {recs.data.length} replays
-        </button>
+        <button type="button" onClick={() => setAll(true)} className="btn-ghost">{tr('all')} {recs.data.length} {tr('replays522')} </button>
       )}
       {err && <p className="text-[13px] text-accent-text" role="alert">{err}</p>}
     </section>
@@ -165,18 +165,17 @@ function Replays() {
 }
 
 export function Trips() {
+  useT()
   const [trips] = useState(loadTrips)
 
   return (
     <>
-      <ScreenHeader title="My trips" />
+      <ScreenHeader title={tr('myTrips')} />
       {/* Desktop: your trips on the left, replays on the right. */}
       <div className="flex flex-col gap-3 px-4 pb-8 lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-10 lg:px-10 lg:pb-12">
         <div className="contents lg:flex lg:flex-col lg:gap-3">
           {trips.length === 0 ? (
-            <Empty title="No trips yet" action={<Link to="/" className="btn-primary">Find late trains</Link>}>
-              Book one of Kurt’s picks and tap “I booked this”. Kurt watches it from there.
-            </Empty>
+            <Empty title={tr('noTripsYet')} action={<Link to="/" className="btn-primary">{tr('findLateTrains')}</Link>}>{tr('bookOneOfKurtSPicksAnd')} </Empty>
           ) : (
             trips.map((r) => <Row key={r.id} r={r} />)
           )}

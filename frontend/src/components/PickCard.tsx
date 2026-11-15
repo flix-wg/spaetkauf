@@ -1,3 +1,4 @@
+import { tx, tr, useT } from '../i18n'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { HistoryQuery, Odds, Pick, SignalItem, Strike } from '../api'
@@ -12,18 +13,19 @@ export const hasOdds = (o: Odds | null): o is Odds & { p20: number } => !!o && o
 // With a change, p20 is for the whole connection (a missed change counts) while late/n are the last train's own runs.
 export function oddsLine(p: Pick) {
   const o = p.odds
-  if (!hasOdds(o)) return 'Not enough history for odds'
+  if (!hasOdds(o)) return tr('notEnoughHistoryForOdds')
   const days = weekdayPlural(o.weekday)
-  const counts = o.late !== null && o.n !== null ? `${o.late} of ${o.n} ${days}` : null
+  const counts = o.late !== null && o.n !== null ? tx('pastRunCount', o.late, o.n, days) : null
   if (o.basis === 'estimate') {
-    const last = p.legs[p.legs.length - 1]?.train ?? 'Last train'
-    return counts ? `Counts a missed change. ${last} alone: late ${counts}` : 'Counts a missed change as late'
+    const last = p.legs[p.legs.length - 1]?.train ?? tr('lastTrain')
+    return counts ? tx('missedConnectionCounts', last, counts) : tr('countsAMissedChangeAsLate')
   }
-  return `Late ${counts ?? days}`
+  return tx('lateCounts', counts ?? days)
 }
 
 // The odds line opens the runs behind it when the screen can show the history sheet.
 export function OddsLine({ pick, onHistory, className = '' }: { pick: Pick; onHistory?: (q: HistoryQuery) => void; className?: string }) {
+  useT()
   const q = onHistory && historyOf(pick)
   if (!q) return <p className={className}>{oddsLine(pick)}</p>
   return (
@@ -33,15 +35,15 @@ export function OddsLine({ pick, onHistory, className = '' }: { pick: Pick; onHi
   )
 }
 
-const SOONER = 'Same ticket, and you get there sooner than on your late train.'
-const EARLIER = 'It leaves before yours, so it only helps if the delay is announced in time.'
+const SOONER = () => tr('sameTicketAndYouGetThereSooner')
+const EARLIER = () => tr('itLeavesBeforeYoursSoItOnly')
 
 function rideLine(p: Pick, tz: string) {
   const r = p.ride_instead
   if (!r) return null
   return {
     times: `${hhmm(r.dep, tz)} → ${hhmm(r.arr, tz)}`,
-    what: `${r.trains.join(' + ')}${r.changes === 0 ? ' · direct' : ` · ${changesLabel(r.changes)}`}`,
+    what: `${r.trains.join(' + ')}${r.changes === 0 ? tr('direct') : ` · ${changesLabel(r.changes)}`}`,
     earlier: r.dep < p.dep,
   }
 }
@@ -60,14 +62,12 @@ export function Actions({
   onBook: (p: Pick) => void
   tone: 'accent' | 'plain'
 }) {
+  useT()
   return (
     <div className="flex flex-col gap-2 lg:grid lg:grid-cols-2">
-      <a href={pick.bahn_url} target="_blank" rel="noopener noreferrer" className="btn-primary on-ink">
-        Open on bahn.de <IconExternal size={18} />
+      <a href={pick.bahn_url} target="_blank" rel="noopener noreferrer" className="btn-primary on-ink">{tr('openOnBahnDe')} <IconExternal size={18} />
       </a>
-      <button type="button" onClick={() => onBook(pick)} className={tone === 'accent' ? 'btn-light' : 'btn-ghost'}>
-        I booked this
-      </button>
+      <button type="button" onClick={() => onBook(pick)} className={tone === 'accent' ? 'btn-light' : 'btn-ghost'}>{tr('iBookedThis')} </button>
     </div>
   )
 }
@@ -88,15 +88,15 @@ export function KurtsPick({
   onBook: (p: Pick) => void
   onHistory?: (q: HistoryQuery) => void
 }) {
+  useT()
   const ride = rideLine(pick, tz)
   const o = pick.odds
   const has = hasOdds(o)
   return (
-    <section className="on-accent relative flex flex-col gap-3 rounded-[22px] bg-accent p-4 lg:gap-4 lg:rounded-[28px] lg:p-6" aria-label="Kurt's pick">
+    <section className="on-accent relative flex flex-col gap-3 rounded-[22px] bg-accent p-4 lg:gap-4 lg:rounded-[28px] lg:p-6" aria-label={tr('kurtSPick')}>
       <div className="flex items-center justify-between">
-        <span className="tag inline-flex items-center gap-1.5 rounded-md bg-ink px-2 py-1 text-white lg:!text-[13px]">
-          <Kurt width={16} shell="#FD4F00" body="#FFFFFF" /> KURT’S PICK
-        </span>
+        <span className="tag inline-flex items-center gap-1.5 rounded-md bg-ink px-2 py-1 text-page lg:!text-[13px]">
+          <Kurt width={16} shell="#FD4F00" body="var(--color-page)" /> {tr('kurtSPick37')} </span>
       </div>
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
@@ -109,10 +109,10 @@ export function KurtsPick({
           {has ? (
             <>
               <span className="mono text-[40px] font-bold leading-none lg:text-[68px]">{pctNum(o.p20)}%</span>
-              <span className="max-w-[88px] text-right text-[12px] leading-tight lg:max-w-none lg:text-[15px] lg:font-semibold">chance of 20+ min late</span>
+              <span className="max-w-[88px] text-right text-[12px] leading-tight lg:max-w-none lg:text-[15px] lg:font-semibold">{tr('chanceOf20MinLate')}</span>
             </>
           ) : (
-            <span className="text-[13px] font-semibold">No odds yet</span>
+            <span className="text-[13px] font-semibold">{tr('noOddsYet')}</span>
           )}
         </div>
       </div>
@@ -120,11 +120,11 @@ export function KurtsPick({
       {strike && <StrikeLine s={strike} tone="card" />}
       {!strike && news.length > 0 && <NewsLine items={news} />}
       {ride ? (
-        <div className="flex flex-col gap-0.5 rounded-xl bg-white p-3 lg:gap-1 lg:rounded-2xl lg:p-4">
-          <span className="tag text-accent-text lg:!text-[13px]">IF YOURS IS 20+ MIN LATE, TAKE</span>
+        <div className="flex flex-col gap-0.5 rounded-xl bg-page p-3 lg:gap-1 lg:rounded-2xl lg:p-4">
+          <span className="tag text-accent-text lg:!text-[13px]">{tr('ifYoursIs20MinLateTake')}</span>
           <span className="mono text-[20px] font-bold leading-tight lg:text-[28px]">{ride.times}</span>
           <span className="text-[13px] font-semibold lg:text-[16px]">{ride.what}</span>
-          <span className="text-[12px] lg:text-[14px]">{ride.earlier ? EARLIER : SOONER}</span>
+          <span className="text-[12px] lg:text-[14px]">{ride.earlier ? EARLIER() : SOONER()}</span>
         </div>
       ) : null}
       <Actions pick={pick} onBook={onBook} tone="accent" />
@@ -143,12 +143,13 @@ export function CompactPick({
   onBook: (p: Pick) => void
   onHistory?: (q: HistoryQuery) => void
 }) {
+  useT()
   const [open, setOpen] = useState(false)
   const ride = rideLine(pick, tz)
   const o = pick.odds
   const dead = pick.already_posted
   return (
-    <article className={`rounded-2xl border ${open ? 'border-ink' : 'border-line'} bg-white`}>
+    <article className={`rounded-2xl border ${open ? 'border-ink' : 'border-line'} bg-page`}>
       <button
         type="button"
         aria-expanded={open}
@@ -164,7 +165,7 @@ export function CompactPick({
               <span
                 className="flex items-center gap-1.5 rounded-full bg-tint py-1 pl-2 pr-2.5"
                 role="img"
-                aria-label={`${pct(o.p20)} chance of 20+ min late`}
+                aria-label={tx('lateChancePick', pct(o.p20))}
               >
                 <span className="hidden min-[360px]:inline-flex"><Snails p20={o.p20} /></span>
                 <span className="mono text-[14px] font-bold lg:text-[19px]">{pctNum(o.p20)}%</span>
@@ -176,12 +177,12 @@ export function CompactPick({
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-snug text-muted lg:text-[15px]">
           <span>
             {dead
-              ? 'Already posted: does not count'
+              ? tr('alreadyPostedDoesNotCount')
               : !hasOdds(o)
-                ? `Not enough history · ${changesLabel(pick.changes)}`
+                ? tx('thinHistoryDuration', changesLabel(pick.changes))
                 : ride
-                  ? `20+ min late? Take ${ride.times}`
-                  : `No backup train found · ${meta(pick)}`}
+                  ? tx('rideInstead', ride.times)
+                  : tx('noBackup', meta(pick))}
           </span>
         </span>
       </button>
@@ -193,10 +194,10 @@ export function CompactPick({
           </div>
           {ride && (
             <div className="rounded-xl bg-surface p-3">
-              <span className="tag text-accent-text">IF YOURS IS 20+ MIN LATE, TAKE</span>
+              <span className="tag text-accent-text">{tr('ifYoursIs20MinLateTake')}</span>
               <p className="mono text-[16px] font-bold lg:text-[20px]">{ride.times}</p>
               <p className="text-[13px] font-semibold lg:text-[15px]">{ride.what}</p>
-              <p className="text-[12px] lg:text-[14px]">{ride.earlier ? EARLIER : SOONER}</p>
+              <p className="text-[12px] lg:text-[14px]">{ride.earlier ? EARLIER() : SOONER()}</p>
             </div>
           )}
           <Actions pick={pick} onBook={onBook} tone="plain" />
@@ -208,29 +209,28 @@ export function CompactPick({
 
 // Kurt's call when an announced strike covers the travel day: no pick, the reason, the source, another day.
 export function StrikeCall({ s, day, tryHref }: { s: Strike; day: string; tryHref: string | null }) {
+  useT()
   return (
-    <section className="on-ink flex flex-col gap-3 rounded-[22px] bg-ink p-4 text-white lg:gap-4 lg:rounded-[28px] lg:p-6" aria-label="Kurt's call">
+    <section className="on-ink flex flex-col gap-3 rounded-[22px] bg-ink p-4 text-page lg:gap-4 lg:rounded-[28px] lg:p-6" aria-label={tr('kurtSCall')}>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="tag inline-flex items-center gap-1.5 rounded-md bg-accent px-2 py-1 text-white lg:!text-[13px]">
-          <Kurt width={16} shell="#FFFFFF" body="#14161A" /> KURT’S CALL · STRIKE DAY
-        </span>
+        <span className="tag inline-flex items-center gap-1.5 rounded-md bg-accent px-2 py-1 text-page lg:!text-[13px]">
+          <Kurt width={16} shell="#FFFFFF" body="#14161A" /> {tr('kurtSCallStrikeDay')} </span>
         {s.test && <TestTag className="lg:!text-[13px]" />}
       </div>
       <div className="flex items-start gap-3 lg:gap-4">
-        <Kurt width={56} shell="#FD4F00" body="#FFFFFF" className="mt-1 shrink-0" />
+        <Kurt width={56} shell="#FD4F00" body="var(--color-page)" className="mt-1 shrink-0" />
         <span className="flex min-w-0 flex-col gap-1.5">
-          <span className="font-display text-[22px] font-bold leading-tight lg:text-[30px]">No pick for {day}</span>
+          <span className="font-display text-[22px] font-bold leading-tight lg:text-[30px]">{tr('noPickFor')} {day}</span>
           <span className="text-[14px] leading-snug lg:text-[17px]">{s.note}</span>
         </span>
       </div>
-      <div className="flex flex-col gap-0.5 rounded-xl bg-white/10 p-3 lg:rounded-2xl lg:p-4">
-        <span className="tag opacity-70 lg:!text-[13px]">SOURCE</span>
+      <div className="flex flex-col gap-0.5 rounded-xl bg-page/10 p-3 lg:rounded-2xl lg:p-4">
+        <span className="tag opacity-70 lg:!text-[13px]">{tr('source')}</span>
         <span className="text-[14px] font-semibold leading-snug lg:text-[17px]">{s.title}</span>
         <StrikeSource s={s} when className="mt-1 text-[12px] opacity-80 lg:text-[14px]" />
       </div>
       {tryHref && s.try_date && (
-        <Link to={tryHref} className="btn-light !bg-white">
-          Try {dayLabel(`${s.try_date}T12:00:00Z`)}
+        <Link to={tryHref} className="btn-light !bg-page">{tr('try')} {dayLabel(`${s.try_date}T12:00:00Z`)}
         </Link>
       )}
     </section>

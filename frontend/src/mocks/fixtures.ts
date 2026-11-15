@@ -1,3 +1,5 @@
+import { eur } from '../format'
+import { tr, tx } from '../i18n-core'
 import type { Alternative, Backtest, Claim, LateNow, Pick, Station, Trip } from '../api'
 import { MIN_PAYOUT, payout } from '../payout'
 
@@ -115,9 +117,9 @@ export function tripAt(date: string, o: Partial<Trip> & { delay: number }): Trip
     updated_at: new Date().toISOString(),
     stale: false,
     thresholds: [
-      { at: 20, label: 'Ticket unlocked', amount_eur: null, reached: delay >= 20 },
-      { at: 60, label: '25 % back', amount_eur: price === null ? null : Math.ceil(price * 0.25 * 20) / 20, reached: delay >= 60 },
-      { at: 120, label: '50 % back', amount_eur: price === null ? null : Math.ceil(price * 0.5 * 20) / 20, reached: delay >= 120 },
+      { at: 20, label: tr('thresholdUnlocked'), amount_eur: null, reached: delay >= 20 },
+      { at: 60, label: tr('25Back501'), amount_eur: price === null ? null : Math.ceil(price * 0.25 * 20) / 20, reached: delay >= 60 },
+      { at: 120, label: tr('50Back502'), amount_eur: price === null ? null : Math.ceil(price * 0.5 * 20) / 20, reached: delay >= 120 },
     ],
     alternatives: alts,
     is_replay: false,
@@ -143,31 +145,31 @@ export function claimFor(delay: number, price: number | null): Claim {
     pct,
     amount_eur: due ? amount : null,
     reason: due && price === null
-      ? `${delay} minutes late: ${pct} % of the ticket price is owed. Enter the price to see the amount.`
+      ? tx('mockClaimPercent', delay, pct)
       : due
-      ? `Arrived ${delay} minutes late at München Hbf: ${pct} % of €${price!.toFixed(2)}, rounded up to the next 5 cents.`
+      ? tx('mockClaimAmount', delay, pct, eur(price!))
       : pct === 0
-        ? 'Under 60 minutes late: no compensation is due.'
-        : 'No payout is due because the amount is under €4. Still yours: the lifted Zugbindung from 20 minutes late, and a full refund if you give up the trip at an expected 60+ minutes.',
+        ? tr('mockUnder60')
+        : tr('mockMinimum'),
     fields: [
-      { label: 'Date', value: '2026-11-20' },
-      { label: 'Train', value: 'ICE 1583, ICE 879' },
-      { label: 'From', value: 'Hamburg Hbf' },
-      { label: 'To', value: 'München Hbf' },
-      { label: 'Scheduled arrival', value: iso(0) },
-      { label: 'Actual arrival', value: iso(delay) },
-      { label: 'Delay', value: `${delay} min` },
+      { label: tr('date'), value: '2026-11-20' },
+      { label: tr('train'), value: 'ICE 1583, ICE 879' },
+      { label: tr('from'), value: 'Hamburg Hbf' },
+      { label: tr('to335'), value: 'München Hbf' },
+      { label: tr('scheduledArrival'), value: iso(0) },
+      { label: tr('actualArrival'), value: iso(delay) },
+      { label: tr('delay'), value: tx('delayMinutes', delay) },
     ],
     evidence: {
       scheduled_arr: iso(0),
       observed_arr: iso(delay),
       delay_min: delay,
-      source: 'Real-time data from Transitous, not DB’s own record.',
+      source: tr('liveDataSource'),
       observations: [0, Math.round(delay / 3), Math.round((2 * delay) / 3), delay].map((d, i) => ({
         at: iso(delay - (3 - i) * 40), delay_min: d, cancelled: false,
       })),
     },
-    where: 'File it yourself in the DB Navigator app (Fahrgastrechte) or on bahn.de. Kurt never submits a claim and never asks for bank details. Claims are possible for one year after the travel date.',
+    where: tr('mockClaimWhere'),
   }
 }
 
@@ -212,7 +214,7 @@ export const BACKTEST: Backtest = {
   ].map(([bucket, predicted_mean, observed_rate, n]) => ({ bucket, predicted_mean, observed_rate, n }) as Backtest['buckets'][number]),
   method: 'shrunk: (k + m * p_parent) / (n + m), m = 50',
   shrinkage_m: 50,
-  note: 'Late = arrival 20+ min after plan or cancelled at that stop. Odds are base rates, not a forecast.',
+  note: tr('mockLateNote'),
   source: 'piebro/deutsche-bahn-data (Hugging Face), CC BY 4.0',
   built_at: '2026-11-13T22:37:24Z',
 }

@@ -4,6 +4,7 @@ import contextlib
 import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import (
     __version__,
@@ -20,6 +21,7 @@ from . import (
 )
 from .config import REPO_ROOT, Settings
 from .db import init_db
+from .i18n import lang_from, text
 from .loop import run_loop
 from .transitous import BudgetSpent, OutsideTimetable, SourceUnavailable, Transitous
 
@@ -51,17 +53,22 @@ def create_app(
     app.state.settings = settings
     app.state.transitous = Transitous(settings, transport)
 
+    @app.exception_handler(StarletteHTTPException)
+    async def _http_error(request: Request, exc: StarletteHTTPException):
+        detail = text(exc.detail, lang_from(request)) if isinstance(exc.detail, str) else exc.detail
+        return JSONResponse({"detail": detail}, status_code=exc.status_code, headers=exc.headers)
+
     @app.exception_handler(BudgetSpent)
     async def _budget(request: Request, exc: BudgetSpent):
-        return JSONResponse({"detail": "Limit reached for today"}, status_code=429)
+        return JSONResponse({"detail": text("Limit reached for today", lang_from(request))}, status_code=429)
 
     @app.exception_handler(OutsideTimetable)
     async def _timetable(request: Request, exc: OutsideTimetable):
-        return JSONResponse({"detail": str(exc)}, status_code=400)
+        return JSONResponse({"detail": text(str(exc), lang_from(request))}, status_code=400)
 
     @app.exception_handler(SourceUnavailable)
     async def _down(request: Request, exc: SourceUnavailable):
-        return JSONResponse({"detail": "Live source unavailable"}, status_code=503)
+        return JSONResponse({"detail": text("Live source unavailable", lang_from(request))}, status_code=503)
 
     @app.get("/api/health")
     def health(request: Request):

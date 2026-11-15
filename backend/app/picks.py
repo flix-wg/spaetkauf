@@ -11,6 +11,7 @@ from urllib.parse import quote
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
+from .i18n import lang_from, localize
 from .matching import parse_train, station_key, station_tokens
 from .odds import BERLIN, connection_odds, miss_odds, odds_path, open_odds
 from .signals import strike_signal
@@ -383,7 +384,7 @@ async def picks(
             "picks": ranked, "note": note(ranked), "kurt_call": call, "strike": strike}  # fmt: skip
     if arrive:
         body.update(mode=mode, arrive_by=_iso(start))
-    return body
+    return localize(body, lang_from(request))
 
 
 @router.get("/backtest")

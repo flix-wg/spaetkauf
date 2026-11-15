@@ -1,3 +1,5 @@
+import { en, de } from '../i18n-core'
+import { tx, tr, useT } from '../i18n'
 import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, ApiError, type Claim } from '../api'
@@ -35,41 +37,41 @@ function pasteable(v: string) {
   return d ? `${d[3]}.${d[2]}.${d[1]}` : v
 }
 
+// Copy-ready evidence for DB stays German in either UI language.
 function proofText(c: Claim) {
   const ev = c.evidence!
   const f = Object.fromEntries(c.fields.map((x) => [x.label, pasteable(x.value)]))
-  const obs = ev.observations.map((o) => `${hhmm(o.at)} Uhr: ${o.cancelled ? 'Ausfall' : `${signedMin(o.delay_min ?? 0)} Min.`}`)
+  const field = (key: 'train' | 'date' | 'from' | 'to335') => f[en[key]] ?? f[de[key]] ?? ''
+  const obs = ev.observations.map((o) => tx('proofObservation', hhmm(o.at), o.cancelled ? tr('proofCancellation') : tx('proofMinutes', signedMin(o.delay_min ?? 0))))
   return [
-    `Zug: ${f.Train}`,
-    `Datum: ${f.Date}`,
-    `Strecke: ${f.From} → ${f.To}`,
-    `Geplante Ankunft: ${pasteable(ev.scheduled_arr)}`,
-    ev.observed_arr && `${c.provisional ? 'Erwartete' : 'Beobachtete'} Ankunft: ${pasteable(ev.observed_arr)} (${signedMin(ev.delay_min)} Min.)`,
-    `Verspätung: ${ev.delay_min} Min.`,
-    'Beobachtungen:',
+    tx('proofTrain', field('train')),
+    tx('proofDate', field('date')),
+    tx('proofRoute', field('from'), field('to335')),
+    tx('proofScheduled', pasteable(ev.scheduled_arr)),
+    ev.observed_arr && tx('proofArrival', c.provisional, pasteable(ev.observed_arr), signedMin(ev.delay_min)),
+    tx('proofDelay', ev.delay_min),
+    tr('proofObservations'),
     ...obs,
-    c.is_replay
-      ? `Wiedergabe aufgezeichneter Daten vom ${c.replay_of}, Beobachtungszeiten sind Wiedergabezeiten.`
-      : 'Quelle: Echtzeitdaten von Transitous (transitous.org), nicht die eigene Aufzeichnung der DB.',
+    c.is_replay ? tx('proofReplay', c.replay_of) : tr('proofSource'),
   ].filter(Boolean).join('\n')
 }
 
 function Proof({ c }: { c: Claim }) {
+  useT()
   const ev = c.evidence!
   const [copied, setCopied] = useState(false)
   return (
     <details className="rounded-2xl border border-line p-3.5">
-      <summary className="cursor-pointer font-display text-[16px] font-bold lg:text-[20px]">Proof of the delay</summary>
+      <summary className="cursor-pointer font-display text-[16px] font-bold lg:text-[20px]">{tr('proofOfTheDelay')}</summary>
       <div className="mt-3 flex flex-col gap-3">
-        <p className="mono text-[14px] font-semibold">
-          Scheduled {pasteable(ev.scheduled_arr)}
-          {ev.observed_arr && <><br />{c.provisional ? 'Expected' : 'Observed'} {pasteable(ev.observed_arr)} ({signedMin(ev.delay_min)} min)</>}
+        <p className="mono text-[14px] font-semibold">{tr('scheduled')} {pasteable(ev.scheduled_arr)}
+          {ev.observed_arr && <><br />{c.provisional ? tr('expected') : tr('observed')} {pasteable(ev.observed_arr)} ({signedMin(ev.delay_min)} {tr('min')}</>}
         </p>
-        <ol className="flex flex-col border-l-2 border-line pl-3" aria-label="Observations">
+        <ol className="flex flex-col border-l-2 border-line pl-3" aria-label={tr('observations')}>
           {ev.observations.map((o) => (
             <li key={o.at} className="mono flex justify-between gap-3 py-0.5 text-[13px]">
               <span className="text-muted">{hhmm(o.at)}</span>
-              <span className="font-semibold">{o.cancelled ? 'cancelled' : `${signedMin(o.delay_min ?? 0)} min`}</span>
+              <span className="font-semibold">{o.cancelled ? tr('cancelled') : tx('claimDelayMinutes', signedMin(o.delay_min ?? 0))}</span>
             </li>
           ))}
         </ol>
@@ -82,22 +84,23 @@ function Proof({ c }: { c: Claim }) {
             setCopied(true)
           }}
         >
-          {copied ? <><IconCheck size={16} /> Copied</> : <><IconCopy size={16} /> Copy as text</>}
+          {copied ? <><IconCheck size={16} /> {tr('copied')}</> : <><IconCopy size={16} /> {tr('copyAsText')}</>}
         </button>
-        <p className="sr-only" role="status" aria-live="polite">{copied ? 'Proof copied' : ''}</p>
+        <p className="sr-only" role="status" aria-live="polite">{copied ? tr('proofCopied') : ''}</p>
       </div>
     </details>
   )
 }
 
 export function ClaimScreen() {
+  useT()
   const { id = '' } = useParams()
   const ref = findTrip(id)
   const [state, retry] = useAsync(() => (ref ? api.claim(ref) : Promise.reject(new ApiError(404, 'missing'))), [id])
   const [copied, setCopied] = useState('')
   const timer = useRef<number>(0)
   const back = (
-    <Link to={`/trip/${encodeURIComponent(id)}`} aria-label="Back to the trip" className="-ml-3 flex h-11 w-11 items-center justify-center text-ink">
+    <Link to={`/trip/${encodeURIComponent(id)}`} aria-label={tr('backToTheTrip')} className="-ml-3 flex h-11 w-11 items-center justify-center text-ink">
       <IconBack />
     </Link>
   )
@@ -106,10 +109,8 @@ export function ClaimScreen() {
     if (ref) removeTrip(id)
     return (
       <>
-        <ScreenHeader title="Claim helper" back={back} />
-        <Empty title="Trip not found" action={<Link to="/trips" className="btn-primary">My trips</Link>}>
-          This trip is not saved on this device or the server forgot it.
-        </Empty>
+        <ScreenHeader title={tr('claimHelper')} back={back} />
+        <Empty title={tr('tripNotFound')} action={<Link to="/trips" className="btn-primary">{tr('myTrips')}</Link>}>{tr('thisTripIsNotSavedOnThis')} </Empty>
       </>
     )
   }
@@ -120,38 +121,38 @@ export function ClaimScreen() {
 
   return (
     <>
-      <ScreenHeader title="Claim helper" back={back} />
+      <ScreenHeader title={tr('claimHelper')} back={back} />
       <div className={`flex flex-col gap-3 px-4 pb-8 lg:px-10 lg:pb-12 ${c ? 'lg:grid lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:items-start lg:gap-x-10' : ''}`}>
-        {state.status === 'loading' && <Loading label="Kurt is doing the sums…" />}
+        {state.status === 'loading' && <Loading label={tr('kurtIsDoingTheSums')} />}
         {state.status === 'error' && <ErrorState error={state.error} retry={retry} />}
         {c && (
           <>
             <div className="contents lg:flex lg:flex-col lg:gap-3">
-              {c.is_replay && <p className="tag">Replay of {c.replay_of} · Historical demo, no claim to file</p>}
+              {c.is_replay && <p className="tag">{tr('replayOf')} {c.replay_of} {tr('historicalDemoNoClaimToFile')}</p>}
               <section
                 className={`${noPayout ? 'bg-surface' : 'bg-accent on-accent'} flex items-center gap-3 rounded-[22px] p-4 lg:rounded-[28px] lg:p-7`}
-                aria-label="Compensation"
+                aria-label={tr('compensation')}
               >
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="tag lg:!text-[15px]">{c.switched ? 'ACTUAL ARRIVAL NEEDED' : c.provisional ? 'COMPENSATION FORECAST' : noPayout ? 'NO PAYOUT DUE' : needsPrice ? `${c.pct} % OWED` : 'CASH BACK'}</span>
+                  <span className="tag lg:!text-[15px]">{c.switched ? tr('actualArrivalNeeded') : c.provisional ? tr('compensationForecast') : noPayout ? tr('noPayoutDue') : needsPrice ? tx('percentOwed', c.pct) : tr('cashBack')}</span>
                   {c.amount_eur !== null && !noPayout ? (
                     <span className="mono text-[42px] font-bold leading-[1.1] lg:text-[64px]">{eur(c.amount_eur)}</span>
                   ) : needsPrice ? (
                     <span className="mono text-[42px] font-bold leading-[1.1] lg:text-[64px]">{c.pct} %</span>
                   ) : (
-                    <span className="font-display text-[24px] font-bold leading-tight">{c.switched ? 'Check your arrival' : c.provisional ? 'No payout forecast' : 'Nothing to claim'}</span>
+                    <span className="font-display text-[24px] font-bold leading-tight">{c.switched ? tr('checkYourArrival') : c.provisional ? tr('noPayoutForecast') : tr('nothingToClaim')}</span>
                   )}
                   <span className="text-[13px] leading-snug lg:text-[16px]">{c.reason}</span>
-                  {c.provisional && !c.switched && <p className="mt-2 text-[13px]">This amount is a forecast until Kurt sees the train arrive. If it never updates, enter your real arrival in DB’s claim form.</p>}
+                  {c.provisional && !c.switched && <p className="mt-2 text-[13px]">{tr('thisAmountIsAForecastUntilKurt')}</p>}
                 </div>
-                <Kurt width={72} shell="#FFFFFF" className="shrink-0" />
+                <Kurt width={72} shell="#FFFFFF" body={noPayout ? 'var(--color-ink)' : '#14161A'} className="shrink-0" />
               </section>
 
               {needsPrice && (
                 <div className="rounded-2xl border border-line p-3">
-                  <p className="mb-2 text-[13px] text-muted">Enter the price you paid and Kurt works out the amount.</p>
+                  <p className="mb-2 text-[13px] text-muted">{tr('enterThePriceYouPaidAndKurt')}</p>
                   <InlinePrice
-                    cta="Calculate"
+                    cta={tr('calculate')}
                     onSave={async (n) => {
                       await api.patchTrip(ref!, { price_eur: n })
                       retry()
@@ -163,8 +164,8 @@ export function ClaimScreen() {
 
             <div className="contents lg:flex lg:flex-col lg:gap-3">
               {(c.due || c.switched) && (
-                <ul className="flex flex-col" aria-label="Details to paste into the claim form">
-                  {c.fields.filter((f) => f.value || (c.switched && f.label === 'Actual arrival')).map((f) => ({ ...f, value: pasteable(f.value) })).map((f) => (
+                <ul className="flex flex-col" aria-label={tr('detailsToPasteIntoTheClaimForm')}>
+                  {c.fields.filter((f) => f.value || (c.switched && (f.label === en.actualArrival || f.label === de.actualArrival))).map((f) => ({ ...f, value: pasteable(f.value) })).map((f) => (
                     <li key={f.label} className="border-b border-line">
                       <button
                         type="button"
@@ -179,31 +180,30 @@ export function ClaimScreen() {
                       >
                         <span className="flex min-w-0 flex-col">
                           <span className="text-[12px] text-muted">{f.label}</span>
-                          <span className="text-[15px] font-semibold leading-snug">{f.value || 'Fill in your actual arrival'}</span>
+                          <span className="text-[15px] font-semibold leading-snug">{f.value || tr('fillInYourActualArrival')}</span>
                         </span>
                         <span
-                          className={`flex min-h-[44px] min-w-[76px] shrink-0 items-center justify-center gap-1 rounded-[10px] border-[1.5px] border-ink px-2 text-[13px] font-semibold ${copied === f.label ? 'bg-ink text-white' : 'bg-white'}`}
+                          className={`flex min-h-[44px] min-w-[76px] shrink-0 items-center justify-center gap-1 rounded-[10px] border-[1.5px] border-ink px-2 text-[13px] font-semibold ${copied === f.label ? 'bg-ink text-page' : 'bg-page'}`}
                         >
-                          {!f.value ? 'Fill in' : copied === f.label ? <><IconCheck size={16} /> Copied</> : <><IconCopy size={16} /> Copy</>}
+                          {!f.value ? tr('fillIn') : copied === f.label ? <><IconCheck size={16} /> {tr('copied')}</> : <><IconCopy size={16} /> {tr('copy')}</>}
                         </span>
                       </button>
                     </li>
                   ))}
                 </ul>
               )}
-              <p className="sr-only" role="status" aria-live="polite">{copied ? `${copied} copied` : ''}</p>
+              <p className="sr-only" role="status" aria-live="polite">{copied ? tx('fieldCopied', copied) : ''}</p>
 
               {c.evidence && (c.due || Math.abs(c.evidence.delay_min - 60) <= 10) && <Proof c={c} />}
 
               <div className="flex flex-col gap-2 rounded-2xl bg-surface p-3.5">
-                <h2 className="font-display text-[16px] font-bold lg:text-[20px]">Where to file</h2>
+                <h2 className="font-display text-[16px] font-bold lg:text-[20px]">{tr('whereToFile')}</h2>
                 <p className="text-[13px] leading-snug lg:text-[15px]">{c.where}</p>
                 {c.due && !c.is_replay && !c.provisional && (
-                  <a href="https://www.bahn.de/service/fahrgastrechte" target="_blank" rel="noopener noreferrer" className="btn-primary mt-1">
-                    Open DB’s refund page <IconExternal size={18} />
+                  <a href="https://www.bahn.de/service/fahrgastrechte" target="_blank" rel="noopener noreferrer" className="btn-primary mt-1">{tr('openDbSRefundPage')} <IconExternal size={18} />
                   </a>
                 )}
-                <p className="text-[12px] text-muted">You paste, you add your bank details yourself, you send. Kurt never files for you.</p>
+                <p className="text-[12px] text-muted">{tr('youPasteYouAddYourBankDetails')}</p>
               </div>
             </div>
           </>

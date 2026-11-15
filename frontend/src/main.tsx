@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
 import { App } from './App'
 import './index.css'
+import { I18nProvider } from './i18n'
 
 if (import.meta.env.PROD) registerSW({ immediate: true })
 
@@ -27,6 +28,6 @@ if (splash) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <I18nProvider><App /></I18nProvider>
   </StrictMode>,
 )

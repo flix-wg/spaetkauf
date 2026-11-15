@@ -1,4 +1,6 @@
 'use strict';
+  const msg = (key, fallback, ...values) => globalThis.chrome?.i18n?.getMessage(key, values.map(String)) || fallback.replace(/\$(\d+)/g, (_, n) => String(values[Number(n) - 1] ?? ''));
+
 const DEFAULT_SERVER = 'https://65-108-33-75.sslip.io';
 const oddsCache = new Map();
 const pending = new Map();
@@ -9,7 +11,7 @@ async function settings() {
 function serverURL(value) {
   const url = new URL(value);
   const hostname = url.hostname.replace(/\.+$/, '');
-  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || /(^|\.)(bahn\.de|db\.de|bahn\.com|deutschebahn\.com)$/i.test(hostname)) throw new Error('Invalid Kurt server URL');
+  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || /(^|\.)(bahn\.de|db\.de|bahn\.com|deutschebahn\.com)$/i.test(hostname)) throw new Error(msg("invalidServer", "Invalid Kurt server URL"));
   return url.origin;
 }
 function nextBerlinMidnight(now = Date.now()) {
@@ -34,14 +36,14 @@ async function request(server, path, body, timeout = 8000) {
   try {
     const response = await fetch(server + path, {
       method: body === undefined ? 'GET' : 'POST',
-      headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
+      headers: { 'Accept-Language': globalThis.chrome?.i18n?.getUILanguage?.()?.startsWith('de') ? 'de' : 'en', ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
       body: body === undefined ? undefined : JSON.stringify(body),
       signal: controller.signal, credentials: 'omit', redirect: 'error'
     });
     const data = await response.json().catch(() => ({}));
-    return response.ok ? { ok: true, status: response.status, data } : { ok: false, status: response.status, error: typeof data.detail === 'string' ? data.detail : `Server returned ${response.status}` };
+    return response.ok ? { ok: true, status: response.status, data } : { ok: false, status: response.status, error: typeof data.detail === 'string' ? data.detail : msg("serverError", "Server returned $1", response.status) };
   } catch (error) {
-    return { ok: false, status: 0, error: error.name === 'AbortError' ? 'Server request timed out' : 'Server unreachable' };
+    return { ok: false, status: 0, error: error.name === 'AbortError' ? msg("timeout", "Server request timed out") : msg("serverUnreachable", "Server unreachable") };
   } finally { clearTimeout(timer); }
 }
 async function handle(message, sender) {
@@ -59,7 +61,7 @@ async function handle(message, sender) {
     const response = await request(server, '/api/health', undefined, 5000);
     return { ok: response.ok && response.data?.ok !== false, version: response.data?.version, adapter: response.data?.sources?.adapter ?? response.data?.adapter, error: response.error };
   }
-  if (!config.enabled) return { ok: false, status: 0, error: 'Extension disabled' };
+  if (!config.enabled) return { ok: false, status: 0, error: msg("disabled", "Extension disabled") };
   if (message.type === 'odds') {
     const key = JSON.stringify([server, message.body]);
     const cached = oddsCache.get(key);
@@ -79,7 +81,7 @@ async function handle(message, sender) {
   if (message.type === 'adapt') {
     const { failures = {}, specs = {} } = await chrome.storage.local.get(['failures', 'specs']);
     if (specs[message.hash]) return { ok: true, status: 200, spec: specs[message.hash] };
-    if (failures[message.hash] > Date.now()) return { ok: false, status: 422, error: 'Layout adaptation unavailable today' };
+    if (failures[message.hash] > Date.now()) return { ok: false, status: 422, error: msg("adaptationUnavailable", "Layout adaptation unavailable today") };
     const response = await request(server, '/api/ext/adapt', { skeleton: message.skeleton, hash: message.hash }, 60000);
     specWrite = specWrite.catch(() => {}).then(async () => {
       const saved = await chrome.storage.local.get({ specs: {}, failures: {} });

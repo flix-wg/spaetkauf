@@ -25,6 +25,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Request, R
 from . import push
 from .config import Settings
 from .db import connect
+from .i18n import lang_from, localize
 
 log = logging.getLogger("spaetkauf.signals")
 router = APIRouter()
@@ -387,7 +388,7 @@ def _utc_iso(value: str | None) -> str:
         return datetime.now(UTC).isoformat(timespec="seconds")
 
 
-def exa_body(a: str, b: str, date: str) -> dict:
+def exa_body(a: str, b: str, date: str, lang: str = "en") -> dict:
     since = datetime.now(UTC) - timedelta(days=LOOKBACK_DAYS)
     question = (
         "Does this article report a rail strike, track closure, construction, weather or event "
@@ -395,6 +396,8 @@ def exa_body(a: str, b: str, date: str) -> dict:
         "Use a factual English sentence grounded in the article. Mark relevant false for local-only "
         "notices, unclear impact, or no impact on long-distance trains on this route and date."
     )
+    if lang == "de":
+        question = question.replace("factual English sentence", "factual German sentence")
     return {
         "query": f"Streik OR Warnstreik OR Streckensperrung OR Bauarbeiten OR Sturm Bahn "
         f"Fernverkehr {a} {b}",
@@ -525,7 +528,7 @@ async def _search(
         headers={"User-Agent": settings.client_name, "x-api-key": settings.exa_key},
         transport=getattr(request.app.state, "signals_transport", None),
     ) as client:
-        resp = await client.post(EXA_URL, json=exa_body(a, b, date))
+        resp = await client.post(EXA_URL, json=exa_body(a, b, date, lang_from(request)))
         resp.raise_for_status()
         return parse_results(resp.json().get("results"), date)
 
@@ -571,7 +574,8 @@ async def get_signals(
     conn = connect(settings.db_path)
     ensure_schema(conn)
     key = hashlib.sha256(
-        f"v{CACHE_VERSION}|{a.casefold()}|{b.casefold()}|{date}".encode()
+        (f"v{CACHE_VERSION}|{a.casefold()}|{b.casefold()}|{date}"
+         + ("|de" if lang_from(request) == "de" else "")).encode()
     ).hexdigest()
     status, items, checked = "unavailable", [], time.time()
     try:
@@ -603,13 +607,13 @@ async def get_signals(
                                 "VALUES (?, ?, ?)",
                                 (key, checked, json.dumps(items)),
                             )
-        return {
+        return localize({
             "status": status,
             "checked_at": datetime.fromtimestamp(checked, UTC).isoformat(timespec="seconds"),
             "items": items,
             "banners": banners(conn, day),
             "strike": strike_for(conn, day),
-        }
+        }, lang_from(request))
     finally:
         conn.close()
 

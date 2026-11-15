@@ -1,5 +1,7 @@
 (function () {
   'use strict';
+  const msg = (key, fallback, ...values) => globalThis.chrome?.i18n?.getMessage(key, values.map(String)) || fallback.replace(/\$(\d+)/g, (_, n) => String(values[Number(n) - 1] ?? ''));
+
   let enabled = true;
   let timer;
   let retry;
@@ -76,7 +78,7 @@
     if (!cards.length || !selected.length) { lastKey = null; lastResponse = null; await report(status); return; }
     if (!ctx.to) {
       for (const el of rendered) SpkOverlay.clear(el);
-      status.error = 'No destination found on this page';
+      status.error = msg("noDestination", "No destination found on this page");
       await report(status);
       return;
     }
@@ -97,7 +99,7 @@
       }
     } else {
       for (const el of rendered) SpkOverlay.clear(el);
-      status.error = lastResponse?.error || 'Odds unavailable';
+      status.error = lastResponse?.error || msg("oddsUnavailable", "Odds unavailable");
       // A settled page fires no mutation that would run again, so retry on a timer.
       clearTimeout(retry);
       retry = setTimeout(schedule, 15000);

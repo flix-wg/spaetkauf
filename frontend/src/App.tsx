@@ -1,3 +1,4 @@
+import { tr, useT } from './i18n'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Shell } from './components/Shell'
 import { Search } from './screens/Search'
@@ -12,6 +13,7 @@ import { Link } from 'react-router-dom'
 import { Legal } from './screens/Legal'
 
 export function App() {
+  useT()
   return (
     <BrowserRouter>
       <Routes>
@@ -28,7 +30,7 @@ export function App() {
           <Route
             path="*"
             element={
-              <Empty title="Nothing here" action={<Link to="/" className="btn-primary">Back to search</Link>} />
+              <Empty title={tr('nothingHere')} action={<Link to="/" className="btn-primary">{tr('backToSearch')}</Link>} />
             }
           />
         </Route>
