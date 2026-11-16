@@ -37,10 +37,14 @@ test('an unreachable site gives no odds and does not throw',async()=>{
   } finally { globalThis.fetch=original; }
 });
 
-test('default site is Pages and localhost permissions remain available',()=>{
+test('default site is Pages and localhost is only an optional permission',()=>{
   const origin='https://kurt-34y.pages.dev';
   const manifest=require('../manifest.json');
-  for(const host of [origin+'/*','http://127.0.0.1/*','http://localhost/*']) assert.ok(manifest.host_permissions.includes(host));
+  assert.ok(manifest.host_permissions.includes(origin+'/*'));
+  for(const host of ['http://127.0.0.1/*','http://localhost/*']) {
+    assert.ok(!manifest.host_permissions.includes(host));
+    assert.ok(manifest.optional_host_permissions.includes(host));
+  }
   for(const name of ['sw.js','content.js','options.js','popup.js','options.html']) {
     assert.ok(fs.readFileSync(path.join(__dirname,'../src',name),'utf8').includes(origin),name);
   }
@@ -69,4 +73,53 @@ test('saved legacy default migrates once while custom origins stay unchanged',as
     assert.equal((await vm.runInContext('settings()',context)).server,custom);
   }
   assert.equal(writes,1);
+});
+
+test('ungranted synced server falls back without changing the saved origin',async()=>{
+  let granted=false, requested, listener;
+  const saved='http://localhost:5710';
+  const context=vm.createContext({URL, setTimeout, clearTimeout, importScripts(){},
+    KurtOdds:{httpOddsSource:server=>{requested=server;return {index:async()=>({meta:{}})};}},
+    chrome:{
+      permissions:{contains:async()=>granted},
+      declarativeNetRequest:{updateSessionRules:async()=>{}},
+      runtime:{id:'test',getManifest:()=>({version:'1'}),onMessage:{addListener(fn){listener=fn;}},onInstalled:{addListener(){}}},
+      tabs:{TAB_ID_NONE:-1,onRemoved:{addListener(){}}},
+      storage:{sync:{get:async defaults=>({...defaults,server:saved}),set:async()=>assert.fail('must retain saved origin')}},
+    }});
+  vm.runInContext(fs.readFileSync(path.join(__dirname,'../src/sw.js'),'utf8'),context);
+  const send=()=>new Promise(resolve=>listener({type:'health'},{},resolve));
+  assert.equal((await send()).fallback,true);
+  assert.equal(requested,'https://kurt-34y.pages.dev/data');
+  granted=true;
+  assert.equal((await send()).fallback,false);
+  assert.equal(requested,saved+'/data');
+});
+
+test('train files load concurrently',{timeout:2000},async()=>{
+  const body=golden.cases[0].body;
+  const started=new Set();
+  let release;
+  const barrier=new Promise(resolve=>{release=resolve;});
+  const trains=new Set(body.connections.map(c=>c.trains.at(-1).replace(/(?<=[A-Za-z])(?=\d)/g,' ')).filter(t=>/^ICE /.test(t) && read('index.json').numbers[t.split(' ')[1]]?.includes('ICE')));
+  assert.ok(trains.size>1);
+  const work=extensionOdds({...body,from:null},{tr:{},odds:{...odds,train:async(type,number)=>{
+    started.add(type+' '+number);
+    if(started.size===trains.size) release();
+    await barrier;
+    return odds.train(type,number);
+  }}});
+  const response=await work;
+  assert.equal(response.results.length,body.connections.length);
+  assert.ok(response.results.some(r=>r.p20!==null));
+});
+
+test('a failed train file leaves successful cards usable',async()=>{
+  const body={...golden.cases[0].body,from:null};
+  const response=await extensionOdds(body,{tr:{},odds:{...odds,train:async(type,number)=>{
+    if(number==='599') throw new Error('file timed out');
+    return odds.train(type,number);
+  }}});
+  assert.equal(response.results[0].p20,null);
+  assert.ok(response.results.some(r=>r.p20!==null));
 });

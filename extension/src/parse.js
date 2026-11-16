@@ -3,7 +3,12 @@
   const REGIONAL_TYPES = ['RE','RB','IRE','S','MEX','ALX','ERB','NWB','BRB','HLB','VIA','U','STR','BUS'];
   const trainSource = '\\b(' + [...LD_TYPES, ...REGIONAL_TYPES].sort((a,b)=>b.length-a.length).join('|') + ')\\s*([0-9]+)\\b';
   const timeSource = '\\b(?:[01][0-9]|2[0-3]):[0-5][0-9]\\b';
-  function skip(el) { return el.nodeType === 1 && (/^(script|style|template|noscript)$/i.test(el.localName) || el.localName.startsWith('spk-') || el.hasAttribute('hidden')); }
+  function skip(el) {
+    if (el.nodeType !== 1) return false;
+    if (/^(script|style|template|noscript)$/i.test(el.localName) || el.localName.startsWith('spk-') || el.hasAttribute('hidden')) return true;
+    const style = el.ownerDocument.defaultView?.getComputedStyle(el);
+    return style?.display === 'none' || style?.visibility === 'hidden';
+  }
   function children(el) { return [...el.childNodes, ...(el.shadowRoot ? [el.shadowRoot] : [])]; }
   function parent(el) { return el.parentNode || el.host || null; }
   function contains(a,b) { for (; b; b=parent(b)) if (a===b) return true; return false; }

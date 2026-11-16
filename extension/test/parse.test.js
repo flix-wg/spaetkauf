@@ -49,3 +49,14 @@ test('a shared heading allows midnight rollover and a new heading resets the dat
   const cards=P.assignDates(P.parseCards(doc).cards,'2020-01-01');
   assert.deepEqual(cards.map(c=>c.date),['2026-11-14','2026-11-15','2026-11-16']);
 });
+
+test('CSS-hidden real result cards do not consume the visible card limit',()=>{
+  const doc=fixture('real/bahn-results-2026-11-14.html');
+  const visible=clean(P.parseCards(doc).cards);
+  const list=doc.querySelector('ul');
+  const hidden=list.firstElementChild.cloneNode(true);
+  hidden.classList.add('hidden-result');
+  const style=doc.createElement('style');style.textContent='.hidden-result { display: none; }';doc.head.append(style);
+  for(let i=0;i<31;i++) list.prepend(hidden.cloneNode(true));
+  assert.deepEqual(clean(P.parseCards(doc).cards),visible);
+});

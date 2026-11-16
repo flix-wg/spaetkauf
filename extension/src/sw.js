@@ -64,12 +64,14 @@ async function handle(message, sender) {
     return { ok: true };
   }
   const config = await settings();
-  const server = serverURL(config.server);
+  const savedServer = serverURL(config.server);
+  const permitted = await chrome.permissions.contains({ origins: [savedServer + '/*'] });
+  const server = permitted ? savedServer : DEFAULT_SERVER;
   if (message.type === 'health') {
     try {
       const index = await within(oddsSource(server).index(), 5000, msg("timeout", "Server request timed out"));
-      return { ok: true, dateTo: index.meta?.date_to };
-    } catch (error) { return { ok: false, error: error.message }; }
+      return { ok: true, dateTo: index.meta?.date_to, server, fallback: !permitted };
+    } catch (error) { return { ok: false, error: error.message, server, fallback: !permitted }; }
   }
   if (!config.enabled) return { ok: false, status: 0, error: msg("disabled", "Extension disabled") };
   if (message.type === 'odds') {
@@ -79,10 +81,10 @@ async function handle(message, sender) {
     if (pending.has(key)) return pending.get(key);
     const source = oddsSource(server);
     const work = (async () => {
-      const data = await within(KurtOdds.extensionOdds(message.body, { odds: source, tr: await route() }), 8000, msg("timeout", "Server request timed out"));
+      const data = await KurtOdds.extensionOdds(message.body, { odds: source, tr: await route() });
       // Odds degrade to "none" when files are missing; an unreachable server is an error the page retries.
       await source.index().catch(() => { throw new Error(msg("serverUnreachable", "Server unreachable")); });
-      const response = { ok: true, status: 200, data };
+      const response = { ok: true, status: 200, data, server };
       oddsCache.delete(key);
       oddsCache.set(key, { until: Date.now() + 600000, response });
       while (oddsCache.size > 100) oddsCache.delete(oddsCache.keys().next().value);

@@ -1,9 +1,9 @@
 {
   "name": {
-    "message": "Kurt for bahn.de"
+    "message": "Kurt: late-train odds"
   },
   "description": {
-    "message": "Historical late-train odds and Kurt’s pick alongside your connection results."
+    "message": "Shows how often each train on your bahn.de results ran 20+ minutes late, and which one could free your saver ticket."
   },
   "showOdds": {
     "message": "Show odds on bahn.de"
@@ -30,7 +30,7 @@
     "message": "Reset to default"
   },
   "privacy": {
-    "message": "The extension computes the odds itself from files on your Kurt site; the site sees which trains are requested and your IP address. Transitous receives start, destination, date, departure time and IP address. Chrome stores settings; Google syncs them if sync is on."
+    "message": "Loads train files from the Kurt site (or your own server), which sees your IP address and which trains you look at. Transitous gets start, destination, date, time, your IP address and an extension identifier that is the same for everyone. Chrome stores settings; Google syncs them if sync is on."
   },
   "unreachable": {
     "message": "Unreachable: no odds until the server is back"
@@ -233,5 +233,8 @@
   },
   "dateUnknown": {
     "message": "an unknown date"
+  },
+  "serverFallback": {
+    "message": "Saved server needs permission. Using the default Kurt site; save your server in settings to grant access."
   }
 }

@@ -67,15 +67,15 @@ export async function extensionOdds(body: OddsRequest, deps: { odds: OddsSource;
   const byRoute = await routeLegs(tr, body)
   let stop = body.to
   if (body.to_eva) stop = (await optional(odds.index()))?.eva_names[body.to_eva] || stop
-  const results: Result[] = [], page: Pick[] = []
-  for (const [i, connection] of body.connections.entries()) {
+  const page: Pick[] = []
+  const results = await Promise.all(body.connections.map(async (connection, i): Promise<Result> => {
     const day = connection.date || body.date
     const dep = zonedToUtc(day, connection.dep).toISOString()
     const arr = zonedToUtc(connection.arr <= connection.dep ? nextDay(day) : day, connection.arr).toISOString()
     const result: Result = { i, p20: null, p60: null, n: null, late: null, weekday: WEEKDAYS[weekdayBerlin(arr)], basis: 'none', train: null, kurt: false }
     const trains = connection.trains.map(t => parseTrain(t.replace(/(?<=[A-Za-z])(?=\d)/g, ' ')))
     const names = trains.map((t, j) => t ? t.join(' ') : connection.trains[j])
-    page.push({ id: String(i), dep, arr, changes: names.length - 1, cancelled: !!connection.posted,
+    page[i] = ({ id: String(i), dep, arr, changes: names.length - 1, cancelled: !!connection.posted,
       legs: names.map(n => ({ trip_id: `${day}:${n}`, train: n, from: '', to: '' })) } as unknown as Pick)
     const last = trains.at(-1)
     if (last && LONG_DISTANCE_TYPES.includes(last[0])) {
@@ -89,8 +89,8 @@ export async function extensionOdds(body: OddsRequest, deps: { odds: OddsSource;
         if (both && both.p20 !== null) Object.assign(result, both, { train }) // basis "estimate", the same number as the app
       }
     }
-    results.push(result)
-  }
+    return result
+  }))
   // Same rule as the app: a pick needs another train on this page to switch to.
   const eligible = results.filter(r => !body.connections[r.i].posted && r.p20 !== null && r.p20 >= KURT_MIN_P20 && rideInstead(page[r.i], page))
   const kurt = eligible.length ? eligible.reduce((best, r) => r.p20! > best.p20! ? r : best).i : null

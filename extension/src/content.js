@@ -9,6 +9,11 @@
   let generation = 0;
   let lastKey = null;
   let lastResponse = null;
+  let lastURL = location.href;
+  const navigation = setInterval(() => {
+    if (!alive()) return stop();
+    if (location.href !== lastURL) { lastURL = location.href; for (const el of rendered) SpkOverlay.clear(el); schedule(); }
+  }, 500);
   let rendered = new Set();
   // async: once the extension is reloaded, sendMessage throws instead of rejecting.
   const send = async message => chrome.runtime.sendMessage(message);
@@ -18,6 +23,7 @@
     enabled = false;
     clearTimeout(timer);
     clearTimeout(retry);
+    clearInterval(navigation);
     observer.disconnect();
     removeEventListener('hashchange', schedule);
   }
@@ -65,7 +71,7 @@
     if (lastResponse?.ok) {
       for (const result of lastResponse.data.results) {
         const card = selected[result.i];
-        if (card) SpkOverlay.render(card, result, { link: lastResponse.data.link, server: config.server });
+        if (card) SpkOverlay.render(card, result, { link: lastResponse.data.link, server: lastResponse.server || config.server });
       }
     } else {
       for (const el of rendered) SpkOverlay.clear(el);

@@ -31,6 +31,7 @@ try {
   const manifestFile = path.join(copy, 'manifest.json');
   const manifest = JSON.parse(await readFile(manifestFile, 'utf8'));
   manifest.content_scripts[0].matches.push('http://127.0.0.1/*');
+  manifest.host_permissions.push('http://127.0.0.1/*');
   manifest.permissions.push('declarativeNetRequestFeedback');
   await writeFile(manifestFile, JSON.stringify(manifest));
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
