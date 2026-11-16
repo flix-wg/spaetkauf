@@ -12,7 +12,7 @@
   let lastURL = location.href;
   const navigation = setInterval(() => {
     if (!alive()) return stop();
-    if (location.href !== lastURL) { lastURL = location.href; schedule(); }
+    if (location.href !== lastURL) { lastURL = location.href; for (const el of rendered) SpkOverlay.clear(el); schedule(); }
   }, 500);
   let rendered = new Set();
   // async: once the extension is reloaded, sendMessage throws instead of rejecting.
@@ -63,7 +63,6 @@
     const config = await chrome.storage.sync.get({ server: 'https://kurt-34y.pages.dev' });
     const key = JSON.stringify([config.server, body]);
     if (key !== lastKey) {
-      for (const el of rendered) SpkOverlay.clear(el);
       const response = await send({ type: 'odds', body });
       if (!enabled || token !== generation) return;
       lastResponse = response;
@@ -90,7 +89,7 @@
       return !nodes.length || nodes.some(node => node.nodeType !== 1 || node.localName !== 'spk-badge');
     })) schedule();
   });
-  observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class', 'style', 'hidden', 'datetime'] });
+  observer.observe(document.body, { childList: true, subtree: true, characterData: true });
   addEventListener('hashchange', schedule);
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'sync') return;
