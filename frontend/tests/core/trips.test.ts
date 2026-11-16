@@ -129,3 +129,34 @@ test('app watcher follows saved trips, visibility and backend window; posted del
   assert.equal(calls, finalCalls)
   stop()
 })
+
+test('concurrent tab watchers serialize snapshots and alert once with Web Locks', async t => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
+  let queue = Promise.resolve(), requests = 0
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { locks: {
+    request: (_name: string, work: () => Promise<void>) => {
+      requests++
+      const result = queue.then(work)
+      queue = result.catch(() => undefined)
+      return result
+    },
+  } } })
+  t.after(() => {
+    if (previous) Object.defineProperty(globalThis, 'navigator', previous)
+    else Reflect.deleteProperty(globalThis, 'navigator')
+  })
+  const store = memoryStorage()
+  const { id } = await saveTrip(pick, 80, store)
+  const tr = { trip: async () => ({ legs: [{ realTime: true,
+    from: { name: 'Berlin Hbf', scheduledDeparture: pick.dep, departure: pick.dep },
+    to: { name: 'München Hbf', scheduledArrival: pick.arr, arrival: '2026-11-20T13:25:00Z' },
+  }] }) } as unknown as Transitous
+  const alerts: string[] = []
+  const options = { tr, store, now: () => new Date('2026-11-20T12:00:00Z'), notify: (level: string) => void alerts.push(level) }
+  const stops = [watchTrip(id, () => undefined, options), watchTrip(id, () => undefined, options)]
+  t.after(() => stops.forEach(stop => stop()))
+  for (let i = 0; i < 10; i++) await new Promise(resolve => setImmediate(resolve))
+  assert.equal(requests, 2)
+  assert.equal(getTrip(id, store)!.snaps.length, 2)
+  assert.deepEqual(alerts, ['20'])
+})

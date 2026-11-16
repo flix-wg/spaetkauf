@@ -6,8 +6,7 @@ import { httpOddsSource } from './core/oddsSource.ts'
 import { BadRequest, getPicks, NotFound as PicksNotFound } from './core/picks.ts'
 import { BudgetSpent, createTransitous, OutsideTimetable, SourceUnavailable, stationsSearch, type Transitous } from './core/transitous.ts'
 import { deleteTrip, getTrip, saveTrip, StorageUnavailable, tripClaim, tripView, updateTrip, subscribeTrips, watchTrips } from './core/trips.ts'
-// Types follow design.md D12 and what the backend returned. The static build computes them in the browser
-// (src/core); TripRef.secret is a leftover of server trips and stays empty.
+// The static build computes the screen contracts in src/core.
 
 export type Basis = 'history' | 'estimate' | 'none'
 export type TripState = 'on_time' | 'unlocked' | 'cash25' | 'cash50' | 'cancelled'
@@ -244,12 +243,6 @@ export interface LateNow {
   checked: number
   late: LateTrain[]
 }
-export interface Health {
-  ok: boolean
-  version: string
-  sources: { transitous: string; exa: string; context: string }
-  plan_budget_left: number
-}
 // data/backtest.json, the fields the UI reads. Rates are fractions.
 export interface Backtest {
   train_period: { from: string; to: string }
@@ -270,11 +263,9 @@ export interface Backtest {
 }
 export interface TripRef {
   id: string
-  secret: string
 }
 export interface Created {
   trip_id: string
-  secret: string
 }
 
 export class ApiError extends Error {
@@ -292,7 +283,7 @@ export class Blocked extends ApiError {
 }
 
 const env: Partial<ImportMetaEnv> = import.meta.env ?? {}
-export const MOCK = env.VITE_MOCK === '1'
+export const MOCK = import.meta.env?.VITE_MOCK === '1'
 
 let live: Transitous | undefined
 const transitous = () => (live ??= createTransitous())
@@ -311,7 +302,7 @@ function fail(error: unknown, fallback: string): never {
   throw new ApiError(503, fallback)
 }
 function run<T>(mock: [string, string, unknown?], real: () => T | Promise<T>, fallback = tr('somethingWentWrong')): Promise<T> {
-  if (MOCK) return import('./mocks/index.ts').then(m => m.mockCall<T>(...mock))
+  if (import.meta.env?.VITE_MOCK === '1') return import('./mocks/index.ts').then(m => m.mockCall<T>(...mock))
   return (async () => real())().catch(error => fail(error, fallback))
 }
 function saved(r: TripRef) {
@@ -326,7 +317,6 @@ const qs = (o: Record<string, string | undefined>) => {
   const s = p.toString()
   return s ? `?${s}` : ''
 }
-const tripPath = (id: string, secret: string, sub = '') => `/api/trips/${encodeURIComponent(id)}${sub}${qs({ secret })}`
 
 export interface LegalInfo {
   name: string
@@ -346,9 +336,6 @@ export const api = {
     cdn: 'cloudflare',
     adapter: false,
   })),
-  health: () => run<Health>(['GET', '/api/health'], () => ({
-    ok: true, version: 'static', sources: { transitous: 'browser', exa: 'blocked', context: 'blocked' }, plan_budget_left: 0,
-  })),
   stations: (q: string) => run<Station[]>(['GET', `/api/stations${qs({ q })}`], () => stationsSearch(transitous(), q)),
   picks: (p: { from: string; to: string; date: string; time: string; mode?: 'arrive'; before?: string }) =>
     run<PicksResponse>(['GET', `/api/picks${qs(p)}`], async () => localize(await getPicks({ tr: transitous(), odds }, {
@@ -367,16 +354,16 @@ export const api = {
     status: 'unavailable', checked_at: new Date().toISOString(), items: [], banners: [], strike: null, blocked: true,
   })),
   createTrip: (pick: Pick, price_eur?: number) =>
-    run<Created>(['POST', '/api/trips', { pick, price_eur, lang: getLang() }], async () => ({ trip_id: (await saveTrip(pick, price_eur)).id, secret: '' })),
-  trip: (r: TripRef) => run<Trip>(['GET', tripPath(r.id, r.secret)], () => localize(tripView(saved(r)))),
+    run<Created>(['POST', '/api/trips', { pick, price_eur, lang: getLang() }], async () => ({ trip_id: (await saveTrip(pick, price_eur)).id })),
+  trip: (r: TripRef) => run<Trip>(['GET', `/api/trips/${encodeURIComponent(r.id)}`], () => localize(tripView(saved(r)))),
   patchTrip: (r: TripRef, body: { price_eur?: number; switched?: boolean; push?: unknown; lang?: Lang }) =>
-    run<void>(['PATCH', tripPath(r.id, r.secret), body], () => {
+    run<void>(['PATCH', `/api/trips/${encodeURIComponent(r.id)}`, body], () => {
       if ('push' in body) throw new Blocked()
       saved(r)
       updateTrip(r.id, { price_eur: body.price_eur, switched: body.switched })
     }),
-  deleteTrip: (r: TripRef) => run<void>(['DELETE', tripPath(r.id, r.secret)], () => deleteTrip(r.id)),
-  claim: (r: TripRef) => run<Claim>(['GET', tripPath(r.id, r.secret, '/claim')], () => localize(tripClaim(saved(r)))),
+  deleteTrip: (r: TripRef) => run<void>(['DELETE', `/api/trips/${encodeURIComponent(r.id)}`], () => deleteTrip(r.id)),
+  claim: (r: TripRef) => run<Claim>(['GET', `/api/trips/${encodeURIComponent(r.id)}/claim`], () => localize(tripClaim(saved(r)))),
   // The app owns polling; screens only subscribe to saved updates.
   watchTrips: () => (MOCK ? () => undefined : watchTrips({ tr: transitous() })),
   subscribeTrips,
@@ -386,8 +373,4 @@ export const api = {
     if (!res.ok) throw new Error(`backtest.json: HTTP ${res.status}`)
     return localize((await res.json()) as Backtest)
   }, `${text('No backtest available')}.`),
-  pushKey: () => run<{ public_key: string }>(['GET', '/api/push/key'], () => { throw new Blocked() }),
-  recordings: () => run<Recording[]>(['GET', '/api/demo/recordings'], () => []),
-  demoReplay: (recording?: string) =>
-    run<Created & { recording: Recording }>(['POST', '/api/demo/replay', recording ? { recording } : {}], () => { throw new Blocked() }),
 }

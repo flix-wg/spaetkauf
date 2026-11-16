@@ -32,7 +32,7 @@ test('Pages headers allow browser data, DuckDB and the inline bootstrap scripts'
   }
   assert.equal(site.get('referrer-policy'), 'strict-origin-when-cross-origin')
   assert.equal(site.get('x-content-type-options'), 'nosniff')
-  assert.equal(blocks.get('/data/*')!.get('cache-control'), 'public, max-age=86400')
+  assert.equal(blocks.get('/data/*')!.get('cache-control'), 'no-cache')
   assert.equal(blocks.get('/assets/*')!.get('cache-control'), 'public, max-age=31536000, immutable')
   const wasm = blocks.get('/duckdb/duckdb-eh.wasm.gz')!
   assert.equal(wasm.get('content-type'), 'application/octet-stream')

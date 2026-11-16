@@ -31,9 +31,9 @@ for (const c of golden.picks) test(`picks golden ${c.query.mode}`, async () => {
   const tr = createTransitous({ storage: null, cacheStorage: null, fetch: async () => Response.json(golden.plan) })
   assert.deepEqual(await getPicks({ tr, odds, now: new Date(golden.now) }, c.query), c.expected)
 })
-test('429 retries once, caches without spending and never sets User-Agent', async () => {
+test('429 retries spend once, cache hits spend nothing and User-Agent is absent', async () => {
   let calls = 0
-  const tr = createTransitous({ storage: null, cacheStorage: null, planCap: 2, fetch: async (_url, init) => {
+  const tr = createTransitous({ storage: null, cacheStorage: null, planCap: 1, fetch: async (_url, init) => {
     assert.equal(new Headers(init?.headers).has('User-Agent'), false)
     return ++calls === 1 ? new Response('', { status: 429 }) : Response.json({ itineraries: [] })
   } })

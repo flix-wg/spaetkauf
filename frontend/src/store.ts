@@ -4,7 +4,7 @@ import { deleteTrip, listTrips } from './core/trips.ts'
 // Trips saved by the old server version kept {id, secret} pairs here.
 const LEGACY = 'spaetkauf.trips'
 
-export const loadTrips = (): TripRef[] => listTrips().map((t) => ({ id: t.id, secret: '' }))
+export const loadTrips = (): TripRef[] => listTrips().map((t) => ({ id: t.id }))
 export const findTrip = (id: string) => loadTrips().find((t) => t.id === id)
 export function removeTrip(id: string) {
   try {

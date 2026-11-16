@@ -1,7 +1,7 @@
 """Export read-only odds and history for the static site.
 
 uv run --project backend python scripts/export_static.py --odds data/odds.sqlite \
-    --history /home/felix/backups/kurt/history.duckdb --out /tmp/kurt-static
+    --history data/history.duckdb --out /tmp/kurt-static
 Copy /tmp/kurt-static/history/ to data/static/history/ for the committed history.
 Either input may be omitted. Backtest and replay JSON are copied from data/.
 """

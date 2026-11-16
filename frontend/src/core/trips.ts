@@ -166,26 +166,31 @@ export function watchTrip(id: string, onUpdate: (t: SavedTrip) => void, o: {
   const now = o.now ?? (() => new Date()), notify = o.notify ?? notifyLocal
   const doc = globalThis.document
   let timer: ReturnType<typeof setInterval> | undefined, busy = false, stopped = false
+  async function pollAndSave() {
+    if (stopped) return
+    const saved = getTrip(id, store)
+    if (!saved || saved.finished || +now() < Date.parse(saved.pick.dep) - WINDOW_BEFORE) return
+    if (tripView(saved, now()).finished) { updateTrip(id, { finished: true }, store); return }
+    const snap = await poll(o.tr, saved.pick, now()).catch(() => null)
+    const fresh = getTrip(id, store)
+    if (stopped || !fresh) return
+    if (!snap) {
+      if (tripView(fresh, now()).finished) updateTrip(id, { finished: true }, store)
+      return
+    }
+    const reached: Level[] = [...LEVELS.filter(l => !fresh.pick.already_posted && (snap.delay_min ?? 0) >= Number(l)), ...(snap.cancelled ? ['cancelled' as const] : [])]
+    const fresher = reached.filter(l => !fresh.alerted.includes(l))
+    const next = { ...fresh, snaps: [...fresh.snaps, snap].slice(-MAX_SNAPS), alerted: [...fresh.alerted, ...fresher] }
+    updateTrip(id, { snaps: next.snaps, alerted: next.alerted, finished: tripView(next, now()).finished }, store)
+    if (fresher.length) notify(fresher.at(-1)!, next)
+    onUpdate(next)
+  }
   async function tick() {
     if (busy) return
     busy = true
     try {
-      const saved = getTrip(id, store)
-      if (!saved || saved.finished || +now() < Date.parse(saved.pick.dep) - WINDOW_BEFORE) return
-      if (tripView(saved, now()).finished) { updateTrip(id, { finished: true }, store); return }
-      const snap = await poll(o.tr, saved.pick, now()).catch(() => null)
-      const fresh = getTrip(id, store)
-      if (stopped || !fresh) return
-      if (!snap) {
-        if (tripView(fresh, now()).finished) updateTrip(id, { finished: true }, store)
-        return
-      }
-      const reached: Level[] = [...LEVELS.filter(l => !fresh.pick.already_posted && (snap.delay_min ?? 0) >= Number(l)), ...(snap.cancelled ? ['cancelled' as const] : [])]
-      const fresher = reached.filter(l => !fresh.alerted.includes(l))
-      const next = { ...fresh, snaps: [...fresh.snaps, snap].slice(-MAX_SNAPS), alerted: [...fresh.alerted, ...fresher] }
-      updateTrip(id, { snaps: next.snaps, alerted: next.alerted, finished: tripView(next, now()).finished }, store)
-      if (fresher.length) notify(fresher.at(-1)!, next)
-      onUpdate(next)
+      if (globalThis.navigator?.locks) await navigator.locks.request(`kurt.trip.${id}`, pollAndSave)
+      else await pollAndSave()
     } catch { /* keep the last reading; the view marks it stale */ }
     finally { busy = false }
   }

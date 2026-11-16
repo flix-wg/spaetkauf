@@ -2,6 +2,7 @@ import { GE_COLUMNS } from './oddsSource.ts'
 import type { OddsSource, Rates } from './oddsSource'
 
 export const LONG_DISTANCE_TYPES = ['ICE', 'IC', 'EC', 'ECE', 'EN', 'NJ', 'RJ', 'RJX', 'FLX', 'TGV', 'WB', 'ES', 'EST', 'EUR', 'D']
+export const STATION_ALIASES: Record<string, string> = { frankfurt: 'frankfurt main', 'an brandenburg der havel': 'brandenburg' }
 export const MIN_RUNS = 10
 const DROP = new Set(['hbf', 'hauptbahnhof', 'bahnhof', 'bf', 'am', 'tief'])
 const SPELL: Record<string, string> = { m: 'main', fernbf: 'fernbahnhof' }
@@ -45,7 +46,7 @@ export async function findStats(src: OddsSource, type: string, number: string, s
   const rows = shard?.rows ?? []
   const keys = [...new Set(rows.map(r => r[0]))]
   const stopKey = stationKey(stop)
-  const alias = ({ frankfurt: 'frankfurt main', 'an brandenburg der havel': 'brandenburg' } as Record<string, string>)[stopKey]
+  const alias = STATION_ALIASES[stopKey]
   const key = keys.includes(stopKey) ? stopKey : keys.includes(alias) ? alias : null
   if (key === null) return { status: 'stop_not_matched', train_type: foundType, train_number: number, stop_key: stopKey, known_keys: keys.sort() }
   const selected = rows.filter(r => r[0] === key && r[3] === weekday)

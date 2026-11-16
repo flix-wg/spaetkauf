@@ -2,7 +2,7 @@
 import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, getCacheKeyForURL } from 'workbox-precaching'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { registerRoute } from 'workbox-routing'
-import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies'
+import { StaleWhileRevalidate } from 'workbox-strategies'
 import { jsonCachePlugin } from './jsonCache.ts'
 import { ADDON_ZIP } from './addon'
 
@@ -20,11 +20,11 @@ self.addEventListener('fetch', (event) => {
   }
 })
 
-// Odds shards change only with a data rebuild. History Parquet is read with Range requests, which the
+// Revalidate odds after rebuilds. History Parquet is read with Range requests, which the
 // Cache API can't serve correctly, so only whole-file reads (meta.json) go through the cache.
 const sameOrigin = (url: URL) => url.origin === self.location.origin
 registerRoute(({ url }) => sameOrigin(url) && url.pathname.startsWith('/data/odds/'),
-  new CacheFirst({ cacheName: 'kurt-odds', plugins: [jsonCachePlugin, new ExpirationPlugin({ maxAgeSeconds: 7 * 24 * 3600, maxEntries: 500 })] }))
+  new StaleWhileRevalidate({ cacheName: 'kurt-odds', plugins: [jsonCachePlugin, new ExpirationPlugin({ maxAgeSeconds: 7 * 24 * 3600, maxEntries: 500 })] }))
 registerRoute(({ url, request }) => sameOrigin(url) && url.pathname.startsWith('/data/history/') && !request.headers.has('range'),
   new StaleWhileRevalidate({ cacheName: 'kurt-history', plugins: [jsonCachePlugin] }))
 

@@ -1,3 +1,4 @@
+import { stationKey, STATION_ALIASES, typeFamily } from './matching.ts'
 import type { HistoryRuns, TrainStops, RouteTrains } from '../api'
 
 type Cell = string | number | bigint | boolean | null
@@ -7,19 +8,10 @@ const SOURCE = 'Deutsche Bahn arrival data via piebro/deutsche-bahn-data, CC BY 
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 export class NotFound extends Error {}
 
-// Kept local until the parallel matching port is available.
-function stationKey(name: string) {
-  const spell: Record<string, string> = { m: 'main', fernbf: 'fernbahnhof' }
-  const drop = new Set(['hbf', 'hauptbahnhof', 'bahnhof', 'bf', 'am', 'tief'])
-  return [...new Set(name.normalize('NFC').toLowerCase().replace(/[äöüß]/g, c => ({ ä: 'ae', ö: 'oe', ü: 'ue', ß: 'ss' })[c]!)
-    .replace(/\bs\s*\+\s*u\b/g, ' ').replace(/\s*\([a-z]{2}\)\s*$/, '').split(/[^0-9a-z]+/)
-    .filter(t => t && !drop.has(t)).map(t => spell[t] ?? t))].sort().join(' ')
-}
 function stopMatch(name: string, rows: Cell[][], context: string): [string, string] {
   const keys = rows.map(r => String(r[0]))
   const key = stationKey(name)
-  const alias: Record<string, string> = { frankfurt: 'frankfurt main', 'an brandenburg der havel': 'brandenburg' }
-  const found = keys.includes(key) ? key : alias[key]
+  const found = keys.includes(key) ? key : STATION_ALIASES[key]
   if (!found || !keys.includes(found)) throw new NotFound(`'${name}' is not a stop ${context}`)
   return [found, rows.filter(r => r[0] === found).map(r => String(r[1])).sort()[0]]
 }
@@ -50,7 +42,7 @@ export function createHistory(query: Query, meta: Meta) {
     const parsed = /^\s*([A-Za-z]+)\s+0*(\d+)\s*$/.exec(train)
     if (!parsed) throw new NotFound(`'${train}' is not a train like 'ICE 1103'`)
     const kind = parsed[1].toUpperCase(), number = parsed[2]
-    const family = [['ICE', 'IC'], ['EC', 'ECE'], ['RJ', 'RJX'], ['EN', 'NJ']].find(f => f.includes(kind)) ?? [kind]
+    const family = [...typeFamily(kind)]
     family.sort()
     const rows = await query(`SELECT id, train_type::VARCHAR, train_number FROM trains WHERE train_number = $1 AND train_type::VARCHAR IN (${family.map((_, i) => '$' + (i + 2)).join(',')}) ORDER BY train_type::VARCHAR = $${family.length + 2} DESC`, [number, ...family, kind])
     if (rows.length !== 1 && !(rows.length && rows[0][1] === kind)) throw new NotFound(`No history for ${kind} ${number}`)

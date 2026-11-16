@@ -54,13 +54,15 @@ test('HTTP odds requests pass fetch options and abort stalled fetches so a retry
     if (inits.length > 1) return Promise.resolve(Response.json({ numbers: {} }))
     return new Promise((_, reject) => init!.signal!.addEventListener('abort', () => reject(init!.signal!.reason)))
   }
+  // AbortSignal.timeout's timer is unref'd, so keep the event loop alive until it fires (Node 22).
+  const alive = setInterval(() => undefined, 1000)
   try {
     const src = httpOddsSource('/data', { redirect: 'error' }, 20)
     await assert.rejects(src.index())
     assert.deepStrictEqual(await src.index(), { numbers: {} })
     assert.equal(inits.length, 2)
     assert.equal(inits[0].redirect, 'error')
-  } finally { globalThis.fetch = original }
+  } finally { globalThis.fetch = original; clearInterval(alive) }
 })
 
 

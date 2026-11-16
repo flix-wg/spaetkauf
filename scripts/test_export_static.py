@@ -11,7 +11,7 @@ import duckdb
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
-HISTORY = Path("/home/felix/backups/kurt/history.duckdb")
+HISTORY = ROOT / "data/history.duckdb"
 COUNTS = ("n", "n_cancel", "ge5", "ge10", "ge15", "ge20", "ge30", "ge45", "ge60", "ge90", "ge120")
 
 

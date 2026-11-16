@@ -168,7 +168,7 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
   if (p === '/api/trips' && method === 'POST') {
     const id = `new-${++seq}`
     started.set(id, Date.now())
-    return out({ trip_id: id, secret: 'mock' } satisfies Created)
+    return out({ trip_id: id } satisfies Created)
   }
   const m = p.match(/^\/api\/trips\/([^/]+)(\/claim)?$/)
   if (m) {
@@ -196,7 +196,7 @@ export async function mockCall<T>(method: string, path: string, body?: unknown):
     const rec = RECORDINGS.find((r) => r.id === (body as { recording?: string } | undefined)?.recording) ?? RECORDINGS[0]
     const id = `replay-${rec.source === 'history' ? 'hist-' : ''}${rec.outcome === 'on_time' ? 'ok-' : ''}${++seq}`
     started.set(id, Date.now())
-    return out({ trip_id: id, secret: 'mock', recording: rec })
+    return out({ trip_id: id, recording: rec })
   }
   throw new ApiError(404, tr('notFound'))
 }

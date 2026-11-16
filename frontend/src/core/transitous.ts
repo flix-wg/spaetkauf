@@ -87,16 +87,16 @@ export function createTransitous(opts: { fetch?: typeof fetch; storage?: Storage
     if (existing) return existing
     const work = (async () => {
       const query = new URLSearchParams(entries.map(([k, v]) => [k, String(v)]))
-      for (let attempt = 0; attempt < 2; attempt++) {
-        if (kind === 'plan') {
-          if (globalThis.navigator?.locks) {
-            const error = await navigator.locks.request('kurt.plan-budget', () => {
-              try { spend(); return null } catch (error) { return error }
-            })
-            if (error) throw error
-          }
-          else spend()
+      if (kind === 'plan') {
+        if (globalThis.navigator?.locks) {
+          const error = await navigator.locks.request('kurt.plan-budget', () => {
+            try { spend(); return null } catch (error) { return error }
+          })
+          if (error) throw error
         }
+        else spend()
+      }
+      for (let attempt = 0; attempt < 2; attempt++) {
         try {
           const response = await request(`https://api.transitous.org${path}?${query}`, { signal: AbortSignal.timeout(10_000) })
           if (kind === 'plan' && response.status === 400) {
