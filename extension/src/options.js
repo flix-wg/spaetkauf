@@ -14,11 +14,8 @@ async function save(value) {
     if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash || url.pathname !== '/') throw new Error(msg("originRequired", "Enter an http(s) server origin without a path, credentials, query or fragment."));
     if (/(^|\.)(bahn\.de|db\.de|bahn\.com|deutschebahn\.com)$/i.test(hostname)) throw new Error(msg("noDB", "Use a Kurt server, not a Deutsche Bahn host."));
     const origin = url.origin + '/*';
-    if (url.protocol === 'https:') {
-      if (!await chrome.permissions.request({ origins: [origin] })) throw new Error(msg("accessDenied", "Server access was not granted."));
-    } else if (!await chrome.permissions.contains({ origins: [origin] })) {
-      throw new Error(msg("httpLocal", "HTTP is supported only for localhost or 127.0.0.1. Use HTTPS for a custom server."));
-    }
+    if (url.protocol === 'http:' && !['localhost', '127.0.0.1'].includes(hostname)) throw new Error(msg("httpLocal", "HTTP is supported only for localhost or 127.0.0.1. Use HTTPS for a custom server."));
+    if (!await chrome.permissions.request({ origins: [origin] })) throw new Error(msg("accessDenied", "Server access was not granted."));
     await chrome.storage.sync.set({ server: url.origin });
     input.value = url.origin;
     message.textContent = msg("saved", "Saved");
