@@ -10,6 +10,7 @@ for (const element of document.querySelectorAll('[data-i18n]')) element.textCont
   toggle.addEventListener('change', () => chrome.storage.sync.set({ enabled: toggle.checked }));
   document.getElementById('server').textContent = msg("server", "Kurt server: $1", config.server);
   chrome.runtime.sendMessage({ type: 'health' }).then(health => {
+    if (health.fallback) document.getElementById('server').textContent = msg('serverFallback', 'Saved server needs permission. Using the default Kurt site; save your server in settings to grant access.');
     document.getElementById('health').textContent = health.ok ? msg('reachable', 'Reachable · history up to $1', health.dateTo || msg('dateUnknown', 'an unknown date')) : msg("unreachable", "Unreachable: no odds until the server is back");
   }).catch(() => { document.getElementById('health').textContent = msg("unreachable", "Unreachable: no odds until the server is back"); });
   const query = new URLSearchParams(location.search).get('tab');

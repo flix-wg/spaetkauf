@@ -41,19 +41,24 @@ test('content retries failed odds on its own and caches success', async () => {
   const fs = require('node:fs');
   const vm = require('node:vm');
   const dom = new JSDOM('<body><li>10:00 12:00 ICE 1 Delay</li></body>', { url: 'https://example.test/#zo=Munich&hd=2026-11-14T10:00' });
-  let scheduled, changed, calls = 0, renders = 0;
+  let scheduled, changed, navigate, finish, calls = 0, renders = 0, clears = 0;
   const messages = [];
   const context = {
     document: dom.window.document, location: dom.window.location,
     SpkParse: globalThis.SpkParse,
-    SpkOverlay: { clear() {}, render() { renders++; } },
+    SpkOverlay: { clear() { clears++; }, render() { renders++; } },
     MutationObserver: class { constructor(callback) { changed = callback; } observe() {} disconnect() {} },
     setTimeout(callback) { scheduled = callback; }, clearTimeout() {},
+    setInterval(callback) { navigate = callback; }, clearInterval() {},
     addEventListener() {}, removeEventListener() {},
     chrome: {
       runtime: { id: 'test', async sendMessage(message) {
         messages.push(message);
-        if (message.type === 'odds') return ++calls === 1 ? { ok: false, error: 'outage' } : { ok: true, data: { results: [{ i: 0 }], link: '/' } };
+        if (message.type === 'odds') {
+          calls++;
+          if (calls === 3) return new Promise(resolve => { finish = resolve; });
+          return calls === 1 ? { ok: false, error: 'outage' } : { ok: true, data: { results: [{ i: 0 }], link: '/' } };
+        }
         return {};
       } },
       storage: { local: { async get(defaults) { return defaults; } }, sync: { async get(defaults) { return defaults; } }, onChanged: { addListener() {} } }
@@ -70,6 +75,18 @@ test('content retries failed odds on its own and caches success', async () => {
   changed([{ target: context.document.body, addedNodes: [], removedNodes: [] }]);
   scheduled(); await flush();
   assert.equal(calls, 2); assert.equal(renders, 2);
+  // Reuse the same cards after a pushState-only route change; remove old odds before the reply.
+  dom.window.history.pushState({}, '', '#zo=Berlin&hd=2026-11-14T10:00');
+  const before = clears;
+  navigate(); scheduled(); await flush();
+  assert.equal(calls, 3);
+  assert.ok(clears > before);
+  assert.equal(renders, 2, 'old badges clear while the new route is loading');
+  finish({ ok: true, data: { results: [{ i: 0 }], link: '/' } });
+  await flush();
+  assert.equal(renders, 3);
+  assert.equal(messages.filter(m => m.type === 'odds').at(-1).body.to, 'Berlin');
+
 });
 
 test('German runtime messages translate interpolated odds and missing-history states', () => {

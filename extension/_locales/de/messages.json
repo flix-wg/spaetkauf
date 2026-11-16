@@ -3,7 +3,7 @@
     "message": "Kurt: Verspätungschancen"
   },
   "description": {
-    "message": "Vergangene Verspätungschancen und Kurts Tipp neben deinen Suchergebnissen."
+    "message": "Zeigt, wie oft jeder Zug in deinen bahn.de-Ergebnissen 20+ Minuten zu spät war, und welcher deine Zugbindung lösen könnte."
   },
   "showOdds": {
     "message": "Chancen auf bahn.de anzeigen"
@@ -30,7 +30,7 @@
     "message": "Auf Standard zurücksetzen"
   },
   "privacy": {
-    "message": "Die Erweiterung berechnet die Chancen selbst aus Dateien deiner Kurt-Seite; die Seite sieht, welche Züge angefragt werden, und deine IP-Adresse. Transitous erhält Start, Ziel, Datum, Abfahrtszeit und IP-Adresse. Chrome speichert Einstellungen; bei aktiver Synchronisierung gleicht Google sie ab."
+    "message": "Lädt Zugdateien von der Kurt-Seite (oder deinem eigenen Server); diese sieht deine IP-Adresse und welche Züge du ansiehst. Transitous erhält Start, Ziel, Datum, Uhrzeit, deine IP-Adresse und eine Kennung der Erweiterung, die für alle gleich ist. Chrome speichert Einstellungen; Google gleicht sie bei aktiver Synchronisierung ab."
   },
   "unreachable": {
     "message": "Nicht erreichbar: keine Chancen, bis der Server wieder da ist"
@@ -233,5 +233,8 @@
   },
   "dateUnknown": {
     "message": "unbekanntes Datum"
+  },
+  "serverFallback": {
+    "message": "Dem gespeicherten Server fehlt die Berechtigung. Kurt nutzt die Standardseite; speichere deinen Server in den Einstellungen, um Zugriff zu erlauben."
   }
 }

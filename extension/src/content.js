@@ -9,6 +9,11 @@
   let generation = 0;
   let lastKey = null;
   let lastResponse = null;
+  let lastURL = location.href;
+  const navigation = setInterval(() => {
+    if (!alive()) return stop();
+    if (location.href !== lastURL) { lastURL = location.href; schedule(); }
+  }, 500);
   let rendered = new Set();
   // async: once the extension is reloaded, sendMessage throws instead of rejecting.
   const send = async message => chrome.runtime.sendMessage(message);
@@ -18,6 +23,7 @@
     enabled = false;
     clearTimeout(timer);
     clearTimeout(retry);
+    clearInterval(navigation);
     observer.disconnect();
     removeEventListener('hashchange', schedule);
   }
@@ -57,6 +63,7 @@
     const config = await chrome.storage.sync.get({ server: 'https://kurt-34y.pages.dev' });
     const key = JSON.stringify([config.server, body]);
     if (key !== lastKey) {
+      for (const el of rendered) SpkOverlay.clear(el);
       const response = await send({ type: 'odds', body });
       if (!enabled || token !== generation) return;
       lastResponse = response;
@@ -65,7 +72,7 @@
     if (lastResponse?.ok) {
       for (const result of lastResponse.data.results) {
         const card = selected[result.i];
-        if (card) SpkOverlay.render(card, result, { link: lastResponse.data.link, server: config.server });
+        if (card) SpkOverlay.render(card, result, { link: lastResponse.data.link, server: lastResponse.server || config.server });
       }
     } else {
       for (const el of rendered) SpkOverlay.clear(el);
@@ -83,7 +90,7 @@
       return !nodes.length || nodes.some(node => node.nodeType !== 1 || node.localName !== 'spk-badge');
     })) schedule();
   });
-  observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+  observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class', 'style', 'hidden', 'datetime'] });
   addEventListener('hashchange', schedule);
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'sync') return;
