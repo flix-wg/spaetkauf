@@ -9,6 +9,7 @@ import type { Transitous } from './transitous'
 export const TRIPS_KEY = 'kurt.trips.v1'
 const STALE_AFTER = 10 * 60_000
 const FINISH_AFTER = 45 * 60_000
+const WINDOW_BEFORE = 3 * 3600_000
 const WATCH_EVERY = 2 * 60_000
 const MAX_SNAPS = 300
 const THRESHOLDS = [[20, 'Ticket unlocked', 0], [60, '25 % back', 25], [120, '50 % back', 50]] as const
@@ -18,7 +19,7 @@ const WHERE = 'File it yourself with DB: online at bahn.de (Fahrgastrechte), in 
 
 export class StorageUnavailable extends Error {}
 export interface Snapshot { at: string; delay_min: number | null; expected_arr: string | null; cancelled: boolean; connection_at_risk: boolean }
-export interface SavedTrip { id: string; pick: Pick; price_eur: number | null; switched: boolean; snaps: Snapshot[]; alerted: Level[] }
+export interface SavedTrip { id: string; pick: Pick; price_eur: number | null; switched: boolean; snaps: Snapshot[]; alerted: Level[]; finished?: boolean }
 
 export function localStore(): Storage | null {
   try { return globalThis.localStorage ?? null } catch { return null }
@@ -29,11 +30,17 @@ function read(store: Storage | null): SavedTrip[] {
     return Array.isArray(list) ? list.filter(t => typeof t?.id === 'string' && t.pick?.legs?.length) : []
   } catch { return [] }
 }
+const listeners = new Set<() => void>()
+export function subscribeTrips(listener: () => void) {
+  listeners.add(listener)
+  return () => { listeners.delete(listener) }
+}
 function write(store: Storage | null, list: SavedTrip[]) {
   try {
     if (!store) throw new Error('no localStorage')
     store.setItem(TRIPS_KEY, JSON.stringify(list))
   } catch (error) { throw new StorageUnavailable('Trips cannot be saved on this device', { cause: error }) }
+  for (const listener of listeners) listener()
 }
 
 export async function saveTrip(pick: Pick, price?: number, store = localStore()): Promise<{ id: string }> {
@@ -43,7 +50,7 @@ export async function saveTrip(pick: Pick, price?: number, store = localStore())
 }
 export const listTrips = (store = localStore()) => read(store)
 export const getTrip = (id: string, store = localStore()) => read(store).find(t => t.id === id)
-export function updateTrip(id: string, change: { price_eur?: number; switched?: boolean; snaps?: Snapshot[]; alerted?: Level[] }, store = localStore()) {
+export function updateTrip(id: string, change: { price_eur?: number; switched?: boolean; snaps?: Snapshot[]; alerted?: Level[]; finished?: boolean }, store = localStore()) {
   const set = Object.fromEntries(Object.entries(change).filter(([, v]) => v !== undefined))
   write(store, read(store).map(t => t.id === id ? { ...t, ...set } : t))
 }
@@ -94,8 +101,8 @@ function deriveState(delay: number | null, cancelled: boolean): TripState {
 export function tripView(t: SavedTrip, now = new Date()): Trip {
   const snap = t.snaps.at(-1), pick = t.pick
   const delay = snap?.delay_min ?? null, at = +now, arr = Date.parse(pick.arr), dep = Date.parse(pick.dep)
-  const finished = at > arr + (delay ?? 0) * 60_000 + FINISH_AFTER
-  const stale = snap ? at - Date.parse(snap.at) > STALE_AFTER && !finished : dep - 3 * 3600_000 <= at && at <= arr + FINISH_AFTER
+  const finished = !!t.finished || at > arr + Math.max(delay ?? 0, 0) * 60_000 + FINISH_AFTER
+  const stale = snap ? at - Date.parse(snap.at) > STALE_AFTER && !finished : dep - WINDOW_BEFORE <= at && at <= arr + FINISH_AFTER
   const excluded = !!pick.already_posted
   const thresholds = THRESHOLDS.map(([line, label, pct]) => ({
     at: line, label, reached: !excluded && (delay ?? 0) >= line,
@@ -164,15 +171,20 @@ export function watchTrip(id: string, onUpdate: (t: SavedTrip) => void, o: {
     busy = true
     try {
       const saved = getTrip(id, store)
-      if (!saved || tripView(saved, now()).finished) return
-      const snap = await poll(o.tr, saved.pick, now())
+      if (!saved || saved.finished || +now() < Date.parse(saved.pick.dep) - WINDOW_BEFORE) return
+      if (tripView(saved, now()).finished) { updateTrip(id, { finished: true }, store); return }
+      const snap = await poll(o.tr, saved.pick, now()).catch(() => null)
       const fresh = getTrip(id, store)
-      if (stopped || !snap || !fresh) return
-      const reached: Level[] = [...LEVELS.filter(l => (snap.delay_min ?? 0) >= Number(l)), ...(snap.cancelled ? ['cancelled' as const] : [])]
+      if (stopped || !fresh) return
+      if (!snap) {
+        if (tripView(fresh, now()).finished) updateTrip(id, { finished: true }, store)
+        return
+      }
+      const reached: Level[] = [...LEVELS.filter(l => !fresh.pick.already_posted && (snap.delay_min ?? 0) >= Number(l)), ...(snap.cancelled ? ['cancelled' as const] : [])]
       const fresher = reached.filter(l => !fresh.alerted.includes(l))
       const next = { ...fresh, snaps: [...fresh.snaps, snap].slice(-MAX_SNAPS), alerted: [...fresh.alerted, ...fresher] }
-      updateTrip(id, { snaps: next.snaps, alerted: next.alerted }, store)
-      if (fresher.length && !fresh.pick.already_posted) notify(fresher.at(-1)!, next)
+      updateTrip(id, { snaps: next.snaps, alerted: next.alerted, finished: tripView(next, now()).finished }, store)
+      if (fresher.length) notify(fresher.at(-1)!, next)
       onUpdate(next)
     } catch { /* keep the last reading; the view marks it stale */ }
     finally { busy = false }
@@ -187,4 +199,26 @@ export function watchTrip(id: string, onUpdate: (t: SavedTrip) => void, o: {
   if (doc?.visibilityState !== 'hidden') start()
   doc?.addEventListener('visibilitychange', onVisibility)
   return () => { stopped = true; pause(); doc?.removeEventListener('visibilitychange', onVisibility) }
+}
+
+export function watchTrips(o: Parameters<typeof watchTrip>[2]): () => void {
+  const active = new Map<string, () => void>()
+  const sync = () => {
+    const trips = listTrips(o.store === undefined ? localStore() : o.store).filter(t => !t.finished)
+    for (const [id, stop] of active) {
+      if (!trips.some(t => t.id === id)) { stop(); active.delete(id) }
+    }
+    for (const trip of trips) {
+      if (!active.has(trip.id)) active.set(trip.id, watchTrip(trip.id, () => undefined, o))
+    }
+  }
+  const unsubscribe = subscribeTrips(sync)
+  globalThis.addEventListener?.('storage', sync)
+  sync()
+  return () => {
+    unsubscribe()
+    globalThis.removeEventListener?.('storage', sync)
+    for (const stop of active.values()) stop()
+    active.clear()
+  }
 }

@@ -87,7 +87,7 @@ function TripBody({ ref_ }: { ref_: TripRef }) {
   const [gone, setGone] = useState(false)
   const [deleteError, setDeleteError] = useState('')
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => api.watch(ref_, retry), [ref_.id, retry])
+  useEffect(() => api.subscribeTrips(retry), [ref_.id, retry])
 
   useEffect(() => {
     if (state.status === 'error' && state.error instanceof ApiError && state.error.status === 404) {

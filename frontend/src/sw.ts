@@ -3,6 +3,7 @@ import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, getCa
 import { ExpirationPlugin } from 'workbox-expiration'
 import { registerRoute } from 'workbox-routing'
 import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies'
+import { jsonCachePlugin } from './jsonCache.ts'
 import { ADDON_ZIP } from './addon'
 
 declare const self: ServiceWorkerGlobalScope
@@ -23,9 +24,9 @@ self.addEventListener('fetch', (event) => {
 // Cache API can't serve correctly, so only whole-file reads (meta.json) go through the cache.
 const sameOrigin = (url: URL) => url.origin === self.location.origin
 registerRoute(({ url }) => sameOrigin(url) && url.pathname.startsWith('/data/odds/'),
-  new CacheFirst({ cacheName: 'kurt-odds', plugins: [new ExpirationPlugin({ maxAgeSeconds: 7 * 24 * 3600, maxEntries: 500 })] }))
+  new CacheFirst({ cacheName: 'kurt-odds', plugins: [jsonCachePlugin, new ExpirationPlugin({ maxAgeSeconds: 7 * 24 * 3600, maxEntries: 500 })] }))
 registerRoute(({ url, request }) => sameOrigin(url) && url.pathname.startsWith('/data/history/') && !request.headers.has('range'),
-  new StaleWhileRevalidate({ cacheName: 'kurt-history' }))
+  new StaleWhileRevalidate({ cacheName: 'kurt-history', plugins: [jsonCachePlugin] }))
 
 self.skipWaiting()
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()))

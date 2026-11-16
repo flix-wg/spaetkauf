@@ -5,7 +5,7 @@ import { historyRoute, historyRuns, historyTrain, NotFound as HistoryNotFound } 
 import { httpOddsSource } from './core/oddsSource.ts'
 import { BadRequest, getPicks, NotFound as PicksNotFound } from './core/picks.ts'
 import { BudgetSpent, createTransitous, OutsideTimetable, SourceUnavailable, stationsSearch, type Transitous } from './core/transitous.ts'
-import { deleteTrip, getTrip, saveTrip, StorageUnavailable, tripClaim, tripView, updateTrip, watchTrip } from './core/trips.ts'
+import { deleteTrip, getTrip, saveTrip, StorageUnavailable, tripClaim, tripView, updateTrip, subscribeTrips, watchTrips } from './core/trips.ts'
 // Types follow design.md D12 and what the backend returned. The static build computes them in the browser
 // (src/core); TripRef.secret is a leftover of server trips and stays empty.
 
@@ -377,8 +377,9 @@ export const api = {
     }),
   deleteTrip: (r: TripRef) => run<void>(['DELETE', tripPath(r.id, r.secret)], () => deleteTrip(r.id)),
   claim: (r: TripRef) => run<Claim>(['GET', tripPath(r.id, r.secret, '/claim')], () => localize(tripClaim(saved(r)))),
-  // Foreground only: polls the saved trip while the page is visible; returns the stop function.
-  watch: (r: TripRef, onUpdate: () => void) => (MOCK ? () => undefined : watchTrip(r.id, onUpdate, { tr: transitous() })),
+  // The app owns polling; screens only subscribe to saved updates.
+  watchTrips: () => (MOCK ? () => undefined : watchTrips({ tr: transitous() })),
+  subscribeTrips,
   lateNow: () => run<LateNow>(['GET', '/api/late-now'], () => lateNow(transitous())),
   backtest: () => run<Backtest>(['GET', '/api/backtest'], async () => {
     const res = await fetch('/data/backtest.json')
