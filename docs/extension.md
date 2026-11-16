@@ -6,7 +6,7 @@ The extension only reads the page. It never clicks, fills in or loads anything o
 
 ## Install
 
-Run `npm ci && npm run build` in `extension/` (this bundles the app's odds code from `frontend/src/core/` into `extension/dist/odds.js`). Then open `chrome://extensions`, turn on Developer mode, choose Load unpacked and select `extension/`. The default site is `https://kurt-34y.pages.dev`. In the settings, you can change the Kurt site that serves `/data/odds/` (HTTPS, or HTTP on localhost).
+Run `npm ci && npm run build` in `extension/` (this bundles the app's odds code from `frontend/src/core/` into `extension/dist/odds.js`). Then open `chrome://extensions`, turn on Developer mode, choose Load unpacked and select `extension/`. The default site is `https://kurtfaehrt.de`. In the settings, you can change the Kurt site that serves `/data/odds/` (HTTPS, or HTTP on localhost).
 
 ## How it works
 

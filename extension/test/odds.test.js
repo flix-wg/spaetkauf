@@ -37,8 +37,8 @@ test('an unreachable site gives no odds and does not throw',async()=>{
   } finally { globalThis.fetch=original; }
 });
 
-test('default site is Pages and localhost is only an optional permission',()=>{
-  const origin='https://kurt-34y.pages.dev';
+test('default site is kurtfaehrt.de and localhost is only an optional permission',()=>{
+  const origin='https://kurtfaehrt.de';
   const manifest=require('../manifest.json');
   assert.ok(manifest.host_permissions.includes(origin+'/*'));
   for(const host of ['http://127.0.0.1/*','http://localhost/*']) {
@@ -51,7 +51,8 @@ test('default site is Pages and localhost is only an optional permission',()=>{
 });
 
 test('saved legacy default migrates once while custom origins stay unchanged',async()=>{
-  let server='https://65-108-33-75.sslip.io', writes=0;
+  for(const legacy of ['https://65-108-33-75.sslip.io','https://kurt-34y.pages.dev']) {
+  let server=legacy, writes=0;
   const context=vm.createContext({
     importScripts(){},
     chrome:{
@@ -65,14 +66,15 @@ test('saved legacy default migrates once while custom origins stay unchanged',as
     },
   });
   vm.runInContext(fs.readFileSync(path.join(__dirname,'../src/sw.js'),'utf8'),context);
-  assert.equal((await vm.runInContext('settings()',context)).server,'https://kurt-34y.pages.dev');
+  assert.equal((await vm.runInContext('settings()',context)).server,'https://kurtfaehrt.de');
   await vm.runInContext('settings()',context);
   assert.equal(writes,1);
-  for(const custom of ['https://custom.example','http://localhost:5710','https://65-108-33-75.sslip.io/']) {
+  for(const custom of ['https://custom.example','http://localhost:5710',legacy+'/']) {
     server=custom;
     assert.equal((await vm.runInContext('settings()',context)).server,custom);
   }
   assert.equal(writes,1);
+  }
 });
 
 test('ungranted synced server falls back without changing the saved origin',async()=>{
@@ -90,7 +92,7 @@ test('ungranted synced server falls back without changing the saved origin',asyn
   vm.runInContext(fs.readFileSync(path.join(__dirname,'../src/sw.js'),'utf8'),context);
   const send=()=>new Promise(resolve=>listener({type:'health'},{},resolve));
   assert.equal((await send()).fallback,true);
-  assert.equal(requested,'https://kurt-34y.pages.dev/data');
+  assert.equal(requested,'https://kurtfaehrt.de/data');
   granted=true;
   assert.equal((await send()).fallback,false);
   assert.equal(requested,saved+'/data');

@@ -158,8 +158,8 @@ jobs:
           branch=preview
           if [[ "$DEPLOY_REF" == main || "$DEPLOY_REF" == refs/heads/main ]]; then branch=main; fi
           npx --yes wrangler@4.156.0 pages deploy frontend/dist --project-name kurt --branch "$branch"
-          # Per-deployment URLs sit behind the account's Zero Trust policy; only the production alias is public.
-          if [[ "$branch" == main ]]; then echo 'url=https://kurt-34y.pages.dev' >> "$GITHUB_OUTPUT"; fi
+          # Per-deployment URLs sit behind the account's Zero Trust policy; only the custom domain is public.
+          if [[ "$branch" == main ]]; then echo 'url=https://kurtfaehrt.de' >> "$GITHUB_OUTPUT"; fi
       - name: Check published odds
         if: steps.deploy.outputs.url != ''
         env:

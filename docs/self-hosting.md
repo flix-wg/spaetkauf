@@ -1,6 +1,6 @@
 # Static hosting
 
-Kurt runs entirely in the browser. Cloudflare Pages serves `frontend/dist`; no backend, VM or database server is deployed. The public site is https://kurt-34y.pages.dev (Pages project `kurt`).
+Kurt runs entirely in the browser. Cloudflare Pages serves `frontend/dist`; no backend, VM or database server is deployed. The public site is https://kurtfaehrt.de (Pages project `kurt`).
 
 Follow the data preparation steps in [README](../README.md), then run `cd frontend && npm ci && npm run build`. Odds are exported from `data/odds.sqlite`; history Parquet files and `meta.json` are copied from the committed `data/static/history/`. `scripts/fetch_duckdb_ext.sh` downloads and verifies the self-hosted DuckDB Parquet extension. After the frontend build, run `npm --prefix extension ci` and `bash scripts/build_extension_zip.sh` from the repository root. This builds the extension bundle and packages its manifest, icons, source, bundle and locales into `frontend/dist/kurt-extension.zip`; unzip it and load the extracted directory in Chrome. The script uses `zip` when available, otherwise Python’s zipfile. Every deployed file must be at most 25 MiB.
 

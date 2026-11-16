@@ -1,6 +1,6 @@
 # Kurt
 
-Buy the cheap ticket for the train that is usually late, then ride a better one. Try it at https://kurt-34y.pages.dev.
+Buy the cheap ticket for the train that is usually late, then ride a better one. Try it at https://kurtfaehrt.de.
 
 A Deutsche Bahn saver ticket (Sparpreis) is only valid on the train you booked. Once that train is expected to reach your destination 20 or more minutes late, the binding is lifted and you can take another train; from 60 minutes late you also get part of the fare back. Kurt ranks long-distance connections by how often they arrived 20+ minutes late in the past and suggests a backup.
 
