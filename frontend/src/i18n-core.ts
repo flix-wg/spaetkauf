@@ -34,7 +34,7 @@ const enLabels = {
   "couldNotSaveTheTrip": "Could not save the trip.",
   "bookedIt": "Booked it?",
   "kurtWillWatchThe": "Kurt will watch the",
-  "andTellYouIfItIsLate": ") and tell you if it is late. The trip stays on this device.",
+  "andTellYouIfItIsLate": ") while this page is open. The trip stays on this device.",
   "priceYouPaid": "Price you paid",
   "optionalShowsCashAmounts": "(optional, shows cash amounts)",
   "at": "At",
@@ -418,7 +418,19 @@ const enLabels = {
   "trainBinding": "Train binding",
   "proofCancellation": "Ausfall",
   "proofObservations": "Beobachtungen:",
-  "proofSource": "Quelle: Echtzeitdaten von Transitous (transitous.org), nicht die eigene Aufzeichnung der DB."
+  "proofSource": "Quelle: Echtzeitdaten von Transitous (transitous.org), nicht die eigene Aufzeichnung der DB.",
+  "needsAServer": "This needs a server Kurt doesn’t have yet.",
+  "interestedMessageMe": "Interested? Message me.",
+  "interestedPush": "Alerts while Kurt is closed",
+  "interestedSignals": "Strike and disruption news",
+  "interestedBackground": "Watching trips in the background",
+  "tripsCannotBeSavedOnThisDevice": "This browser blocks storage, so trips can’t be saved on this device.",
+  "tripGone": "Trip no longer available",
+  "oldServerTrip": "This trip was saved on the old Kurt server, which is gone. Trips now stay on your device.",
+  "alertsWhileOpen": "Kurt alerts you while this page is open.",
+  "noAlternativesStatic": "Kurt doesn’t look up other trains here. Check DB Navigator.",
+  "osmContributors": "© OpenStreetMap contributors",
+  "delayData": "Delay data",
 }
 const deLabels: { [K in keyof typeof enLabels]: typeof enLabels[K] } = {
   "nothingHere": "Hier gibt es nichts",
@@ -455,7 +467,7 @@ const deLabels: { [K in keyof typeof enLabels]: typeof enLabels[K] } = {
   "couldNotSaveTheTrip": "Die Reise konnte nicht gespeichert werden.",
   "bookedIt": "Schon gebucht?",
   "kurtWillWatchThe": "Kurt beobachtet",
-  "andTellYouIfItIsLate": ") und sagt dir, wenn er zu spät ist. Die Reise bleibt auf diesem Gerät.",
+  "andTellYouIfItIsLate": "), solange diese Seite offen ist. Die Reise bleibt auf diesem Gerät.",
   "priceYouPaid": "Dein Ticketpreis",
   "optionalShowsCashAmounts": "(optional, zeigt Geldbeträge)",
   "at": "Bei",
@@ -839,7 +851,19 @@ const deLabels: { [K in keyof typeof enLabels]: typeof enLabels[K] } = {
   "trainBinding": "Zugbindung",
   "proofCancellation": "Ausfall",
   "proofObservations": "Beobachtungen:",
-  "proofSource": "Quelle: Echtzeitdaten von Transitous (transitous.org), nicht die eigene Aufzeichnung der DB."
+  "proofSource": "Quelle: Echtzeitdaten von Transitous (transitous.org), nicht die eigene Aufzeichnung der DB.",
+  "needsAServer": "Dafür bräuchte Kurt einen Server, den es noch nicht gibt.",
+  "interestedMessageMe": "Interesse? Schreib mir.",
+  "interestedPush": "Hinweise bei geschlossener App",
+  "interestedSignals": "Streik- und Störungsmeldungen",
+  "interestedBackground": "Reisen im Hintergrund beobachten",
+  "tripsCannotBeSavedOnThisDevice": "Dieser Browser blockiert den Speicher, deshalb lassen sich auf diesem Gerät keine Reisen speichern.",
+  "tripGone": "Reise nicht mehr verfügbar",
+  "oldServerTrip": "Diese Reise lag auf dem alten Kurt-Server, den es nicht mehr gibt. Reisen bleiben jetzt auf deinem Gerät.",
+  "alertsWhileOpen": "Kurt meldet sich, solange diese Seite offen ist.",
+  "noAlternativesStatic": "Kurt sucht hier keine anderen Züge. Schau im DB Navigator nach.",
+  "osmContributors": "© OpenStreetMap-Mitwirkende",
+  "delayData": "Verspätungsdaten",
 }
 
 export function initialLang(): Lang {
@@ -944,7 +968,8 @@ proofRoute: (from: string, to: string) => `Strecke: ${from} → ${to}`,
 proofScheduled: (time: string) => `Geplante Ankunft: ${time}`,
 proofArrival: (provisional: boolean, time: string, delay: string) => `${provisional ? 'Erwartete' : 'Beobachtete'} Ankunft: ${time} (${delay} Min.)`,
 proofDelay: (delay: number) => `Verspätung: ${delay} Min.`,
-proofReplay: (date: string | null) => `Wiedergabe aufgezeichneter Daten vom ${date}, Beobachtungszeiten sind Wiedergabezeiten.`
+proofReplay: (date: string | null) => `Wiedergabe aufgezeichneter Daten vom ${date}, Beobachtungszeiten sind Wiedergabezeiten.`,
+tripAlert: (v0: string | number | null | undefined, v1: string | number | null | undefined, v2: string | number | null | undefined) => `${v0} is ${v1} min late. ${v2}.`,
 }
 const deMessages: typeof enMessages = {
 unknownStationHint: (v0: string | number | null | undefined) => `${v0}. Wähle einen Bahnhof aus der Liste.`,
@@ -1034,7 +1059,8 @@ proofRoute: (from: string, to: string) => `Strecke: ${from} → ${to}`,
 proofScheduled: (time: string) => `Geplante Ankunft: ${time}`,
 proofArrival: (provisional: boolean, time: string, delay: string) => `${provisional ? 'Erwartete' : 'Beobachtete'} Ankunft: ${time} (${delay} Min.)`,
 proofDelay: (delay: number) => `Verspätung: ${delay} Min.`,
-proofReplay: (date: string | null) => `Wiedergabe aufgezeichneter Daten vom ${date}, Beobachtungszeiten sind Wiedergabezeiten.`
+proofReplay: (date: string | null) => `Wiedergabe aufgezeichneter Daten vom ${date}, Beobachtungszeiten sind Wiedergabezeiten.`,
+tripAlert: (v0: string | number | null | undefined, v1: string | number | null | undefined, v2: string | number | null | undefined) => `${v0} ist ${v1} Min. verspätet. ${v2}.`,
 }
 export function tx<K extends keyof typeof enMessages>(key: K, ...values: Parameters<typeof enMessages[K]>): string {
   const fn = (language === 'de' ? deMessages : enMessages)[key] as (...args: Parameters<typeof enMessages[K]>) => string
@@ -1043,9 +1069,3 @@ export function tx<K extends keyof typeof enMessages>(key: K, ...values: Paramet
 
 export const en = { ...enLabels, ...enMessages }
 export const de: typeof en = { ...deLabels, ...deMessages }
-
-export function notificationText(lang: Lang) {
-  return lang === 'de'
-    ? { title: deLabels.kurt, body: deLabels.updateTrip }
-    : { title: enLabels.kurt, body: enLabels.updateTrip }
-}

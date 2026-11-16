@@ -6,12 +6,10 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// Dev proxy target; SPK_API lets a second backend run next to the default one.
 const duckdbFiles = ['duckdb-eh.wasm.gz', 'duckdb-browser-eh.worker.js']
 const duckdbAsset = (file: string) => file.endsWith('.gz')
   ? gzipSync(readFileSync(resolve('node_modules/@duckdb/duckdb-wasm/dist/duckdb-eh.wasm')), { level: 9 })
   : readFileSync(resolve('node_modules/@duckdb/duckdb-wasm/dist', file))
-const api = process.env.SPK_API ?? 'http://localhost:8710'
 
 export default defineConfig({
   plugins: [
@@ -58,9 +56,5 @@ export default defineConfig({
   ],
   server: {
     port: Number(process.env.SPK_PORT ?? 5710),
-    proxy: {
-      '/api': api,
-      '/hooks': api,
-    },
   },
 })

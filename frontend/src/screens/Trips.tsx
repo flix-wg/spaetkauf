@@ -1,14 +1,15 @@
 import { tx, tr, useT } from '../i18n'
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { api, ApiError, type Recording, type TripRef, type TripState } from '../api'
+import { Link } from 'react-router-dom'
+import { api, ApiError, type TripRef } from '../api'
 import { Flap } from '../components/Flap'
 import { IconChevron } from '../components/Icons'
+import { Interested } from '../components/Interested'
 import { ScreenHeader } from '../components/Shell'
 import { Empty } from '../components/States'
 import { changesLabel, dayLabel, hhmm, minLabel, shortStation, signedMin } from '../format'
 import { useAsync } from '../hooks'
-import { addTrip, loadTrips, removeTrip } from '../store'
+import { loadTrips, removeTrip } from '../store'
 
 function Row({ r }: { r: TripRef }) {
   useT()
@@ -65,105 +66,6 @@ function Row({ r }: { r: TripRef }) {
   )
 }
 
-const crossing = (r: Recording) =>
-  r.crosses_60
-    ? tr('crosses20Then60')
-    : r.crosses_20
-      ? tr('crosses20')
-      : r.max_delay_min >= 20
-        ? tr('already20AtTheStart')
-        : tr('staysUnder20')
-
-// How the run ended, in money. An on-time finish is a pick that did not pay: say so.
-const OUTCOME = (): Record<TripState, string> => ({
-  on_time: tr('ranOnTimeKurtWasWrong'),
-  unlocked: tr('ticketUnlockedNoCashBack'),
-  cash25: tr('25OfTheTicketBack'),
-  cash50: tr('50OfTheTicketBack'),
-  cancelled: tr('cancelledTicketUnlocked512'),
-})
-const HEADLINE = 'history:ice611-2026-10-30'
-
-// The headline run first, then an on-time run so a miss is always in view, then the rest as the server sends them.
-function replayOrder(recs: Recording[]) {
-  const head = recs.find((r) => r.id === HEADLINE) ?? recs[0]
-  const done = (r: Recording) => r.outcome === 'on_time' && r.finished
-  const miss = recs.find((r) => r !== head && done(r) && r.source === 'history') ?? recs.find((r) => r !== head && done(r))
-  return [head, ...(miss ? [miss] : []), ...recs.filter((r) => r !== head && r !== miss)]
-}
-
-function RecordingRow({ r, busy, onPlay }: { r: Recording; busy: boolean; onPlay: () => void }) {
-  useT()
-  const past = r.source === 'history'
-  return (
-    <button
-      type="button"
-      onClick={onPlay}
-      disabled={busy}
-      className="flex min-h-[64px] w-full items-center justify-between gap-3 rounded-2xl border border-line px-3.5 py-3 text-left disabled:opacity-60 lg:min-h-[84px] lg:px-5 lg:hover:border-ink"
-    >
-      <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="text-[15px] font-bold lg:text-[19px]">
-          {r.train}{' '}
-          <span className="text-[12px] font-semibold text-muted lg:text-[15px]">{dayLabel(`${r.date}T12:00:00Z`)}</span>
-        </span>
-        <span className="truncate text-[12px] text-muted lg:text-[15px]">
-          {shortStation(r.from) || '…'} → {shortStation(r.to)} · {crossing(r)}
-        </span>
-        <span className="text-[13px] font-semibold leading-snug lg:text-[16px]">
-          {r.finished ? OUTCOME()[r.outcome] : tx('recordingWorstDelay', r.max_delay_min)}
-        </span>
-        <span className={`tag w-fit rounded px-1.5 py-0.5 ${past ? 'bg-ink text-page' : 'bg-tint text-accent-text'}`}>
-          {past ? tr('pastRunDbDelayData') : tr('recordedLive515')}
-        </span>
-      </span>
-      <span className="flex shrink-0 flex-col items-end gap-0.5">
-        <span className="mono text-[17px] font-bold lg:text-[24px]">+{r.max_delay_min}</span>
-        <span className="text-[11px] font-semibold text-muted lg:text-[14px]">{busy ? tr('starting') : tr('worst')}</span>
-      </span>
-    </button>
-  )
-}
-
-function Replays() {
-  useT()
-  const nav = useNavigate()
-  const [recs] = useAsync(() => api.recordings(), [])
-  const [all, setAll] = useState(false)
-  const [busy, setBusy] = useState('')
-  const [err, setErr] = useState('')
-  if (recs.status !== 'ok' || recs.data.length === 0) return null
-  const ordered = replayOrder(recs.data)
-  const list = all ? ordered : ordered.slice(0, 4)
-
-  async function play(id: string) {
-    setBusy(id)
-    setErr('')
-    try {
-      const c = await api.demoReplay(id)
-      addTrip(c)
-      nav(`/trip/${encodeURIComponent(c.trip_id)}`)
-    } catch (e) {
-      setErr((e as Error).message)
-      setBusy('')
-    }
-  }
-
-  return (
-    <section className="mt-3 flex flex-col gap-2 lg:mt-0 lg:gap-3" aria-label={tr('replays')}>
-      <h2 className="font-display text-[18px] font-bold lg:text-[26px]">{tr('watchAReplay')}</h2>
-      <p className="-mt-1 text-[12px] leading-snug text-muted lg:text-[15px]">{tr('realTripsPlayedBackInAMinute')}</p>
-      {list.map((r) => (
-        <RecordingRow key={r.id} r={r} busy={busy === r.id} onPlay={() => play(r.id)} />
-      ))}
-      {recs.data.length > list.length && (
-        <button type="button" onClick={() => setAll(true)} className="btn-ghost">{tr('all')} {recs.data.length} {tr('replays522')} </button>
-      )}
-      {err && <p className="text-[13px] text-accent-text" role="alert">{err}</p>}
-    </section>
-  )
-}
-
 export function Trips() {
   useT()
   const [trips] = useState(loadTrips)
@@ -171,16 +73,13 @@ export function Trips() {
   return (
     <>
       <ScreenHeader title={tr('myTrips')} />
-      {/* Desktop: your trips on the left, replays on the right. */}
-      <div className="flex flex-col gap-3 px-4 pb-8 lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-10 lg:px-10 lg:pb-12">
-        <div className="contents lg:flex lg:flex-col lg:gap-3">
-          {trips.length === 0 ? (
-            <Empty title={tr('noTripsYet')} action={<Link to="/" className="btn-primary">{tr('findLateTrains')}</Link>}>{tr('bookOneOfKurtSPicksAnd')} </Empty>
-          ) : (
-            trips.map((r) => <Row key={r.id} r={r} />)
-          )}
-        </div>
-        <Replays />
+      <div className="mx-auto flex w-full max-w-[720px] flex-col gap-3 px-4 pb-8 lg:px-10 lg:pb-12">
+        {trips.length === 0 ? (
+          <Empty title={tr('noTripsYet')} action={<Link to="/" className="btn-primary">{tr('findLateTrains')}</Link>}>{tr('bookOneOfKurtSPicksAnd')} </Empty>
+        ) : (
+          trips.map((r) => <Row key={r.id} r={r} />)
+        )}
+        <Interested feature="background" />
       </div>
     </>
   )

@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom'
 import { api, type Pick } from '../api'
 import { eur, hhmm } from '../format'
 import { MIN_PAYOUT, payout } from '../payout'
-import { addTrip } from '../store'
 import { Sheet } from './Sheet'
 import { PriceInput, parsePrice } from './PriceForm'
 
@@ -24,7 +23,6 @@ export function BookSheet({ pick, tz, onClose }: { pick: Pick; tz: string; onClo
     setErr('')
     try {
       const c = await api.createTrip(pick, parsed ?? undefined)
-      addTrip(c)
       nav(`/trip/${encodeURIComponent(c.trip_id)}`)
     } catch (x) {
       setErr((x as Error).message || tr('couldNotSaveTheTrip'))

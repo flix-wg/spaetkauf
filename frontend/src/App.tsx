@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+import { api } from './api'
 import { tr, useT } from './i18n'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Shell } from './components/Shell'
@@ -14,6 +16,7 @@ import { Legal } from './screens/Legal'
 
 export function App() {
   useT()
+  useEffect(() => api.watchTrips(), [])
   return (
     <BrowserRouter>
       <Routes>
@@ -22,6 +25,7 @@ export function App() {
           <Route path="/picks" element={<Picks />} />
           <Route path="/trips" element={<Trips />} />
           <Route path="/trip/:id" element={<TripScreen />} />
+          <Route path="/trips/:id" element={<TripScreen />} />
           <Route path="/trip/:id/claim" element={<ClaimScreen />} />
           <Route path="/late" element={<Late />} />
           <Route path="/impressum" element={<Legal page="impressum" />} />
