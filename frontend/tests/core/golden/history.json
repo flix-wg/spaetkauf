@@ -1,0 +1,4619 @@
+{
+  "runs": {
+    "train": "ICE 785",
+    "stop": "München Hbf",
+    "weekday": null,
+    "runs": [
+      {
+        "date": "2026-10-31",
+        "planned": "2026-10-31T14:05:00+01:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-30",
+        "planned": "2026-10-30T13:50:00+01:00",
+        "delay_min": 17,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-29",
+        "planned": "2026-10-29T13:50:00+01:00",
+        "delay_min": 37,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-28",
+        "planned": "2026-10-28T13:50:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-27",
+        "planned": "2026-10-27T13:50:00+01:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-26",
+        "planned": "2026-10-26T13:50:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-25",
+        "planned": "2026-10-25T13:50:00+01:00",
+        "delay_min": 4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-24",
+        "planned": "2026-10-24T13:50:00+02:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-23",
+        "planned": "2026-10-23T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-22",
+        "planned": "2026-10-22T13:50:00+02:00",
+        "delay_min": 7,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-21",
+        "planned": "2026-10-21T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-20",
+        "planned": "2026-10-20T13:50:00+02:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-19",
+        "planned": "2026-10-19T13:50:00+02:00",
+        "delay_min": 15,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-18",
+        "planned": "2026-10-18T13:50:00+02:00",
+        "delay_min": 32,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-17",
+        "planned": "2026-10-17T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-16",
+        "planned": "2026-10-16T13:50:00+02:00",
+        "delay_min": 5,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-15",
+        "planned": "2026-10-15T13:50:00+02:00",
+        "delay_min": 5,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-14",
+        "planned": "2026-10-14T13:50:00+02:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-13",
+        "planned": "2026-10-13T13:50:00+02:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-12",
+        "planned": "2026-10-12T13:50:00+02:00",
+        "delay_min": 4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-11",
+        "planned": "2026-10-11T13:50:00+02:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-10",
+        "planned": "2026-10-10T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-09",
+        "planned": "2026-10-09T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-08",
+        "planned": "2026-10-08T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-07",
+        "planned": "2026-10-07T13:50:00+02:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-06",
+        "planned": "2026-10-06T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-05",
+        "planned": "2026-10-05T13:50:00+02:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-04",
+        "planned": "2026-10-04T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-03",
+        "planned": "2026-10-03T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-02",
+        "planned": "2026-10-02T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-10-01",
+        "planned": "2026-10-01T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-30",
+        "planned": "2026-09-30T13:50:00+02:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-29",
+        "planned": "2026-09-29T13:50:00+02:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-28",
+        "planned": "2026-09-28T13:50:00+02:00",
+        "delay_min": -3,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-27",
+        "planned": "2026-09-27T13:50:00+02:00",
+        "delay_min": -4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-26",
+        "planned": "2026-09-26T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-25",
+        "planned": "2026-09-25T13:50:00+02:00",
+        "delay_min": -3,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-24",
+        "planned": "2026-09-24T13:50:00+02:00",
+        "delay_min": 10,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-23",
+        "planned": "2026-09-23T13:50:00+02:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-22",
+        "planned": "2026-09-22T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-21",
+        "planned": "2026-09-21T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-20",
+        "planned": "2026-09-20T13:50:00+02:00",
+        "delay_min": 11,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-19",
+        "planned": "2026-09-19T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-18",
+        "planned": "2026-09-18T13:50:00+02:00",
+        "delay_min": 22,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-17",
+        "planned": "2026-09-17T13:50:00+02:00",
+        "delay_min": 8,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-16",
+        "planned": "2026-09-16T13:50:00+02:00",
+        "delay_min": 9,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-15",
+        "planned": "2026-09-15T13:50:00+02:00",
+        "delay_min": 23,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-14",
+        "planned": "2026-09-14T13:50:00+02:00",
+        "delay_min": 14,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-13",
+        "planned": "2026-09-13T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-12",
+        "planned": "2026-09-12T13:50:00+02:00",
+        "delay_min": -7,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-11",
+        "planned": "2026-09-11T13:50:00+02:00",
+        "delay_min": 6,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-10",
+        "planned": "2026-09-10T13:50:00+02:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-09",
+        "planned": "2026-09-09T13:50:00+02:00",
+        "delay_min": 8,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-08",
+        "planned": "2026-09-08T13:50:00+02:00",
+        "delay_min": 58,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-07",
+        "planned": "2026-09-07T13:50:00+02:00",
+        "delay_min": 43,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-06",
+        "planned": "2026-09-06T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-05",
+        "planned": "2026-09-05T13:50:00+02:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-04",
+        "planned": "2026-09-04T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-03",
+        "planned": "2026-09-03T13:50:00+02:00",
+        "delay_min": 5,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-02",
+        "planned": "2026-09-02T13:50:00+02:00",
+        "delay_min": 27,
+        "cancelled": false
+      },
+      {
+        "date": "2026-09-01",
+        "planned": "2026-09-01T14:15:00+02:00",
+        "delay_min": -5,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-31",
+        "planned": "2026-08-31T14:15:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-30",
+        "planned": "2026-08-30T13:50:00+02:00",
+        "delay_min": 70,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-29",
+        "planned": "2026-08-29T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-28",
+        "planned": "2026-08-28T14:15:00+02:00",
+        "delay_min": 108,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-27",
+        "planned": "2026-08-27T14:15:00+02:00",
+        "delay_min": 16,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-26",
+        "planned": "2026-08-26T14:15:00+02:00",
+        "delay_min": 7,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-25",
+        "planned": "2026-08-25T14:15:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-24",
+        "planned": "2026-08-24T13:50:00+02:00",
+        "delay_min": -3,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-23",
+        "planned": "2026-08-23T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-22",
+        "planned": "2026-08-22T13:50:00+02:00",
+        "delay_min": 11,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-21",
+        "planned": "2026-08-21T13:50:00+02:00",
+        "delay_min": -3,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-20",
+        "planned": "2026-08-20T13:50:00+02:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-19",
+        "planned": "2026-08-19T13:50:00+02:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-18",
+        "planned": "2026-08-18T13:50:00+02:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-17",
+        "planned": "2026-08-17T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-16",
+        "planned": "2026-08-16T13:50:00+02:00",
+        "delay_min": -5,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-15",
+        "planned": "2026-08-15T13:50:00+02:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-14",
+        "planned": "2026-08-14T13:50:00+02:00",
+        "delay_min": -4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-13",
+        "planned": "2026-08-13T13:50:00+02:00",
+        "delay_min": 77,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-12",
+        "planned": "2026-08-12T13:50:00+02:00",
+        "delay_min": null,
+        "cancelled": true
+      },
+      {
+        "date": "2026-08-11",
+        "planned": "2026-08-11T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-10",
+        "planned": "2026-08-10T13:50:00+02:00",
+        "delay_min": 8,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-09",
+        "planned": "2026-08-09T13:50:00+02:00",
+        "delay_min": 65,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-08",
+        "planned": "2026-08-08T13:50:00+02:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-07",
+        "planned": "2026-08-07T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-06",
+        "planned": "2026-08-06T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-05",
+        "planned": "2026-08-05T13:50:00+02:00",
+        "delay_min": null,
+        "cancelled": true
+      },
+      {
+        "date": "2026-08-04",
+        "planned": "2026-08-04T13:50:00+02:00",
+        "delay_min": -4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-03",
+        "planned": "2026-08-03T13:50:00+02:00",
+        "delay_min": 59,
+        "cancelled": false
+      },
+      {
+        "date": "2026-08-01",
+        "planned": "2026-08-01T13:50:00+02:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-31",
+        "planned": "2026-07-31T13:50:00+02:00",
+        "delay_min": 32,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-30",
+        "planned": "2026-07-30T13:50:00+02:00",
+        "delay_min": 17,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-29",
+        "planned": "2026-07-29T13:50:00+02:00",
+        "delay_min": 6,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-28",
+        "planned": "2026-07-28T13:50:00+02:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-27",
+        "planned": "2026-07-27T13:50:00+02:00",
+        "delay_min": -4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-26",
+        "planned": "2026-07-26T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-25",
+        "planned": "2026-07-25T13:50:00+02:00",
+        "delay_min": 3,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-24",
+        "planned": "2026-07-24T13:50:00+02:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-23",
+        "planned": "2026-07-23T13:50:00+02:00",
+        "delay_min": 85,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-22",
+        "planned": "2026-07-22T13:50:00+02:00",
+        "delay_min": 5,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-21",
+        "planned": "2026-07-21T13:50:00+02:00",
+        "delay_min": 8,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-20",
+        "planned": "2026-07-20T13:50:00+02:00",
+        "delay_min": 22,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-19",
+        "planned": "2026-07-19T13:50:00+02:00",
+        "delay_min": 3,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-18",
+        "planned": "2026-07-18T13:50:00+02:00",
+        "delay_min": 30,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-17",
+        "planned": "2026-07-17T13:50:00+02:00",
+        "delay_min": 17,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-16",
+        "planned": "2026-07-16T13:50:00+02:00",
+        "delay_min": 14,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-15",
+        "planned": "2026-07-15T13:50:00+02:00",
+        "delay_min": 127,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-14",
+        "planned": "2026-07-14T13:50:00+02:00",
+        "delay_min": null,
+        "cancelled": true
+      },
+      {
+        "date": "2026-07-13",
+        "planned": "2026-07-13T13:50:00+02:00",
+        "delay_min": 51,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-12",
+        "planned": "2026-07-12T13:50:00+02:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-11",
+        "planned": "2026-07-11T13:50:00+02:00",
+        "delay_min": 23,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-10",
+        "planned": "2026-07-10T13:50:00+02:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-09",
+        "planned": "2026-07-09T13:50:00+02:00",
+        "delay_min": 64,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-08",
+        "planned": "2026-07-08T13:50:00+02:00",
+        "delay_min": 18,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-07",
+        "planned": "2026-07-07T13:50:00+02:00",
+        "delay_min": 12,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-06",
+        "planned": "2026-07-06T13:50:00+02:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-05",
+        "planned": "2026-07-05T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-04",
+        "planned": "2026-07-04T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-03",
+        "planned": "2026-07-03T13:50:00+02:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-02",
+        "planned": "2026-07-02T13:50:00+02:00",
+        "delay_min": 93,
+        "cancelled": false
+      },
+      {
+        "date": "2026-07-01",
+        "planned": "2026-07-01T13:50:00+02:00",
+        "delay_min": 7,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-30",
+        "planned": "2026-06-30T13:50:00+02:00",
+        "delay_min": 16,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-29",
+        "planned": "2026-06-29T13:50:00+02:00",
+        "delay_min": 63,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-28",
+        "planned": "2026-06-28T13:50:00+02:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-27",
+        "planned": "2026-06-27T13:50:00+02:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-26",
+        "planned": "2026-06-26T13:50:00+02:00",
+        "delay_min": 70,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-25",
+        "planned": "2026-06-25T13:50:00+02:00",
+        "delay_min": 8,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-24",
+        "planned": "2026-06-24T13:50:00+02:00",
+        "delay_min": 8,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-23",
+        "planned": "2026-06-23T13:50:00+02:00",
+        "delay_min": 83,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-22",
+        "planned": "2026-06-22T13:50:00+02:00",
+        "delay_min": 3,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-21",
+        "planned": "2026-06-21T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-20",
+        "planned": "2026-06-20T13:50:00+02:00",
+        "delay_min": 4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-19",
+        "planned": "2026-06-19T13:50:00+02:00",
+        "delay_min": null,
+        "cancelled": true
+      },
+      {
+        "date": "2026-06-18",
+        "planned": "2026-06-18T13:50:00+02:00",
+        "delay_min": null,
+        "cancelled": true
+      },
+      {
+        "date": "2026-06-17",
+        "planned": "2026-06-17T13:50:00+02:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-16",
+        "planned": "2026-06-16T13:50:00+02:00",
+        "delay_min": 22,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-15",
+        "planned": "2026-06-15T13:50:00+02:00",
+        "delay_min": -3,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-14",
+        "planned": "2026-06-14T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-13",
+        "planned": "2026-06-13T13:50:00+02:00",
+        "delay_min": 11,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-12",
+        "planned": "2026-06-12T13:50:00+02:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-11",
+        "planned": "2026-06-11T13:50:00+02:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-10",
+        "planned": "2026-06-10T13:50:00+02:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-09",
+        "planned": "2026-06-09T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-08",
+        "planned": "2026-06-08T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-07",
+        "planned": "2026-06-07T14:21:00+02:00",
+        "delay_min": 9,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-06",
+        "planned": "2026-06-06T14:21:00+02:00",
+        "delay_min": 35,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-05",
+        "planned": "2026-06-05T13:50:00+02:00",
+        "delay_min": -6,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-04",
+        "planned": "2026-06-04T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-03",
+        "planned": "2026-06-03T13:50:00+02:00",
+        "delay_min": 10,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-02",
+        "planned": "2026-06-02T13:50:00+02:00",
+        "delay_min": 10,
+        "cancelled": false
+      },
+      {
+        "date": "2026-06-01",
+        "planned": "2026-06-01T13:50:00+02:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-31",
+        "planned": "2026-05-31T14:21:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-30",
+        "planned": "2026-05-30T14:21:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-29",
+        "planned": "2026-05-29T13:50:00+02:00",
+        "delay_min": 8,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-28",
+        "planned": "2026-05-28T13:50:00+02:00",
+        "delay_min": 5,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-27",
+        "planned": "2026-05-27T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-26",
+        "planned": "2026-05-26T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-25",
+        "planned": "2026-05-25T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-24",
+        "planned": "2026-05-24T13:50:00+02:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-23",
+        "planned": "2026-05-23T13:50:00+02:00",
+        "delay_min": 17,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-22",
+        "planned": "2026-05-22T13:50:00+02:00",
+        "delay_min": 22,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-21",
+        "planned": "2026-05-21T13:50:00+02:00",
+        "delay_min": null,
+        "cancelled": true
+      },
+      {
+        "date": "2026-05-20",
+        "planned": "2026-05-20T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-19",
+        "planned": "2026-05-19T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-18",
+        "planned": "2026-05-18T13:50:00+02:00",
+        "delay_min": 3,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-17",
+        "planned": "2026-05-17T13:50:00+02:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-16",
+        "planned": "2026-05-16T13:50:00+02:00",
+        "delay_min": null,
+        "cancelled": true
+      },
+      {
+        "date": "2026-05-15",
+        "planned": "2026-05-15T13:50:00+02:00",
+        "delay_min": 4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-14",
+        "planned": "2026-05-14T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-13",
+        "planned": "2026-05-13T13:50:00+02:00",
+        "delay_min": 4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-12",
+        "planned": "2026-05-12T13:50:00+02:00",
+        "delay_min": 4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-11",
+        "planned": "2026-05-11T13:50:00+02:00",
+        "delay_min": 17,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-10",
+        "planned": "2026-05-10T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-09",
+        "planned": "2026-05-09T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-08",
+        "planned": "2026-05-08T13:50:00+02:00",
+        "delay_min": 5,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-07",
+        "planned": "2026-05-07T13:50:00+02:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-06",
+        "planned": "2026-05-06T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-05",
+        "planned": "2026-05-05T13:50:00+02:00",
+        "delay_min": 16,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-04",
+        "planned": "2026-05-04T13:50:00+02:00",
+        "delay_min": 13,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-03",
+        "planned": "2026-05-03T13:50:00+02:00",
+        "delay_min": -3,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-02",
+        "planned": "2026-05-02T13:50:00+02:00",
+        "delay_min": -3,
+        "cancelled": false
+      },
+      {
+        "date": "2026-05-01",
+        "planned": "2026-05-01T13:50:00+02:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-30",
+        "planned": "2026-04-30T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-29",
+        "planned": "2026-04-29T13:50:00+02:00",
+        "delay_min": 5,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-28",
+        "planned": "2026-04-28T13:50:00+02:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-27",
+        "planned": "2026-04-27T13:50:00+02:00",
+        "delay_min": -4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-26",
+        "planned": "2026-04-26T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-25",
+        "planned": "2026-04-25T13:50:00+02:00",
+        "delay_min": null,
+        "cancelled": true
+      },
+      {
+        "date": "2026-04-24",
+        "planned": "2026-04-24T13:50:00+02:00",
+        "delay_min": 6,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-23",
+        "planned": "2026-04-23T13:50:00+02:00",
+        "delay_min": -6,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-22",
+        "planned": "2026-04-22T13:50:00+02:00",
+        "delay_min": 22,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-21",
+        "planned": "2026-04-21T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-20",
+        "planned": "2026-04-20T13:50:00+02:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-19",
+        "planned": "2026-04-19T13:50:00+02:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-18",
+        "planned": "2026-04-18T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-17",
+        "planned": "2026-04-17T13:50:00+02:00",
+        "delay_min": 6,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-16",
+        "planned": "2026-04-16T13:50:00+02:00",
+        "delay_min": 8,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-15",
+        "planned": "2026-04-15T13:50:00+02:00",
+        "delay_min": 4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-14",
+        "planned": "2026-04-14T13:50:00+02:00",
+        "delay_min": null,
+        "cancelled": true
+      },
+      {
+        "date": "2026-04-13",
+        "planned": "2026-04-13T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-12",
+        "planned": "2026-04-12T13:50:00+02:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-11",
+        "planned": "2026-04-11T13:50:00+02:00",
+        "delay_min": 31,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-10",
+        "planned": "2026-04-10T13:50:00+02:00",
+        "delay_min": null,
+        "cancelled": true
+      },
+      {
+        "date": "2026-04-09",
+        "planned": "2026-04-09T13:50:00+02:00",
+        "delay_min": 9,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-08",
+        "planned": "2026-04-08T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-07",
+        "planned": "2026-04-07T13:50:00+02:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-06",
+        "planned": "2026-04-06T13:50:00+02:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-05",
+        "planned": "2026-04-05T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-04",
+        "planned": "2026-04-04T13:50:00+02:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-03",
+        "planned": "2026-04-03T13:50:00+02:00",
+        "delay_min": 25,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-02",
+        "planned": "2026-04-02T13:50:00+02:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-04-01",
+        "planned": "2026-04-01T13:50:00+02:00",
+        "delay_min": 48,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-31",
+        "planned": "2026-03-31T13:50:00+02:00",
+        "delay_min": -4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-30",
+        "planned": "2026-03-30T13:50:00+02:00",
+        "delay_min": -5,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-29",
+        "planned": "2026-03-29T14:30:00+02:00",
+        "delay_min": -4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-28",
+        "planned": "2026-03-28T13:50:00+01:00",
+        "delay_min": 21,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-27",
+        "planned": "2026-03-27T13:50:00+01:00",
+        "delay_min": -3,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-26",
+        "planned": "2026-03-26T13:50:00+01:00",
+        "delay_min": -6,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-25",
+        "planned": "2026-03-25T13:50:00+01:00",
+        "delay_min": 35,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-24",
+        "planned": "2026-03-24T13:50:00+01:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-23",
+        "planned": "2026-03-23T13:50:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-22",
+        "planned": "2026-03-22T13:50:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-21",
+        "planned": "2026-03-21T13:50:00+01:00",
+        "delay_min": 10,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-20",
+        "planned": "2026-03-20T13:50:00+01:00",
+        "delay_min": 3,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-19",
+        "planned": "2026-03-19T13:50:00+01:00",
+        "delay_min": 6,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-18",
+        "planned": "2026-03-18T13:50:00+01:00",
+        "delay_min": null,
+        "cancelled": true
+      },
+      {
+        "date": "2026-03-17",
+        "planned": "2026-03-17T13:50:00+01:00",
+        "delay_min": 42,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-16",
+        "planned": "2026-03-16T13:50:00+01:00",
+        "delay_min": -4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-15",
+        "planned": "2026-03-15T13:50:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-14",
+        "planned": "2026-03-14T13:50:00+01:00",
+        "delay_min": -3,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-13",
+        "planned": "2026-03-13T13:50:00+01:00",
+        "delay_min": 21,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-12",
+        "planned": "2026-03-12T13:50:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-11",
+        "planned": "2026-03-11T13:50:00+01:00",
+        "delay_min": -3,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-10",
+        "planned": "2026-03-10T13:50:00+01:00",
+        "delay_min": 32,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-09",
+        "planned": "2026-03-09T13:50:00+01:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-08",
+        "planned": "2026-03-08T13:50:00+01:00",
+        "delay_min": -8,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-07",
+        "planned": "2026-03-07T13:50:00+01:00",
+        "delay_min": 22,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-06",
+        "planned": "2026-03-06T13:50:00+01:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-05",
+        "planned": "2026-03-05T13:50:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-04",
+        "planned": "2026-03-04T13:50:00+01:00",
+        "delay_min": -4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-03",
+        "planned": "2026-03-03T13:50:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-02",
+        "planned": "2026-03-02T13:50:00+01:00",
+        "delay_min": 18,
+        "cancelled": false
+      },
+      {
+        "date": "2026-03-01",
+        "planned": "2026-03-01T13:50:00+01:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-28",
+        "planned": "2026-02-28T13:50:00+01:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-27",
+        "planned": "2026-02-27T13:50:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-26",
+        "planned": "2026-02-26T13:50:00+01:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-25",
+        "planned": "2026-02-25T13:50:00+01:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-24",
+        "planned": "2026-02-24T13:50:00+01:00",
+        "delay_min": 49,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-23",
+        "planned": "2026-02-23T13:50:00+01:00",
+        "delay_min": 7,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-22",
+        "planned": "2026-02-22T13:50:00+01:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-21",
+        "planned": "2026-02-21T13:50:00+01:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-20",
+        "planned": "2026-02-20T13:50:00+01:00",
+        "delay_min": 10,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-19",
+        "planned": "2026-02-19T13:50:00+01:00",
+        "delay_min": 13,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-18",
+        "planned": "2026-02-18T13:50:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-17",
+        "planned": "2026-02-17T13:50:00+01:00",
+        "delay_min": -5,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-16",
+        "planned": "2026-02-16T13:50:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-15",
+        "planned": "2026-02-15T13:50:00+01:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-14",
+        "planned": "2026-02-14T13:50:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-13",
+        "planned": "2026-02-13T13:50:00+01:00",
+        "delay_min": 5,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-12",
+        "planned": "2026-02-12T13:50:00+01:00",
+        "delay_min": -4,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-11",
+        "planned": "2026-02-11T13:50:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-10",
+        "planned": "2026-02-10T13:50:00+01:00",
+        "delay_min": 117,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-09",
+        "planned": "2026-02-09T13:50:00+01:00",
+        "delay_min": -5,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-08",
+        "planned": "2026-02-08T13:50:00+01:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-07",
+        "planned": "2026-02-07T13:50:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-06",
+        "planned": "2026-02-06T13:42:00+01:00",
+        "delay_min": 22,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-05",
+        "planned": "2026-02-05T13:42:00+01:00",
+        "delay_min": 9,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-04",
+        "planned": "2026-02-04T13:42:00+01:00",
+        "delay_min": 41,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-03",
+        "planned": "2026-02-03T13:42:00+01:00",
+        "delay_min": 28,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-02",
+        "planned": "2026-02-02T13:42:00+01:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-02-01",
+        "planned": "2026-02-01T13:42:00+01:00",
+        "delay_min": 5,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-31",
+        "planned": "2026-01-31T13:42:00+01:00",
+        "delay_min": 16,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-30",
+        "planned": "2026-01-30T13:42:00+01:00",
+        "delay_min": 27,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-29",
+        "planned": "2026-01-29T13:42:00+01:00",
+        "delay_min": 6,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-28",
+        "planned": "2026-01-28T13:42:00+01:00",
+        "delay_min": null,
+        "cancelled": true
+      },
+      {
+        "date": "2026-01-27",
+        "planned": "2026-01-27T13:42:00+01:00",
+        "delay_min": 44,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-26",
+        "planned": "2026-01-26T13:42:00+01:00",
+        "delay_min": null,
+        "cancelled": true
+      },
+      {
+        "date": "2026-01-25",
+        "planned": "2026-01-25T13:42:00+01:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-24",
+        "planned": "2026-01-24T13:42:00+01:00",
+        "delay_min": 51,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-23",
+        "planned": "2026-01-23T13:42:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-22",
+        "planned": "2026-01-22T13:42:00+01:00",
+        "delay_min": null,
+        "cancelled": true
+      },
+      {
+        "date": "2026-01-21",
+        "planned": "2026-01-21T13:42:00+01:00",
+        "delay_min": 45,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-20",
+        "planned": "2026-01-20T13:42:00+01:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-19",
+        "planned": "2026-01-19T13:42:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-18",
+        "planned": "2026-01-18T13:42:00+01:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-17",
+        "planned": "2026-01-17T13:42:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-16",
+        "planned": "2026-01-16T13:42:00+01:00",
+        "delay_min": 2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-15",
+        "planned": "2026-01-15T13:42:00+01:00",
+        "delay_min": 18,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-14",
+        "planned": "2026-01-14T13:42:00+01:00",
+        "delay_min": 23,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-13",
+        "planned": "2026-01-13T13:42:00+01:00",
+        "delay_min": 13,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-12",
+        "planned": "2026-01-12T13:42:00+01:00",
+        "delay_min": 26,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-09",
+        "planned": "2026-01-09T13:42:00+01:00",
+        "delay_min": null,
+        "cancelled": true
+      },
+      {
+        "date": "2026-01-08",
+        "planned": "2026-01-08T13:42:00+01:00",
+        "delay_min": 79,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-07",
+        "planned": "2026-01-07T13:42:00+01:00",
+        "delay_min": 12,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-06",
+        "planned": "2026-01-06T13:42:00+01:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-05",
+        "planned": "2026-01-05T13:42:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-04",
+        "planned": "2026-01-04T13:42:00+01:00",
+        "delay_min": 27,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-03",
+        "planned": "2026-01-03T13:42:00+01:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-02",
+        "planned": "2026-01-02T13:42:00+01:00",
+        "delay_min": -1,
+        "cancelled": false
+      },
+      {
+        "date": "2026-01-01",
+        "planned": "2026-01-01T13:42:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-31",
+        "planned": "2025-12-31T13:42:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-30",
+        "planned": "2025-12-30T13:42:00+01:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-29",
+        "planned": "2025-12-29T13:42:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-28",
+        "planned": "2025-12-28T13:42:00+01:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-27",
+        "planned": "2025-12-27T13:42:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-26",
+        "planned": "2025-12-26T13:42:00+01:00",
+        "delay_min": 16,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-25",
+        "planned": "2025-12-25T13:42:00+01:00",
+        "delay_min": 10,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-24",
+        "planned": "2025-12-24T13:42:00+01:00",
+        "delay_min": 3,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-23",
+        "planned": "2025-12-23T13:42:00+01:00",
+        "delay_min": -2,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-22",
+        "planned": "2025-12-22T13:42:00+01:00",
+        "delay_min": 0,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-21",
+        "planned": "2025-12-21T13:42:00+01:00",
+        "delay_min": 1,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-20",
+        "planned": "2025-12-20T13:42:00+01:00",
+        "delay_min": 31,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-19",
+        "planned": "2025-12-19T14:16:00+01:00",
+        "delay_min": 9,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-18",
+        "planned": "2025-12-18T14:16:00+01:00",
+        "delay_min": 52,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-17",
+        "planned": "2025-12-17T14:16:00+01:00",
+        "delay_min": 19,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-16",
+        "planned": "2025-12-16T14:16:00+01:00",
+        "delay_min": 3,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-15",
+        "planned": "2025-12-15T14:16:00+01:00",
+        "delay_min": 26,
+        "cancelled": false
+      },
+      {
+        "date": "2025-12-14",
+        "planned": "2025-12-14T14:16:00+01:00",
+        "delay_min": null,
+        "cancelled": true
+      }
+    ],
+    "summary": {
+      "n": 319,
+      "late20": 69,
+      "late60": 29,
+      "late120": 17,
+      "cancelled": 16
+    },
+    "source": "Deutsche Bahn arrival data via piebro/deutsche-bahn-data, CC BY 4.0"
+  },
+  "route": {
+    "from": "Hamburg Hbf",
+    "to": "München Hbf",
+    "weekday": "Friday",
+    "trains": [
+      {
+        "train": "ICE 2849",
+        "n": 11,
+        "dep": "05:01",
+        "arr": "21:10",
+        "late20": 5,
+        "late20_share": 0.4545,
+        "late60": 3,
+        "late60_share": 0.2727,
+        "median_delay_min": 9.0
+      },
+      {
+        "train": "ICE 581",
+        "n": 23,
+        "dep": "05:01",
+        "arr": "10:49",
+        "late20": 5,
+        "late20_share": 0.2174,
+        "late60": 1,
+        "late60_share": 0.0435,
+        "median_delay_min": 3.0
+      },
+      {
+        "train": "ICE 2585",
+        "n": 3,
+        "dep": "05:30",
+        "arr": "15:14",
+        "late20": 3,
+        "late20_share": 1.0,
+        "late60": 2,
+        "late60_share": 0.6667,
+        "median_delay_min": 65.0
+      },
+      {
+        "train": "ICE 515",
+        "n": 34,
+        "dep": "05:45",
+        "arr": "14:29",
+        "late20": 11,
+        "late20_share": 0.3235,
+        "late60": 4,
+        "late60_share": 0.1176,
+        "median_delay_min": 9.0
+      },
+      {
+        "train": "ICE 2295",
+        "n": 1,
+        "dep": "05:49",
+        "arr": "13:08",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 7.0
+      },
+      {
+        "train": "ICE 2819",
+        "n": 3,
+        "dep": "05:49",
+        "arr": "13:08",
+        "late20": 2,
+        "late20_share": 0.6667,
+        "late60": 2,
+        "late60_share": 0.6667,
+        "median_delay_min": 39.0
+      },
+      {
+        "train": "ICE 505",
+        "n": 41,
+        "dep": "05:49",
+        "arr": "13:08",
+        "late20": 9,
+        "late20_share": 0.2195,
+        "late60": 3,
+        "late60_share": 0.0732,
+        "median_delay_min": 3.0
+      },
+      {
+        "train": "ICE 703",
+        "n": 5,
+        "dep": "05:51",
+        "arr": "12:42",
+        "late20": 2,
+        "late20_share": 0.4,
+        "late60": 1,
+        "late60_share": 0.2,
+        "median_delay_min": 9.0
+      },
+      {
+        "train": "ICE 2817",
+        "n": 2,
+        "dep": "06:01",
+        "arr": "11:50",
+        "late20": 1,
+        "late20_share": 0.5,
+        "late60": 1,
+        "late60_share": 0.5,
+        "median_delay_min": 4.0
+      },
+      {
+        "train": "ICE 2823",
+        "n": 6,
+        "dep": "06:01",
+        "arr": "11:50",
+        "late20": 2,
+        "late20_share": 0.3333,
+        "late60": 1,
+        "late60_share": 0.1667,
+        "median_delay_min": 1.5
+      },
+      {
+        "train": "ICE 783",
+        "n": 35,
+        "dep": "06:01",
+        "arr": "11:50",
+        "late20": 9,
+        "late20_share": 0.2571,
+        "late60": 3,
+        "late60_share": 0.0857,
+        "median_delay_min": 4.0
+      },
+      {
+        "train": "ICE 2795",
+        "n": 5,
+        "dep": "06:34",
+        "arr": "13:08",
+        "late20": 2,
+        "late20_share": 0.4,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 12.0
+      },
+      {
+        "train": "ICE 2821",
+        "n": 7,
+        "dep": "07:01",
+        "arr": "12:52",
+        "late20": 3,
+        "late20_share": 0.4286,
+        "late60": 2,
+        "late60_share": 0.2857,
+        "median_delay_min": 6.0
+      },
+      {
+        "train": "ICE 2829",
+        "n": 5,
+        "dep": "07:01",
+        "arr": "06:17",
+        "late20": 2,
+        "late20_share": 0.4,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 0.0
+      },
+      {
+        "train": "ICE 2833",
+        "n": 13,
+        "dep": "07:01",
+        "arr": "21:50",
+        "late20": 3,
+        "late20_share": 0.2308,
+        "late60": 1,
+        "late60_share": 0.0769,
+        "median_delay_min": 2.0
+      },
+      {
+        "train": "ICE 2835",
+        "n": 11,
+        "dep": "07:01",
+        "arr": "16:49",
+        "late20": 3,
+        "late20_share": 0.2727,
+        "late60": 2,
+        "late60_share": 0.1818,
+        "median_delay_min": 0.0
+      },
+      {
+        "train": "ICE 583",
+        "n": 37,
+        "dep": "07:01",
+        "arr": "12:52",
+        "late20": 11,
+        "late20_share": 0.2973,
+        "late60": 7,
+        "late60_share": 0.1892,
+        "median_delay_min": 1.0
+      },
+      {
+        "train": "ICE 2889",
+        "n": 2,
+        "dep": "07:13",
+        "arr": "17:16",
+        "late20": 2,
+        "late20_share": 1.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 39.0
+      },
+      {
+        "train": "ICE 2587",
+        "n": 4,
+        "dep": "07:27",
+        "arr": "17:16",
+        "late20": 4,
+        "late20_share": 1.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 39.0
+      },
+      {
+        "train": "ICE 2847",
+        "n": 9,
+        "dep": "07:27",
+        "arr": "17:09",
+        "late20": 6,
+        "late20_share": 0.6667,
+        "late60": 3,
+        "late60_share": 0.3333,
+        "median_delay_min": 17.5
+      },
+      {
+        "train": "ICE 597",
+        "n": 2,
+        "dep": "07:34",
+        "arr": "17:16",
+        "late20": 2,
+        "late20_share": 1.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 35.5
+      },
+      {
+        "train": "ICE 517",
+        "n": 38,
+        "dep": "07:45",
+        "arr": "16:29",
+        "late20": 13,
+        "late20_share": 0.3421,
+        "late60": 5,
+        "late60_share": 0.1316,
+        "median_delay_min": 16.0
+      },
+      {
+        "train": "ICE 2287",
+        "n": 2,
+        "dep": "07:50",
+        "arr": "15:08",
+        "late20": 1,
+        "late20_share": 0.5,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 10.5
+      },
+      {
+        "train": "ICE 2825",
+        "n": 7,
+        "dep": "07:50",
+        "arr": "01:18",
+        "late20": 3,
+        "late20_share": 0.4286,
+        "late60": 1,
+        "late60_share": 0.1429,
+        "median_delay_min": 6.0
+      },
+      {
+        "train": "ICE 2841",
+        "n": 3,
+        "dep": "07:50",
+        "arr": "15:08",
+        "late20": 1,
+        "late20_share": 0.3333,
+        "late60": 1,
+        "late60_share": 0.3333,
+        "median_delay_min": 6.0
+      },
+      {
+        "train": "ICE 2863",
+        "n": 5,
+        "dep": "07:50",
+        "arr": "21:10",
+        "late20": 3,
+        "late20_share": 0.6,
+        "late60": 3,
+        "late60_share": 0.6,
+        "median_delay_min": 14.0
+      },
+      {
+        "train": "ICE 2911",
+        "n": 3,
+        "dep": "07:50",
+        "arr": "15:03",
+        "late20": 1,
+        "late20_share": 0.3333,
+        "late60": 1,
+        "late60_share": 0.3333,
+        "median_delay_min": 3.5
+      },
+      {
+        "train": "ICE 2921",
+        "n": 2,
+        "dep": "07:50",
+        "arr": "06:40",
+        "late20": 1,
+        "late20_share": 0.5,
+        "late60": 1,
+        "late60_share": 0.5,
+        "median_delay_min": 9.0
+      },
+      {
+        "train": "ICE 507",
+        "n": 41,
+        "dep": "07:50",
+        "arr": "15:08",
+        "late20": 15,
+        "late20_share": 0.3659,
+        "late60": 5,
+        "late60_share": 0.122,
+        "median_delay_min": 5.0
+      },
+      {
+        "train": "ICE 2285",
+        "n": 1,
+        "dep": "08:01",
+        "arr": "13:50",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 17.0
+      },
+      {
+        "train": "ICE 2827",
+        "n": 14,
+        "dep": "08:01",
+        "arr": "13:50",
+        "late20": 4,
+        "late20_share": 0.2857,
+        "late60": 2,
+        "late60_share": 0.1429,
+        "median_delay_min": 10.0
+      },
+      {
+        "train": "ICE 2861",
+        "n": 1,
+        "dep": "08:01",
+        "arr": "13:42",
+        "late20": 1,
+        "late20_share": 1.0,
+        "late60": 1,
+        "late60_share": 1.0,
+        "median_delay_min": null
+      },
+      {
+        "train": "ICE 2935",
+        "n": 2,
+        "dep": "08:01",
+        "arr": "13:42",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 6.0
+      },
+      {
+        "train": "ICE 785",
+        "n": 37,
+        "dep": "08:01",
+        "arr": "13:50",
+        "late20": 9,
+        "late20_share": 0.2432,
+        "late60": 4,
+        "late60_share": 0.1081,
+        "median_delay_min": 5.0
+      },
+      {
+        "train": "ICE 1201",
+        "n": 1,
+        "dep": "08:13",
+        "arr": "14:26",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 0.0
+      },
+      {
+        "train": "ICE 2843",
+        "n": 5,
+        "dep": "08:34",
+        "arr": "00:41",
+        "late20": 2,
+        "late20_share": 0.4,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 4.0
+      },
+      {
+        "train": "ICE 2865",
+        "n": 3,
+        "dep": "08:34",
+        "arr": "01:17",
+        "late20": 3,
+        "late20_share": 1.0,
+        "late60": 1,
+        "late60_share": 0.3333,
+        "median_delay_min": 33.0
+      },
+      {
+        "train": "ICE 29003",
+        "n": 1,
+        "dep": "08:34",
+        "arr": "15:08",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 3.0
+      },
+      {
+        "train": "ICE 1915",
+        "n": 1,
+        "dep": "09:01",
+        "arr": "14:52",
+        "late20": 1,
+        "late20_share": 1.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 29.0
+      },
+      {
+        "train": "ICE 2845",
+        "n": 9,
+        "dep": "09:01",
+        "arr": "17:49",
+        "late20": 2,
+        "late20_share": 0.2222,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 6.0
+      },
+      {
+        "train": "ICE 585",
+        "n": 35,
+        "dep": "09:01",
+        "arr": "14:52",
+        "late20": 8,
+        "late20_share": 0.2286,
+        "late60": 5,
+        "late60_share": 0.1429,
+        "median_delay_min": 0.0
+      },
+      {
+        "train": "ICE 2589",
+        "n": 5,
+        "dep": "09:13",
+        "arr": "19:12",
+        "late20": 5,
+        "late20_share": 1.0,
+        "late60": 2,
+        "late60_share": 0.4,
+        "median_delay_min": 52.0
+      },
+      {
+        "train": "ICE 1185",
+        "n": 9,
+        "dep": "09:21",
+        "arr": "15:05",
+        "late20": 3,
+        "late20_share": 0.3333,
+        "late60": 2,
+        "late60_share": 0.2222,
+        "median_delay_min": 9.0
+      },
+      {
+        "train": "ICE 1285",
+        "n": 15,
+        "dep": "09:21",
+        "arr": "15:06",
+        "late20": 6,
+        "late20_share": 0.4,
+        "late60": 4,
+        "late60_share": 0.2667,
+        "median_delay_min": 11.0
+      },
+      {
+        "train": "ICE 599",
+        "n": 2,
+        "dep": "09:34",
+        "arr": "19:12",
+        "late20": 2,
+        "late20_share": 1.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 38.0
+      },
+      {
+        "train": "ICE 519",
+        "n": 37,
+        "dep": "09:45",
+        "arr": "18:29",
+        "late20": 16,
+        "late20_share": 0.4324,
+        "late60": 8,
+        "late60_share": 0.2162,
+        "median_delay_min": 13.0
+      },
+      {
+        "train": "ICE 2913",
+        "n": 2,
+        "dep": "09:49",
+        "arr": "00:50",
+        "late20": 2,
+        "late20_share": 1.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 46.0
+      },
+      {
+        "train": "ICE 509",
+        "n": 40,
+        "dep": "09:49",
+        "arr": "17:09",
+        "late20": 18,
+        "late20_share": 0.45,
+        "late60": 7,
+        "late60_share": 0.175,
+        "median_delay_min": 9.0
+      },
+      {
+        "train": "ICE 707",
+        "n": 6,
+        "dep": "09:51",
+        "arr": "16:42",
+        "late20": 6,
+        "late20_share": 1.0,
+        "late60": 1,
+        "late60_share": 0.1667,
+        "median_delay_min": 26.0
+      },
+      {
+        "train": "ICE 2859",
+        "n": 1,
+        "dep": "10:01",
+        "arr": "15:50",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": -6.0
+      },
+      {
+        "train": "ICE 2915",
+        "n": 3,
+        "dep": "10:01",
+        "arr": "15:42",
+        "late20": 1,
+        "late20_share": 0.3333,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 3.0
+      },
+      {
+        "train": "ICE 787",
+        "n": 37,
+        "dep": "10:01",
+        "arr": "15:50",
+        "late20": 6,
+        "late20_share": 0.1622,
+        "late60": 4,
+        "late60_share": 0.1081,
+        "median_delay_min": 1.5
+      },
+      {
+        "train": "ICE 2793",
+        "n": 5,
+        "dep": "10:34",
+        "arr": "17:09",
+        "late20": 3,
+        "late20_share": 0.6,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 20.0
+      },
+      {
+        "train": "ICE 2837",
+        "n": 13,
+        "dep": "11:01",
+        "arr": "16:40",
+        "late20": 8,
+        "late20_share": 0.6154,
+        "late60": 4,
+        "late60_share": 0.3077,
+        "median_delay_min": 27.5
+      },
+      {
+        "train": "ICE 2853",
+        "n": 1,
+        "dep": "11:01",
+        "arr": "16:49",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 2.0
+      },
+      {
+        "train": "ICE 2937",
+        "n": 2,
+        "dep": "11:01",
+        "arr": "16:52",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 5.5
+      },
+      {
+        "train": "ICE 587",
+        "n": 37,
+        "dep": "11:01",
+        "arr": "16:49",
+        "late20": 8,
+        "late20_share": 0.2162,
+        "late60": 2,
+        "late60_share": 0.0541,
+        "median_delay_min": 3.0
+      },
+      {
+        "train": "ICE 2591",
+        "n": 3,
+        "dep": "11:27",
+        "arr": "21:15",
+        "late20": 3,
+        "late20_share": 1.0,
+        "late60": 2,
+        "late60_share": 0.6667,
+        "median_delay_min": 29.0
+      },
+      {
+        "train": "ICE 611",
+        "n": 41,
+        "dep": "11:45",
+        "arr": "20:32",
+        "late20": 20,
+        "late20_share": 0.4878,
+        "late60": 6,
+        "late60_share": 0.1463,
+        "median_delay_min": 18.5
+      },
+      {
+        "train": "ICE 601",
+        "n": 42,
+        "dep": "11:49",
+        "arr": "19:08",
+        "late20": 20,
+        "late20_share": 0.4762,
+        "late60": 6,
+        "late60_share": 0.1429,
+        "median_delay_min": 11.0
+      },
+      {
+        "train": "ICE 1205",
+        "n": 12,
+        "dep": "11:51",
+        "arr": "19:18",
+        "late20": 7,
+        "late20_share": 0.5833,
+        "late60": 1,
+        "late60_share": 0.0833,
+        "median_delay_min": 21.0
+      },
+      {
+        "train": "ICE 2855",
+        "n": 1,
+        "dep": "12:01",
+        "arr": "17:49",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 19.0
+      },
+      {
+        "train": "ICE 789",
+        "n": 37,
+        "dep": "12:01",
+        "arr": "17:49",
+        "late20": 11,
+        "late20_share": 0.2973,
+        "late60": 3,
+        "late60_share": 0.0811,
+        "median_delay_min": 5.0
+      },
+      {
+        "train": "ICE 2891",
+        "n": 1,
+        "dep": "12:34",
+        "arr": "19:08",
+        "late20": 1,
+        "late20_share": 1.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 53.0
+      },
+      {
+        "train": "ICE 2839",
+        "n": 9,
+        "dep": "13:01",
+        "arr": "10:49",
+        "late20": 1,
+        "late20_share": 0.1111,
+        "late60": 1,
+        "late60_share": 0.1111,
+        "median_delay_min": 6.0
+      },
+      {
+        "train": "ICE 589",
+        "n": 36,
+        "dep": "13:01",
+        "arr": "18:48",
+        "late20": 12,
+        "late20_share": 0.3333,
+        "late60": 3,
+        "late60_share": 0.0833,
+        "median_delay_min": 4.0
+      },
+      {
+        "train": "ICE 1283",
+        "n": 7,
+        "dep": "13:21",
+        "arr": "19:18",
+        "late20": 2,
+        "late20_share": 0.2857,
+        "late60": 2,
+        "late60_share": 0.2857,
+        "median_delay_min": 0.0
+      },
+      {
+        "train": "ICE 2593",
+        "n": 5,
+        "dep": "13:27",
+        "arr": "23:15",
+        "late20": 5,
+        "late20_share": 1.0,
+        "late60": 3,
+        "late60_share": 0.6,
+        "median_delay_min": 60.0
+      },
+      {
+        "train": "ICE 2887",
+        "n": 2,
+        "dep": "13:27",
+        "arr": "01:36",
+        "late20": 1,
+        "late20_share": 0.5,
+        "late60": 1,
+        "late60_share": 0.5,
+        "median_delay_min": 30.0
+      },
+      {
+        "train": "ICE 693",
+        "n": 2,
+        "dep": "13:32",
+        "arr": "23:15",
+        "late20": 2,
+        "late20_share": 1.0,
+        "late60": 1,
+        "late60_share": 0.5,
+        "median_delay_min": 55.0
+      },
+      {
+        "train": "ICE 613",
+        "n": 40,
+        "dep": "13:45",
+        "arr": "22:29",
+        "late20": 23,
+        "late20_share": 0.575,
+        "late60": 12,
+        "late60_share": 0.3,
+        "median_delay_min": 26.5
+      },
+      {
+        "train": "ICE 603",
+        "n": 42,
+        "dep": "13:49",
+        "arr": "21:10",
+        "late20": 17,
+        "late20_share": 0.4048,
+        "late60": 6,
+        "late60_share": 0.1429,
+        "median_delay_min": 6.0
+      },
+      {
+        "train": "ICE 801",
+        "n": 7,
+        "dep": "13:51",
+        "arr": "20:42",
+        "late20": 7,
+        "late20_share": 1.0,
+        "late60": 3,
+        "late60_share": 0.4286,
+        "median_delay_min": 56.0
+      },
+      {
+        "train": "ICE 2831",
+        "n": 10,
+        "dep": "14:01",
+        "arr": "19:50",
+        "late20": 3,
+        "late20_share": 0.3,
+        "late60": 1,
+        "late60_share": 0.1,
+        "median_delay_min": 9.5
+      },
+      {
+        "train": "ICE 2919",
+        "n": 2,
+        "dep": "14:01",
+        "arr": "19:43",
+        "late20": 1,
+        "late20_share": 0.5,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 16.5
+      },
+      {
+        "train": "ICE 881",
+        "n": 37,
+        "dep": "14:01",
+        "arr": "19:50",
+        "late20": 10,
+        "late20_share": 0.2703,
+        "late60": 3,
+        "late60_share": 0.0811,
+        "median_delay_min": 4.0
+      },
+      {
+        "train": "ICE 2291",
+        "n": 1,
+        "dep": "14:19",
+        "arr": "20:50",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": -2.0
+      },
+      {
+        "train": "ICE 2905",
+        "n": 2,
+        "dep": "14:19",
+        "arr": "00:18",
+        "late20": 1,
+        "late20_share": 0.5,
+        "late60": 1,
+        "late60_share": 0.5,
+        "median_delay_min": 43.0
+      },
+      {
+        "train": "ICE 2797",
+        "n": 1,
+        "dep": "14:34",
+        "arr": "21:10",
+        "late20": 1,
+        "late20_share": 1.0,
+        "late60": 1,
+        "late60_share": 1.0,
+        "median_delay_min": null
+      },
+      {
+        "train": "ICE 2799",
+        "n": 4,
+        "dep": "14:34",
+        "arr": "21:10",
+        "late20": 4,
+        "late20_share": 1.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 41.0
+      },
+      {
+        "train": "ICE 29001",
+        "n": 1,
+        "dep": "14:34",
+        "arr": "21:10",
+        "late20": 1,
+        "late20_share": 1.0,
+        "late60": 1,
+        "late60_share": 1.0,
+        "median_delay_min": null
+      },
+      {
+        "train": "ICE 681",
+        "n": 36,
+        "dep": "15:01",
+        "arr": "20:50",
+        "late20": 9,
+        "late20_share": 0.25,
+        "late60": 4,
+        "late60_share": 0.1111,
+        "median_delay_min": 1.0
+      },
+      {
+        "train": "ICE 2893",
+        "n": 1,
+        "dep": "15:19",
+        "arr": "22:00",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 5.0
+      },
+      {
+        "train": "ICE 615",
+        "n": 38,
+        "dep": "15:45",
+        "arr": "00:29",
+        "late20": 13,
+        "late20_share": 0.3421,
+        "late60": 7,
+        "late60_share": 0.1842,
+        "median_delay_min": 13.0
+      },
+      {
+        "train": "ICE 605",
+        "n": 31,
+        "dep": "15:48",
+        "arr": "23:10",
+        "late20": 18,
+        "late20_share": 0.5806,
+        "late60": 4,
+        "late60_share": 0.129,
+        "median_delay_min": 22.0
+      },
+      {
+        "train": "ICE 803",
+        "n": 7,
+        "dep": "15:51",
+        "arr": "22:42",
+        "late20": 6,
+        "late20_share": 0.8571,
+        "late60": 4,
+        "late60_share": 0.5714,
+        "median_delay_min": 63.5
+      },
+      {
+        "train": "ICE 883",
+        "n": 35,
+        "dep": "16:01",
+        "arr": "21:50",
+        "late20": 8,
+        "late20_share": 0.2286,
+        "late60": 5,
+        "late60_share": 0.1429,
+        "median_delay_min": 3.0
+      },
+      {
+        "train": "ICE 29005",
+        "n": 1,
+        "dep": "16:34",
+        "arr": "23:10",
+        "late20": 1,
+        "late20_share": 1.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 44.0
+      },
+      {
+        "train": "ICE 2909",
+        "n": 2,
+        "dep": "16:34",
+        "arr": "06:09",
+        "late20": 1,
+        "late20_share": 0.5,
+        "late60": 1,
+        "late60_share": 0.5,
+        "median_delay_min": 30.0
+      },
+      {
+        "train": "ICE 683",
+        "n": 32,
+        "dep": "17:01",
+        "arr": "22:50",
+        "late20": 10,
+        "late20_share": 0.3125,
+        "late60": 7,
+        "late60_share": 0.2188,
+        "median_delay_min": 1.0
+      },
+      {
+        "train": "ICE 2635",
+        "n": 1,
+        "dep": "18:01",
+        "arr": "23:44",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 12.0
+      },
+      {
+        "train": "ICE 2903",
+        "n": 1,
+        "dep": "18:01",
+        "arr": "23:50",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 4.0
+      },
+      {
+        "train": "ICE 885",
+        "n": 35,
+        "dep": "18:01",
+        "arr": "23:50",
+        "late20": 11,
+        "late20_share": 0.3143,
+        "late60": 5,
+        "late60_share": 0.1429,
+        "median_delay_min": 8.0
+      },
+      {
+        "train": "ICE 2867",
+        "n": 2,
+        "dep": "18:19",
+        "arr": "00:50",
+        "late20": 1,
+        "late20_share": 0.5,
+        "late60": 1,
+        "late60_share": 0.5,
+        "median_delay_min": 40.0
+      },
+      {
+        "train": "ICE 2895",
+        "n": 1,
+        "dep": "18:19",
+        "arr": "00:50",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": -5.0
+      },
+      {
+        "train": "ICE 685",
+        "n": 28,
+        "dep": "19:01",
+        "arr": "00:50",
+        "late20": 11,
+        "late20_share": 0.3929,
+        "late60": 4,
+        "late60_share": 0.1429,
+        "median_delay_min": 6.0
+      },
+      {
+        "train": "ICE 2299",
+        "n": 1,
+        "dep": "19:23",
+        "arr": "06:03",
+        "late20": 0,
+        "late20_share": 0.0,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": -3.0
+      },
+      {
+        "train": "ICE 619",
+        "n": 38,
+        "dep": "19:45",
+        "arr": "06:03",
+        "late20": 9,
+        "late20_share": 0.2368,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": -0.5
+      },
+      {
+        "train": "NJ 40491",
+        "n": 24,
+        "dep": "20:10",
+        "arr": "06:13",
+        "late20": 7,
+        "late20_share": 0.2917,
+        "late60": 7,
+        "late60_share": 0.2917,
+        "median_delay_min": 0.0
+      },
+      {
+        "train": "ICE 1081",
+        "n": 43,
+        "dep": "22:28",
+        "arr": "06:09",
+        "late20": 12,
+        "late20_share": 0.2791,
+        "late60": 0,
+        "late60_share": 0.0,
+        "median_delay_min": 7.0
+      }
+    ],
+    "source": "Deutsche Bahn arrival data via piebro/deutsche-bahn-data, CC BY 4.0"
+  },
+  "train": {
+    "train": "ICE 785",
+    "weekday": "Friday",
+    "stops": [
+      {
+        "stop": "Augsburg Hbf",
+        "key": "augsburg",
+        "n": 1,
+        "late20": 0,
+        "late20_share": 0.0
+      },
+      {
+        "stop": "Fulda",
+        "key": "fulda",
+        "n": 46,
+        "late20": 13,
+        "late20_share": 0.2826
+      },
+      {
+        "stop": "Göttingen",
+        "key": "goettingen",
+        "n": 46,
+        "late20": 12,
+        "late20_share": 0.2609
+      },
+      {
+        "stop": "Hamburg Hbf",
+        "key": "hamburg",
+        "n": 38,
+        "late20": 6,
+        "late20_share": 0.1579
+      },
+      {
+        "stop": "Hamburg-Harburg",
+        "key": "hamburg harburg",
+        "n": 38,
+        "late20": 6,
+        "late20_share": 0.1579
+      },
+      {
+        "stop": "Hannover Hbf",
+        "key": "hannover",
+        "n": 46,
+        "late20": 8,
+        "late20_share": 0.1739
+      },
+      {
+        "stop": "Hannover-Messe / Laatzen",
+        "key": "hannover laatzen messe",
+        "n": 5,
+        "late20": 0,
+        "late20_share": 0.0
+      },
+      {
+        "stop": "Ingolstadt Hbf",
+        "key": "ingolstadt",
+        "n": 45,
+        "late20": 10,
+        "late20_share": 0.2222
+      },
+      {
+        "stop": "Kassel-Wilhelmshöhe",
+        "key": "kassel wilhelmshoehe",
+        "n": 46,
+        "late20": 13,
+        "late20_share": 0.2826
+      },
+      {
+        "stop": "Lüneburg",
+        "key": "lueneburg",
+        "n": 35,
+        "late20": 6,
+        "late20_share": 0.1714
+      },
+      {
+        "stop": "München Hbf",
+        "key": "muenchen",
+        "n": 46,
+        "late20": 12,
+        "late20_share": 0.2609
+      },
+      {
+        "stop": "Nürnberg Hbf",
+        "key": "nuernberg",
+        "n": 45,
+        "late20": 12,
+        "late20_share": 0.2667
+      },
+      {
+        "stop": "Uelzen",
+        "key": "uelzen",
+        "n": 1,
+        "late20": 0,
+        "late20_share": 0.0
+      },
+      {
+        "stop": "Würzburg Hbf",
+        "key": "wuerzburg",
+        "n": 46,
+        "late20": 10,
+        "late20_share": 0.2174
+      }
+    ],
+    "source": "Deutsche Bahn arrival data via piebro/deutsche-bahn-data, CC BY 4.0"
+  },
+  "day": {
+    "stop": "München Hbf",
+    "date": "2026-03-29",
+    "truncated": false,
+    "arrivals": [
+      {
+        "train": "ICE 885",
+        "planned": "2026-03-29T00:06:00+01:00",
+        "delay_min": 84,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1107",
+        "planned": "2026-03-29T00:50:00+01:00",
+        "delay_min": 242,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 685",
+        "planned": "2026-03-29T01:22:00+01:00",
+        "delay_min": -6,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 619",
+        "planned": "2026-03-29T06:03:00+02:00",
+        "delay_min": 8,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "NJ 40491",
+        "planned": "2026-03-29T06:13:00+02:00",
+        "delay_min": 248,
+        "cancelled": false,
+        "departs": "2026-03-29T06:33:00+02:00",
+        "dep_delay_min": 245,
+        "dep_cancelled": false
+      },
+      {
+        "train": "NJ 421",
+        "planned": "2026-03-29T06:13:00+02:00",
+        "delay_min": 248,
+        "cancelled": false,
+        "departs": "2026-03-29T06:33:00+02:00",
+        "dep_delay_min": 245,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 2939",
+        "planned": "2026-03-29T07:15:00+02:00",
+        "delay_min": null,
+        "cancelled": true,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 905",
+        "planned": "2026-03-29T07:15:00+02:00",
+        "delay_min": null,
+        "cancelled": true,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "RJ 1290",
+        "planned": "2026-03-29T07:29:00+02:00",
+        "delay_min": -1,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 2933",
+        "planned": "2026-03-29T07:49:00+02:00",
+        "delay_min": 44,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 699",
+        "planned": "2026-03-29T07:49:00+02:00",
+        "delay_min": 44,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 827",
+        "planned": "2026-03-29T08:13:00+02:00",
+        "delay_min": 12,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "RJ 288",
+        "planned": "2026-03-29T08:27:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1063",
+        "planned": "2026-03-29T08:30:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 521",
+        "planned": "2026-03-29T09:13:00+02:00",
+        "delay_min": -2,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 991",
+        "planned": "2026-03-29T09:15:00+02:00",
+        "delay_min": 27,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "NJ 294",
+        "planned": "2026-03-29T09:29:00+02:00",
+        "delay_min": -9,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 501",
+        "planned": "2026-03-29T09:31:00+02:00",
+        "delay_min": 2,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "WB 963",
+        "planned": "2026-03-29T09:36:00+02:00",
+        "delay_min": -1,
+        "cancelled": false,
+        "departs": "2026-03-29T09:47:00+02:00",
+        "dep_delay_min": 0,
+        "dep_cancelled": false
+      },
+      {
+        "train": "EC 212",
+        "planned": "2026-03-29T09:41:00+02:00",
+        "delay_min": 8,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1501",
+        "planned": "2026-03-29T09:41:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1091",
+        "planned": "2026-03-29T10:10:00+02:00",
+        "delay_min": -2,
+        "cancelled": false,
+        "departs": "2026-03-29T10:27:00+02:00",
+        "dep_delay_min": null,
+        "dep_cancelled": true
+      },
+      {
+        "train": "ICE 523",
+        "planned": "2026-03-29T10:12:00+02:00",
+        "delay_min": -1,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "WB 960",
+        "planned": "2026-03-29T10:14:00+02:00",
+        "delay_min": -3,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "EN 40407",
+        "planned": "2026-03-29T10:24:00+02:00",
+        "delay_min": 36,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "EN 40417",
+        "planned": "2026-03-29T10:24:00+02:00",
+        "delay_min": 36,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "IC 407",
+        "planned": "2026-03-29T10:24:00+02:00",
+        "delay_min": 36,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "IC 417",
+        "planned": "2026-03-29T10:24:00+02:00",
+        "delay_min": 36,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1204",
+        "planned": "2026-03-29T10:30:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": "2026-03-29T10:41:00+02:00",
+        "dep_delay_min": 3,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 511",
+        "planned": "2026-03-29T10:32:00+02:00",
+        "delay_min": -2,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "RJX 260",
+        "planned": "2026-03-29T10:33:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 701",
+        "planned": "2026-03-29T10:42:00+02:00",
+        "delay_min": 2,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1003",
+        "planned": "2026-03-29T10:45:00+02:00",
+        "delay_min": 39,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 267",
+        "planned": "2026-03-29T10:49:00+02:00",
+        "delay_min": null,
+        "cancelled": true,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ECE 97",
+        "planned": "2026-03-29T11:05:00+02:00",
+        "delay_min": 56,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 503",
+        "planned": "2026-03-29T11:07:00+02:00",
+        "delay_min": -4,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 525",
+        "planned": "2026-03-29T11:12:00+02:00",
+        "delay_min": -7,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 591",
+        "planned": "2026-03-29T11:15:00+02:00",
+        "delay_min": 35,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 210",
+        "planned": "2026-03-29T11:41:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": "2026-03-29T11:48:00+02:00",
+        "dep_delay_min": 0,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1503",
+        "planned": "2026-03-29T11:43:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 2843",
+        "planned": "2026-03-29T11:50:00+02:00",
+        "delay_min": 36,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 783",
+        "planned": "2026-03-29T11:50:00+02:00",
+        "delay_min": 36,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 117",
+        "planned": "2026-03-29T12:10:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": "2026-03-29T12:16:00+02:00",
+        "dep_delay_min": 1,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 527",
+        "planned": "2026-03-29T12:12:00+02:00",
+        "delay_min": 2,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "WB 962",
+        "planned": "2026-03-29T12:14:00+02:00",
+        "delay_min": 9,
+        "cancelled": false,
+        "departs": "2026-03-29T12:26:00+02:00",
+        "dep_delay_min": 3,
+        "dep_cancelled": false
+      },
+      {
+        "train": "RJ 286",
+        "planned": "2026-03-29T12:27:00+02:00",
+        "delay_min": 1,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 513",
+        "planned": "2026-03-29T12:29:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "RJX 262",
+        "planned": "2026-03-29T12:32:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 703",
+        "planned": "2026-03-29T12:42:00+02:00",
+        "delay_min": -1,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1005",
+        "planned": "2026-03-29T12:46:00+02:00",
+        "delay_min": 32,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 2863",
+        "planned": "2026-03-29T12:46:00+02:00",
+        "delay_min": 32,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 563",
+        "planned": "2026-03-29T12:49:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 583",
+        "planned": "2026-03-29T12:52:00+02:00",
+        "delay_min": 2,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ECE 99",
+        "planned": "2026-03-29T13:05:00+02:00",
+        "delay_min": 31,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 505",
+        "planned": "2026-03-29T13:08:00+02:00",
+        "delay_min": -5,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 529",
+        "planned": "2026-03-29T13:12:00+02:00",
+        "delay_min": 20,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 2835",
+        "planned": "2026-03-29T13:15:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 593",
+        "planned": "2026-03-29T13:15:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 915",
+        "planned": "2026-03-29T13:40:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 118",
+        "planned": "2026-03-29T13:41:00+02:00",
+        "delay_min": 6,
+        "cancelled": false,
+        "departs": "2026-03-29T13:47:00+02:00",
+        "dep_delay_min": 11,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1505",
+        "planned": "2026-03-29T13:43:00+02:00",
+        "delay_min": 1,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 119",
+        "planned": "2026-03-29T14:10:00+02:00",
+        "delay_min": -2,
+        "cancelled": false,
+        "departs": "2026-03-29T14:16:00+02:00",
+        "dep_delay_min": 0,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 621",
+        "planned": "2026-03-29T14:12:00+02:00",
+        "delay_min": 17,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "WB 964",
+        "planned": "2026-03-29T14:14:00+02:00",
+        "delay_min": -1,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "RJ 88",
+        "planned": "2026-03-29T14:26:00+02:00",
+        "delay_min": 1,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 515",
+        "planned": "2026-03-29T14:29:00+02:00",
+        "delay_min": -1,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 785",
+        "planned": "2026-03-29T14:30:00+02:00",
+        "delay_min": -4,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "RJX 60",
+        "planned": "2026-03-29T14:35:00+02:00",
+        "delay_min": -3,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1284",
+        "planned": "2026-03-29T14:40:00+02:00",
+        "delay_min": 9,
+        "cancelled": false,
+        "departs": "2026-03-29T14:52:00+02:00",
+        "dep_delay_min": 23,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1007",
+        "planned": "2026-03-29T14:45:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 565",
+        "planned": "2026-03-29T14:49:00+02:00",
+        "delay_min": null,
+        "cancelled": true,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ECE 191",
+        "planned": "2026-03-29T15:05:00+02:00",
+        "delay_min": 9,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 507",
+        "planned": "2026-03-29T15:08:00+02:00",
+        "delay_min": 30,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 623",
+        "planned": "2026-03-29T15:12:00+02:00",
+        "delay_min": -2,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 595",
+        "planned": "2026-03-29T15:14:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 585",
+        "planned": "2026-03-29T15:32:00+02:00",
+        "delay_min": -19,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 225",
+        "planned": "2026-03-29T15:40:00+02:00",
+        "delay_min": 32,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 116",
+        "planned": "2026-03-29T15:41:00+02:00",
+        "delay_min": 7,
+        "cancelled": false,
+        "departs": "2026-03-29T15:47:00+02:00",
+        "dep_delay_min": 9,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1507",
+        "planned": "2026-03-29T15:43:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1285",
+        "planned": "2026-03-29T15:46:00+02:00",
+        "delay_min": -1,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 211",
+        "planned": "2026-03-29T16:10:00+02:00",
+        "delay_min": -1,
+        "cancelled": false,
+        "departs": "2026-03-29T16:16:00+02:00",
+        "dep_delay_min": 1,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 625",
+        "planned": "2026-03-29T16:13:00+02:00",
+        "delay_min": 29,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "RJ 86",
+        "planned": "2026-03-29T16:27:00+02:00",
+        "delay_min": 6,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 517",
+        "planned": "2026-03-29T16:29:00+02:00",
+        "delay_min": 18,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 787",
+        "planned": "2026-03-29T16:30:00+02:00",
+        "delay_min": -1,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "RJX 62",
+        "planned": "2026-03-29T16:34:00+02:00",
+        "delay_min": 3,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 707",
+        "planned": "2026-03-29T16:42:00+02:00",
+        "delay_min": 9,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1009",
+        "planned": "2026-03-29T16:45:00+02:00",
+        "delay_min": -5,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 567",
+        "planned": "2026-03-29T16:49:00+02:00",
+        "delay_min": null,
+        "cancelled": true,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ECE 193",
+        "planned": "2026-03-29T17:05:00+02:00",
+        "delay_min": 10,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 509",
+        "planned": "2026-03-29T17:09:00+02:00",
+        "delay_min": 11,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 2917",
+        "planned": "2026-03-29T17:13:00+02:00",
+        "delay_min": null,
+        "cancelled": true,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 627",
+        "planned": "2026-03-29T17:13:00+02:00",
+        "delay_min": null,
+        "cancelled": true,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 597",
+        "planned": "2026-03-29T17:16:00+02:00",
+        "delay_min": -2,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1090",
+        "planned": "2026-03-29T17:29:00+02:00",
+        "delay_min": null,
+        "cancelled": true,
+        "departs": "2026-03-29T17:46:00+02:00",
+        "dep_delay_min": 5,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 587",
+        "planned": "2026-03-29T17:29:00+02:00",
+        "delay_min": 10,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "WB 969",
+        "planned": "2026-03-29T17:36:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": "2026-03-29T17:48:00+02:00",
+        "dep_delay_min": 9,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 919",
+        "planned": "2026-03-29T17:40:00+02:00",
+        "delay_min": null,
+        "cancelled": true,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "EC 114",
+        "planned": "2026-03-29T17:41:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1509",
+        "planned": "2026-03-29T17:43:00+02:00",
+        "delay_min": 25,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1095",
+        "planned": "2026-03-29T18:10:00+02:00",
+        "delay_min": null,
+        "cancelled": true,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 2919",
+        "planned": "2026-03-29T18:10:00+02:00",
+        "delay_min": null,
+        "cancelled": true,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 629",
+        "planned": "2026-03-29T18:12:00+02:00",
+        "delay_min": 84,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "RJ 84",
+        "planned": "2026-03-29T18:27:00+02:00",
+        "delay_min": 5,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 519",
+        "planned": "2026-03-29T18:29:00+02:00",
+        "delay_min": 40,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 789",
+        "planned": "2026-03-29T18:29:00+02:00",
+        "delay_min": -1,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "RJX 64",
+        "planned": "2026-03-29T18:31:00+02:00",
+        "delay_min": 20,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1101",
+        "planned": "2026-03-29T18:43:00+02:00",
+        "delay_min": -2,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 569",
+        "planned": "2026-03-29T18:49:00+02:00",
+        "delay_min": null,
+        "cancelled": true,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ECE 195",
+        "planned": "2026-03-29T19:05:00+02:00",
+        "delay_min": 34,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 2911",
+        "planned": "2026-03-29T19:08:00+02:00",
+        "delay_min": -7,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 601",
+        "planned": "2026-03-29T19:08:00+02:00",
+        "delay_min": -7,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 599",
+        "planned": "2026-03-29T19:12:00+02:00",
+        "delay_min": 242,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 721",
+        "planned": "2026-03-29T19:12:00+02:00",
+        "delay_min": 51,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1205",
+        "planned": "2026-03-29T19:18:00+02:00",
+        "delay_min": -2,
+        "cancelled": false,
+        "departs": "2026-03-29T19:32:00+02:00",
+        "dep_delay_min": 0,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 2845",
+        "planned": "2026-03-29T19:28:00+02:00",
+        "delay_min": -12,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 589",
+        "planned": "2026-03-29T19:28:00+02:00",
+        "delay_min": -2,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1011",
+        "planned": "2026-03-29T19:41:00+02:00",
+        "delay_min": 61,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "RJ 112",
+        "planned": "2026-03-29T19:41:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1601",
+        "planned": "2026-03-29T19:43:00+02:00",
+        "delay_min": -10,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1291",
+        "planned": "2026-03-29T20:10:00+02:00",
+        "delay_min": 17,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 723",
+        "planned": "2026-03-29T20:13:00+02:00",
+        "delay_min": 12,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "WB 966",
+        "planned": "2026-03-29T20:16:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": "2026-03-29T20:25:00+02:00",
+        "dep_delay_min": 1,
+        "dep_cancelled": false
+      },
+      {
+        "train": "RJ 82",
+        "planned": "2026-03-29T20:25:00+02:00",
+        "delay_min": 5,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 881",
+        "planned": "2026-03-29T20:30:00+02:00",
+        "delay_min": -9,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "RJX 66",
+        "planned": "2026-03-29T20:31:00+02:00",
+        "delay_min": 2,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 611",
+        "planned": "2026-03-29T20:32:00+02:00",
+        "delay_min": 46,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 801",
+        "planned": "2026-03-29T20:42:00+02:00",
+        "delay_min": -1,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1103",
+        "planned": "2026-03-29T20:46:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 2865",
+        "planned": "2026-03-29T20:46:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1069",
+        "planned": "2026-03-29T20:56:00+02:00",
+        "delay_min": 30,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ECE 197",
+        "planned": "2026-03-29T21:05:00+02:00",
+        "delay_min": 32,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 2825",
+        "planned": "2026-03-29T21:10:00+02:00",
+        "delay_min": 2,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 603",
+        "planned": "2026-03-29T21:10:00+02:00",
+        "delay_min": 2,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 2913",
+        "planned": "2026-03-29T21:15:00+02:00",
+        "delay_min": 77,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 691",
+        "planned": "2026-03-29T21:15:00+02:00",
+        "delay_min": 77,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 725",
+        "planned": "2026-03-29T21:16:00+02:00",
+        "delay_min": -9,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 2849",
+        "planned": "2026-03-29T21:30:00+02:00",
+        "delay_min": 20,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 681",
+        "planned": "2026-03-29T21:30:00+02:00",
+        "delay_min": 20,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1013",
+        "planned": "2026-03-29T21:40:00+02:00",
+        "delay_min": 43,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "RJ 110",
+        "planned": "2026-03-29T21:41:00+02:00",
+        "delay_min": 4,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1603",
+        "planned": "2026-03-29T21:43:00+02:00",
+        "delay_min": 12,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "TGV 9577",
+        "planned": "2026-03-29T21:46:00+02:00",
+        "delay_min": 28,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 20",
+        "planned": "2026-03-29T22:08:00+02:00",
+        "delay_min": -3,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1097",
+        "planned": "2026-03-29T22:13:00+02:00",
+        "delay_min": -2,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "WB 968",
+        "planned": "2026-03-29T22:13:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 727",
+        "planned": "2026-03-29T22:16:00+02:00",
+        "delay_min": 34,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "EC 80",
+        "planned": "2026-03-29T22:28:00+02:00",
+        "delay_min": 4,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 613",
+        "planned": "2026-03-29T22:29:00+02:00",
+        "delay_min": 7,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 883",
+        "planned": "2026-03-29T22:30:00+02:00",
+        "delay_min": -5,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "RJX 68",
+        "planned": "2026-03-29T22:32:00+02:00",
+        "delay_min": 22,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "NJ 40420",
+        "planned": "2026-03-29T22:36:00+02:00",
+        "delay_min": 2,
+        "cancelled": false,
+        "departs": "2026-03-29T22:52:00+02:00",
+        "dep_delay_min": 16,
+        "dep_cancelled": false
+      },
+      {
+        "train": "NJ 420",
+        "planned": "2026-03-29T22:36:00+02:00",
+        "delay_min": 2,
+        "cancelled": false,
+        "departs": "2026-03-29T22:52:00+02:00",
+        "dep_delay_min": 16,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 803",
+        "planned": "2026-03-29T22:42:00+02:00",
+        "delay_min": null,
+        "cancelled": true,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1105",
+        "planned": "2026-03-29T22:45:00+02:00",
+        "delay_min": -1,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ECE 199",
+        "planned": "2026-03-29T23:05:00+02:00",
+        "delay_min": 12,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 605",
+        "planned": "2026-03-29T23:10:00+02:00",
+        "delay_min": -7,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 2929",
+        "planned": "2026-03-29T23:15:00+02:00",
+        "delay_min": 59,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 693",
+        "planned": "2026-03-29T23:15:00+02:00",
+        "delay_min": 53,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 729",
+        "planned": "2026-03-29T23:15:00+02:00",
+        "delay_min": 59,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1015",
+        "planned": "2026-03-29T23:41:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 683",
+        "planned": "2026-03-29T23:46:00+02:00",
+        "delay_min": 1,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      },
+      {
+        "train": "ICE 1605",
+        "planned": "2026-03-29T23:52:00+02:00",
+        "delay_min": 0,
+        "cancelled": false,
+        "departs": null,
+        "dep_delay_min": null,
+        "dep_cancelled": false
+      }
+    ],
+    "source": "Deutsche Bahn arrival data via piebro/deutsche-bahn-data, CC BY 4.0"
+  }
+}

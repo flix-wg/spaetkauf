@@ -9,6 +9,9 @@
 @import 'tailwindcss';
 
 @theme {
+  --color-page: #ffffff;
+  --color-overlay: rgb(0 0 0 / 0.45);
+  --color-shadow: rgb(0 0 0 / 0.12);
   --color-accent: #fd4f00;
   --color-accent-text: #c93d00;
   --color-ink: #14161a;
@@ -30,7 +33,7 @@ body,
 }
 body {
   margin: 0;
-  background: #fff;
+  background: var(--color-page);
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
@@ -58,7 +61,7 @@ summary {
 }
 .on-accent :focus-visible,
 .on-ink :focus-visible {
-  outline-color: #fff;
+  outline-color: var(--color-page);
 }
 
 /* Kurt's moving parts, in the 80 x 60 coordinates of his drawing. */
@@ -131,7 +134,7 @@ summary {
   justify-content: center;
   gap: 14px;
   padding-bottom: 8vh;
-  background: #fff;
+  background: var(--color-page);
   color: var(--color-ink);
 }
 .splash-skip #splash {
@@ -449,16 +452,16 @@ summary {
 }
 .btn-primary {
   background: var(--color-ink);
-  color: #fff;
+  color: var(--color-page);
   border: 0;
 }
 .btn-ghost {
-  background: #fff;
+  background: var(--color-page);
   color: var(--color-ink);
   border: 1.5px solid var(--color-ink);
 }
 .btn-light {
-  background: rgba(255, 255, 255, 0.6);
+  background: color-mix(in srgb, var(--color-page) 85%, transparent);
   color: var(--color-ink);
   border: 0;
 }
@@ -476,3 +479,32 @@ summary {
   font-weight: 700;
   letter-spacing: 1px;
 }
+
+:root[data-theme="dark"] {
+  --color-page: #121316;
+  --color-overlay: rgb(0 0 0 / 0.65);
+  --color-surface: #1c1e22;
+  --color-line: #34373d;
+  --color-ink: #f1f1ee;
+  --color-muted: #a3a9b2;
+  --color-accent: #fd4f00;
+  --color-accent-text: #ff8a4c;
+  --color-tint: #2a1d16;
+  --color-ok-tint: #15261b;
+  --color-ok: #6fd08a;
+  --color-shadow: rgb(0 0 0 / 0.4);
+}
+.on-accent { color: #14161a; }
+.on-accent .text-muted { color: #292521; }
+.on-accent .bg-page { color: var(--color-ink); }
+.on-accent .text-accent-text { color: #14161a; }
+.on-accent .border-ink { border-color: #14161a; }
+.on-accent .btn-primary { background: #14161a; color: #fff; }
+.on-accent .btn-ghost, .on-accent .btn-light { color: var(--color-ink); }
+.on-accent :focus-visible { outline-color: #14161a; }
+.conductor { color-scheme: light; --color-ink: #14161a; --color-page: #fff; }
+.bg-accent.text-page { color: #14161a; }
+.on-accent :is(.bg-page, .bg-surface, .bg-tint) .text-muted { color: var(--color-muted); }
+.on-accent :is(.bg-page, .bg-surface, .bg-tint) .text-accent-text { color: var(--color-accent-text); }
+.on-accent :is(.bg-page, .bg-surface, .bg-tint) .border-ink { border-color: var(--color-ink); }
+.on-accent :is(.bg-page, .bg-surface, .bg-tint) :focus-visible { outline-color: var(--color-ink); }

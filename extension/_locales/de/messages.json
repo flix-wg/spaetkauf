@@ -1,0 +1,237 @@
+{
+  "name": {
+    "message": "Kurt für bahn.de"
+  },
+  "description": {
+    "message": "Vergangene Verspätungschancen und Kurts Tipp neben deinen Suchergebnissen."
+  },
+  "showOdds": {
+    "message": "Chancen auf bahn.de anzeigen"
+  },
+  "checkingServer": {
+    "message": "Kurt-Server wird geprüft…"
+  },
+  "openSearch": {
+    "message": "Öffne eine bahn.de-Suche, um hier Chancen zu sehen."
+  },
+  "serverSettings": {
+    "message": "Server-Einstellungen"
+  },
+  "settings": {
+    "message": "Kurt-Einstellungen"
+  },
+  "serverURL": {
+    "message": "Kurt-Server-Adresse"
+  },
+  "save": {
+    "message": "Speichern"
+  },
+  "reset": {
+    "message": "Auf Standard zurücksetzen"
+  },
+  "privacy": {
+    "message": "Die Erweiterung berechnet die Chancen selbst aus Dateien deiner Kurt-Seite; die Seite sieht, welche Züge angefragt werden, und deine IP-Adresse. Transitous erhält Start, Ziel, Datum, Abfahrtszeit und IP-Adresse. Chrome speichert Einstellungen; bei aktiver Synchronisierung gleicht Google sie ab."
+  },
+  "unreachable": {
+    "message": "Nicht erreichbar: keine Chancen, bis der Server wieder da ist"
+  },
+  "originRequired": {
+    "message": "Gib eine HTTP(S)-Server-Adresse ohne Pfad, Zugangsdaten, Suchparameter oder Fragment ein."
+  },
+  "noDB": {
+    "message": "Verwende einen Kurt-Server, keinen Deutsche-Bahn-Host."
+  },
+  "accessDenied": {
+    "message": "Der Serverzugriff wurde nicht erlaubt."
+  },
+  "httpLocal": {
+    "message": "HTTP geht nur mit localhost oder 127.0.0.1. Verwende HTTPS für eigene Server."
+  },
+  "saved": {
+    "message": "Gespeichert"
+  },
+  "noDestination": {
+    "message": "Auf dieser Seite wurde kein Ziel gefunden"
+  },
+  "oddsUnavailable": {
+    "message": "Chancen gerade nicht verfügbar"
+  },
+  "posted": {
+    "message": "Schon angekündigt: zählt nicht"
+  },
+  "regional": {
+    "message": "Keine Chancen: endet mit einem Regionalzug"
+  },
+  "noHistory": {
+    "message": "Zu wenig vergangene Fahrten für Chancen"
+  },
+  "pickPrefix": {
+    "message": "Kurts Tipp: "
+  },
+  "about": {
+    "message": "Über diese Chancen"
+  },
+  "openKurt": {
+    "message": "In Kurt öffnen"
+  },
+  "lead": {
+    "message": "Die Prozentzahl ist die Chance, dass du deinen Halt 20+ Min. zu spät erreichst, anhand vergangener Fahrten."
+  },
+  "rule20": {
+    "message": "20+ Min. verspätet: Die Zugbindung ist aufgehoben, du darfst jeden Zug nehmen."
+  },
+  "rule60": {
+    "message": "60+ Min. verspätet: 25 % des Fahrpreises zurück. Ab 120 Min.: 50 %."
+  },
+  "fine": {
+    "message": "Die Anzahl zählt vergangene Fahrten an diesem Wochentag. Bei wenigen Fahrten passt Kurt die Chance an die anderen Tage dieses Zugs an. Kurts Tipp ist der wahrscheinlich verspätete Zug (ab 30 %), wenn es hier einen Ersatzzug gibt. Eine beim Kauf schon angekündigte Verspätung zählt nicht."
+  },
+  "invalidServer": {
+    "message": "Ungültige Kurt-Server-Adresse"
+  },
+  "timeout": {
+    "message": "Zeitlimit der Serveranfrage überschritten"
+  },
+  "serverUnreachable": {
+    "message": "Server nicht erreichbar"
+  },
+  "disabled": {
+    "message": "Erweiterung deaktiviert"
+  },
+  "server": {
+    "message": "Kurt-Server: $ARG1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reachable": {
+    "message": "Erreichbar · Verlauf bis $ARG1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "connections": {
+    "message": "$ARG1$ Verbindungen auf dieser Seite, $ARG2$ Fernverbindungen",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "checked": {
+    "message": "Geprüft um $ARG1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "readBy": {
+    "message": "Gelesen mit: $ARG1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "chance": {
+    "message": "$ARG1$ % Chance",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "counts": {
+    "message": "verspätet: $ARG1$ von $ARG2$ $ARG3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "lastTrain": {
+    "message": "$ARG1$, dass $ARG2$ 20+ Min. zu spät ist",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "chanceLate": {
+    "message": "$ARG1$ auf 20+ Min. Verspätung",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "estimate": {
+    "message": "Zählt einen verpassten Anschluss. Nur $ARG1$: $ARG2$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "lastOnly": {
+    "message": "Nur $ARG1$: $ARG2$. Kurt konnte deinen Anschluss nicht zuordnen. Verpasste Anschlüsse werden deshalb nicht mitgezählt.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "dayMonday": {
+    "message": "Montagen"
+  },
+  "dayTuesday": {
+    "message": "Dienstagen"
+  },
+  "dayWednesday": {
+    "message": "Mittwochen"
+  },
+  "dayThursday": {
+    "message": "Donnerstagen"
+  },
+  "dayFriday": {
+    "message": "Freitagen"
+  },
+  "daySaturday": {
+    "message": "Samstagen"
+  },
+  "daySunday": {
+    "message": "Sonntagen"
+  },
+  "pathHeuristic": {
+    "message": "eingebauter Leser"
+  },
+  "pathNone": {
+    "message": "kein Leser"
+  },
+  "dateUnknown": {
+    "message": "unbekanntes Datum"
+  }
+}

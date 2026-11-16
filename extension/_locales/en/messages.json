@@ -1,0 +1,237 @@
+{
+  "name": {
+    "message": "Kurt for bahn.de"
+  },
+  "description": {
+    "message": "Historical late-train odds and Kurt’s pick alongside your connection results."
+  },
+  "showOdds": {
+    "message": "Show odds on bahn.de"
+  },
+  "checkingServer": {
+    "message": "Checking Kurt server…"
+  },
+  "openSearch": {
+    "message": "Open a bahn.de search to see odds here."
+  },
+  "serverSettings": {
+    "message": "Server settings"
+  },
+  "settings": {
+    "message": "Kurt settings"
+  },
+  "serverURL": {
+    "message": "Kurt server URL"
+  },
+  "save": {
+    "message": "Save"
+  },
+  "reset": {
+    "message": "Reset to default"
+  },
+  "privacy": {
+    "message": "The extension computes the odds itself from files on your Kurt site; the site sees which trains are requested and your IP address. Transitous receives start, destination, date, departure time and IP address. Chrome stores settings; Google syncs them if sync is on."
+  },
+  "unreachable": {
+    "message": "Unreachable: no odds until the server is back"
+  },
+  "originRequired": {
+    "message": "Enter an http(s) server origin without a path, credentials, query or fragment."
+  },
+  "noDB": {
+    "message": "Use a Kurt server, not a Deutsche Bahn host."
+  },
+  "accessDenied": {
+    "message": "Server access was not granted."
+  },
+  "httpLocal": {
+    "message": "HTTP is supported only for localhost or 127.0.0.1. Use HTTPS for a custom server."
+  },
+  "saved": {
+    "message": "Saved"
+  },
+  "noDestination": {
+    "message": "No destination found on this page"
+  },
+  "oddsUnavailable": {
+    "message": "Odds unavailable"
+  },
+  "posted": {
+    "message": "Already posted: does not count"
+  },
+  "regional": {
+    "message": "No odds: ends on a regional train"
+  },
+  "noHistory": {
+    "message": "Not enough history for odds"
+  },
+  "pickPrefix": {
+    "message": "Kurt’s pick: "
+  },
+  "about": {
+    "message": "About these odds"
+  },
+  "openKurt": {
+    "message": "Open in Kurt"
+  },
+  "lead": {
+    "message": "The % is the chance you reach your stop 20+ min late, based on past runs."
+  },
+  "rule20": {
+    "message": "20+ min late: your saver ticket is no longer tied to this train. Take any train."
+  },
+  "rule60": {
+    "message": "60+ min late: 25 % of the fare back. 120+ min: 50 %."
+  },
+  "fine": {
+    "message": "The count is the raw runs on that weekday. With few runs, Kurt pulls the % toward this train’s other days, so the two can differ. Kurt’s pick is the likeliest late train (30 % or more) with another train on this page to switch to. A delay already posted when you buy does not count."
+  },
+  "invalidServer": {
+    "message": "Invalid Kurt server URL"
+  },
+  "timeout": {
+    "message": "Server request timed out"
+  },
+  "serverUnreachable": {
+    "message": "Server unreachable"
+  },
+  "disabled": {
+    "message": "Extension disabled"
+  },
+  "server": {
+    "message": "Kurt server: $ARG1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reachable": {
+    "message": "Reachable · history up to $ARG1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "connections": {
+    "message": "$ARG1$ connections on this page, $ARG2$ long-distance",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "checked": {
+    "message": "Checked at $ARG1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "readBy": {
+    "message": "Read by: $ARG1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "chance": {
+    "message": "$ARG1$ % chance",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "counts": {
+    "message": "late $ARG1$ of $ARG2$ $ARG3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "lastTrain": {
+    "message": "$ARG1$ $ARG2$ is 20+ min late",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "chanceLate": {
+    "message": "$ARG1$ of 20+ min late",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "estimate": {
+    "message": "Counts a missed change. $ARG1$ alone: $ARG2$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "lastOnly": {
+    "message": "$ARG1$ alone: $ARG2$. Kurt could not match your change, so a missed change is not counted.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "dayMonday": {
+    "message": "Mondays"
+  },
+  "dayTuesday": {
+    "message": "Tuesdays"
+  },
+  "dayWednesday": {
+    "message": "Wednesdays"
+  },
+  "dayThursday": {
+    "message": "Thursdays"
+  },
+  "dayFriday": {
+    "message": "Fridays"
+  },
+  "daySaturday": {
+    "message": "Saturdays"
+  },
+  "daySunday": {
+    "message": "Sundays"
+  },
+  "pathHeuristic": {
+    "message": "built-in reader"
+  },
+  "pathNone": {
+    "message": "no reader"
+  },
+  "dateUnknown": {
+    "message": "an unknown date"
+  }
+}

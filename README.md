@@ -1,50 +1,37 @@
 # Kurt
 
-Buy the cheap ticket for the train that is usually late. Ride the better one.
+Buy the cheap ticket for the train that is usually late, then ride a better one. Try it at https://kurt-34y.pages.dev.
 
-A Deutsche Bahn saver ticket (Sparpreis) is bound to one train. Once that train is expected to reach your destination 20+ minutes late, the binding is lifted and you may take another train. At 60 minutes late you get 25 % of the fare back, at 120 minutes 50 %. Kurt ranks long-distance connections by how often that has happened before, suggests a backup train, watches your trip live and helps you fill in the claim.
+A Deutsche Bahn saver ticket (Sparpreis) is only valid on the train you booked. Once that train is expected to reach your destination 20 or more minutes late, the binding is lifted and you can take another train; from 60 minutes late you also get part of the fare back. Kurt ranks long-distance connections by how often they arrived 20+ minutes late in the past and suggests a backup.
 
-Live demo: https://65-108-33-75.sslip.io. It runs for 7 days after launch or until its server credits run out, whichever comes first. After that, run it yourself (below).
+Kurt started at Junction 2026. It is not affiliated with Deutsche Bahn and never calls bahn.de or any DB service; you book and claim there yourself. The odds describe past runs, not a promise.
 
-Built at Junction 2026. Not affiliated with Deutsche Bahn. Kurt never calls bahn.de or any DB service: you buy tickets and claim refunds there yourself. Kurt's odds come from past data and are no promise that a train will be late.
+## Set it up
 
-## What's in the repo
-
-- `backend/`: FastAPI app, SQLite for saved trips, odds from `data/odds.sqlite`.
-- `frontend/`: React PWA (installable, Web Push alerts).
-- `extension/`: optional Chrome extension (load it unpacked) that shows Kurt's odds on a bahn.de results page you have open. It reads that page, asks your Kurt server for the odds and adds badges; it never clicks, fills or loads anything on bahn.de. See [docs/extension.md](docs/extension.md).
-- `deploy/`: Dockerfile, Docker Compose with Caddy (automatic HTTPS).
-- `scripts/`: rebuild the odds table and the history from the source data.
-
-## Run it locally
-
-You need Python 3.12 with [uv](https://docs.astral.sh/uv/) and Node 22+.
+To run your own copy you need Python 3.12 with [uv](https://docs.astral.sh/uv/) and Node 22 or newer:
 
 ```bash
-git clone https://github.com/flix-wg/spaetkauf.git && cd spaetkauf
-cd backend && uv sync --frozen && uv run uvicorn app.main:app --port 8710
-```
-
-In a second terminal:
-
-```bash
+uv run --project backend python scripts/export_static.py --odds data/odds.sqlite --out frontend/public/data
+mkdir -p frontend/public/data/history
+cp data/static/history/*.parquet data/static/history/meta.json frontend/public/data/history/
+bash scripts/fetch_duckdb_ext.sh
 cd frontend && npm ci && npm run dev
 ```
 
-Open http://localhost:5710. The dev server sends `/api` to port 8710. No API keys are needed for search, odds, trips and live tracking. To try the UI without a backend, run `VITE_MOCK=1 npm run dev` (example data).
+Open http://localhost:5710. No backend or API keys are needed: the browser computes odds, queries history with DuckDB-WASM, and requests routes from Transitous. Booked trips stay in this browser. Set operator details in `frontend/.env.local` using `frontend/.env.example`.
 
-Tests: `cd backend && uv run pytest`.
+Checks: in `frontend/`, run `npm test`, `npm run typecheck` and `npm run build`; in `extension/`, run `npm test`. The retained backend has its own checks: `cd backend && uv run ruff check . && uv run pytest -q`. See [self-hosting](docs/self-hosting.md) for the static build and Pages deployment.
 
-## Self-host
+## Browser extension
 
-One small VM with Docker is enough. See [docs/self-hosting.md](docs/self-hosting.md).
+The extension shows Kurt's odds on a bahn.de results page. Until the store versions are out, install it by hand: clone this repo, run `npm ci && npm run build` in `extension/`, open `chrome://extensions`, turn on Developer mode, click Load unpacked and pick the `extension/` folder. It works out the odds itself from the Kurt site's static files; set that site in the extension's options.
 
-## Data and credits
+More in `docs/`: [how the odds are computed](docs/odds.md), [run history](docs/history.md), [the extension](docs/extension.md) and [self-hosting](docs/self-hosting.md).
 
-- Delay history: Deutsche Bahn (DB InfraGO Timetables API), collected by [piebro/deutsche-bahn-data](https://github.com/piebro/deutsche-bahn-data), licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). `data/odds.sqlite` and `data/backtest.json` are derived from it: Kurt aggregated arrival delays from December 2025 to October 2026 into late rates per train and route. These derived files are also under CC BY 4.0.
-- Routes and live delays: [Transitous](https://transitous.org) ([data sources](https://transitous.org/sources/)), map data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors. Transitous is free for open-source, non-commercial use; please keep your instance light on its API.
-- Optional, each with your own API key: news signals from [Exa](https://exa.ai), strike monitors from [Context.dev](https://context.dev), and an [Anthropic](https://www.anthropic.com) model that helps the extension when bahn.de changes its page layout.
+## Data and license
 
-## License
+Delay history: Deutsche Bahn (DB InfraGO Timetables API), collected by [piebro/deutsche-bahn-data](https://github.com/piebro/deutsche-bahn-data) and licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). `data/odds.sqlite` and `data/backtest.json` are derived from it (arrivals from December 2025 to October 2026, aggregated into late rates per train and stop) and are also CC BY 4.0.
 
-Code: [MIT](LICENSE). Data files in `data/`: CC BY 4.0, see above.
+Routes and live delays: [Transitous](https://transitous.org) ([data sources](https://transitous.org/sources/)), map data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors.
+
+Code: [MIT](LICENSE).

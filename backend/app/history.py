@@ -14,6 +14,7 @@ import duckdb
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from .config import REPO_ROOT
+from .i18n import lang_from, text
 from .matching import _pick_station, parse_train, type_family
 from .odds import BERLIN, WEEKDAYS
 
@@ -105,6 +106,7 @@ def _summary(rows: list[tuple]) -> dict:
 
 @router.get("")
 def runs(
+    request: Request,
     train: str,
     stop: str,
     weekday: int | None = Query(None, ge=0, le=6),
@@ -135,12 +137,12 @@ def runs(
             for day, planned, delay, cancelled in rows
         ],
         "summary": _summary([(delay, cancelled) for _, _, delay, cancelled in rows]),
-        "source": SOURCE,
+        "source": text(SOURCE, lang_from(request)),
     }  # fmt: skip
 
 
 @router.get("/train")
-def train_stops(train: str, weekday: int | None = Query(None, ge=0, le=6), cur=Cursor):
+def train_stops(request: Request, train: str, weekday: int | None = Query(None, ge=0, le=6), cur=Cursor):
     """The stops of one train with their run counts and 20+ min late share, for a lookup screen."""
     train_id, kind, number = _find_train(cur, train)
     extra, args = _weekday("e.day", weekday)
@@ -157,12 +159,12 @@ def train_stops(train: str, weekday: int | None = Query(None, ge=0, le=6), cur=C
             {"stop": name, "key": key, "n": n, "late20": late, "late20_share": round(late / n, 4)}
             for key, name, n, late in rows
         ],
-        "source": SOURCE,
+        "source": text(SOURCE, lang_from(request)),
     }  # fmt: skip
 
 
 @router.get("/stop")
-def stop_day(stop: str, day: Annotated[date, Query(alias="date")], cur=Cursor):
+def stop_day(request: Request, stop: str, day: Annotated[date, Query(alias="date")], cur=Cursor):
     """A past arrivals board: all long-distance arrivals at a stop on one date."""
     key, name = _find_stop(stop, _all_stops(cur), "in the history")
     first, last = cur.execute(
@@ -187,12 +189,13 @@ def stop_day(stop: str, day: Annotated[date, Query(alias="date")], cur=Cursor):
              "departs": _iso(dep), "dep_delay_min": dep_delay, "dep_cancelled": dep_cancelled}
             for kind, number, planned, delay, cancelled, dep, dep_delay, dep_cancelled in rows[:MAX_STOP_ROWS]
         ],
-        "source": SOURCE,
+        "source": text(SOURCE, lang_from(request)),
     }  # fmt: skip
 
 
 @router.get("/route")
 def route(
+    request: Request,
     from_: str = Query(alias="from"),
     to: str = Query(),
     weekday: int | None = Query(None, ge=0, le=6),
@@ -237,5 +240,5 @@ def route(
         "to": b_name,
         "weekday": None if weekday is None else WEEKDAYS[weekday],
         "trains": trains,
-        "source": SOURCE,
+        "source": text(SOURCE, lang_from(request)),
     }  # fmt: skip

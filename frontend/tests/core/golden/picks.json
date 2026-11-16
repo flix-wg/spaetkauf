@@ -1,0 +1,1585 @@
+{
+  "now": "2026-11-14T00:00:00+01:00",
+  "plan": {
+    "from": {
+      "name": "Hamburg Hbf",
+      "stopId": "de-DELFI_de:02000:10950",
+      "importance": 0.0143689950928092,
+      "lat": 53.552734,
+      "lon": 10.006909,
+      "level": -1.0,
+      "tz": "Europe/Berlin",
+      "vertexType": "TRANSIT",
+      "modes": [
+        "HIGHSPEED_RAIL",
+        "LONG_DISTANCE",
+        "COACH",
+        "NIGHT_RAIL",
+        "REGIONAL_RAIL",
+        "SUBURBAN",
+        "SUBWAY",
+        "BUS"
+      ]
+    },
+    "to": {
+      "name": "München Hbf",
+      "stopId": "de-DELFI_de:09162:100",
+      "importance": 0.013567798770964146,
+      "lat": 48.14029,
+      "lon": 11.559602000000002,
+      "level": 0.0,
+      "tz": "Europe/Berlin",
+      "vertexType": "TRANSIT",
+      "modes": [
+        "HIGHSPEED_RAIL",
+        "LONG_DISTANCE",
+        "NIGHT_RAIL",
+        "REGIONAL_RAIL",
+        "SUBURBAN",
+        "SUBWAY",
+        "TRAM",
+        "BUS"
+      ]
+    },
+    "direct": [],
+    "itineraries": [
+      {
+        "startTime": "2026-11-14T03:30:00Z",
+        "legs": [
+          {
+            "tripId": "golden-0",
+            "routeShortName": "ICE 785",
+            "scheduledStartTime": "2026-11-14T03:30:00Z",
+            "scheduledEndTime": "2026-11-14T10:21:00Z",
+            "from": {
+              "name": "Hamburg Hbf"
+            },
+            "to": {
+              "name": "München Hbf",
+              "arrival": "2026-11-14T10:21:00Z",
+              "scheduledArrival": "2026-11-14T10:21:00Z"
+            },
+            "cancelled": false,
+            "realTime": false,
+            "intermediateStops": [
+              {
+                "name": "Büchen"
+              },
+              {
+                "name": "Ludwigslust Bahnhof"
+              },
+              {
+                "name": "Wittenberge, Bahnhof"
+              },
+              {
+                "name": "S Spandau Bhf (Berlin)"
+              },
+              {
+                "name": "S+U Berlin Hauptbahnhof"
+              },
+              {
+                "name": "Halle (Saale) Hbf"
+              },
+              {
+                "name": "Erfurt Hbf"
+              },
+              {
+                "name": "Bamberg"
+              },
+              {
+                "name": "Nürnberg Hbf"
+              },
+              {
+                "name": "Donauwörth"
+              },
+              {
+                "name": "Augsburg Hbf"
+              },
+              {
+                "name": "Pasing"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "startTime": "2026-11-14T04:15:00Z",
+        "legs": [
+          {
+            "tripId": "golden-1",
+            "routeShortName": "ICE 599",
+            "scheduledStartTime": "2026-11-14T04:15:00Z",
+            "scheduledEndTime": "2026-11-14T10:15:00Z",
+            "from": {
+              "name": "Hamburg Hbf"
+            },
+            "to": {
+              "name": "München Hbf",
+              "arrival": "2026-11-14T10:15:00Z",
+              "scheduledArrival": "2026-11-14T10:15:00Z"
+            },
+            "cancelled": false,
+            "realTime": false,
+            "intermediateStops": [
+              {
+                "name": "Büchen"
+              },
+              {
+                "name": "Ludwigslust Bahnhof"
+              },
+              {
+                "name": "Wittenberge, Bahnhof"
+              },
+              {
+                "name": "S Spandau Bhf (Berlin)"
+              },
+              {
+                "name": "S+U Berlin Hauptbahnhof"
+              },
+              {
+                "name": "Halle (Saale) Hbf"
+              },
+              {
+                "name": "Erfurt Hbf"
+              },
+              {
+                "name": "Bamberg"
+              },
+              {
+                "name": "Nürnberg Hbf"
+              },
+              {
+                "name": "Donauwörth"
+              },
+              {
+                "name": "Augsburg Hbf"
+              },
+              {
+                "name": "Pasing"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "startTime": "2026-11-14T04:30:00Z",
+        "legs": [
+          {
+            "tripId": "golden-2",
+            "routeShortName": "ICE 703",
+            "scheduledStartTime": "2026-11-14T04:30:00Z",
+            "scheduledEndTime": "2026-11-14T11:00:00Z",
+            "from": {
+              "name": "Hamburg Hbf"
+            },
+            "to": {
+              "name": "München Hbf",
+              "arrival": "2026-11-14T11:25:00Z",
+              "scheduledArrival": "2026-11-14T11:00:00Z"
+            },
+            "cancelled": false,
+            "realTime": true,
+            "intermediateStops": [
+              {
+                "name": "Büchen"
+              },
+              {
+                "name": "Ludwigslust Bahnhof"
+              },
+              {
+                "name": "Wittenberge, Bahnhof"
+              },
+              {
+                "name": "S Spandau Bhf (Berlin)"
+              },
+              {
+                "name": "S+U Berlin Hauptbahnhof"
+              },
+              {
+                "name": "Halle (Saale) Hbf"
+              },
+              {
+                "name": "Erfurt Hbf"
+              },
+              {
+                "name": "Bamberg"
+              },
+              {
+                "name": "Nürnberg Hbf"
+              },
+              {
+                "name": "Donauwörth"
+              },
+              {
+                "name": "Augsburg Hbf"
+              },
+              {
+                "name": "Pasing"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "startTime": "2026-11-14T04:45:00Z",
+        "legs": [
+          {
+            "tripId": "golden-3",
+            "routeShortName": "ICE 703",
+            "scheduledStartTime": "2026-11-14T04:45:00Z",
+            "scheduledEndTime": "2026-11-14T11:15:00Z",
+            "from": {
+              "name": "Hamburg Hbf"
+            },
+            "to": {
+              "name": "München Hbf",
+              "arrival": "2026-11-14T11:15:00Z",
+              "scheduledArrival": "2026-11-14T11:15:00Z"
+            },
+            "cancelled": true,
+            "realTime": false,
+            "intermediateStops": [
+              {
+                "name": "Büchen"
+              },
+              {
+                "name": "Ludwigslust Bahnhof"
+              },
+              {
+                "name": "Wittenberge, Bahnhof"
+              },
+              {
+                "name": "S Spandau Bhf (Berlin)"
+              },
+              {
+                "name": "S+U Berlin Hauptbahnhof"
+              },
+              {
+                "name": "Halle (Saale) Hbf"
+              },
+              {
+                "name": "Erfurt Hbf"
+              },
+              {
+                "name": "Bamberg"
+              },
+              {
+                "name": "Nürnberg Hbf"
+              },
+              {
+                "name": "Donauwörth"
+              },
+              {
+                "name": "Augsburg Hbf"
+              },
+              {
+                "name": "Pasing"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "startTime": "2026-11-14T05:00:00Z",
+        "legs": [
+          {
+            "tripId": "golden-4",
+            "routeShortName": "TGV 123",
+            "scheduledStartTime": "2026-11-14T05:00:00Z",
+            "scheduledEndTime": "2026-11-14T10:00:00Z",
+            "from": {
+              "name": "Hamburg Hbf"
+            },
+            "to": {
+              "name": "München Hbf",
+              "arrival": "2026-11-14T10:00:00Z",
+              "scheduledArrival": "2026-11-14T10:00:00Z"
+            },
+            "cancelled": false,
+            "realTime": false,
+            "intermediateStops": [
+              {
+                "name": "Büchen"
+              },
+              {
+                "name": "Ludwigslust Bahnhof"
+              },
+              {
+                "name": "Wittenberge, Bahnhof"
+              },
+              {
+                "name": "S Spandau Bhf (Berlin)"
+              },
+              {
+                "name": "S+U Berlin Hauptbahnhof"
+              },
+              {
+                "name": "Halle (Saale) Hbf"
+              },
+              {
+                "name": "Erfurt Hbf"
+              },
+              {
+                "name": "Bamberg"
+              },
+              {
+                "name": "Nürnberg Hbf"
+              },
+              {
+                "name": "Donauwörth"
+              },
+              {
+                "name": "Augsburg Hbf"
+              },
+              {
+                "name": "Pasing"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "startTime": "2026-11-14T05:15:00Z",
+        "legs": [
+          {
+            "tripId": "golden-5",
+            "routeShortName": "FLX 123",
+            "scheduledStartTime": "2026-11-14T05:15:00Z",
+            "scheduledEndTime": "2026-11-14T11:30:00Z",
+            "from": {
+              "name": "Hamburg Hbf"
+            },
+            "to": {
+              "name": "München Hbf",
+              "arrival": "2026-11-14T11:30:00Z",
+              "scheduledArrival": "2026-11-14T11:30:00Z"
+            },
+            "cancelled": false,
+            "realTime": false,
+            "intermediateStops": [
+              {
+                "name": "Büchen"
+              },
+              {
+                "name": "Ludwigslust Bahnhof"
+              },
+              {
+                "name": "Wittenberge, Bahnhof"
+              },
+              {
+                "name": "S Spandau Bhf (Berlin)"
+              },
+              {
+                "name": "S+U Berlin Hauptbahnhof"
+              },
+              {
+                "name": "Halle (Saale) Hbf"
+              },
+              {
+                "name": "Erfurt Hbf"
+              },
+              {
+                "name": "Bamberg"
+              },
+              {
+                "name": "Nürnberg Hbf"
+              },
+              {
+                "name": "Donauwörth"
+              },
+              {
+                "name": "Augsburg Hbf"
+              },
+              {
+                "name": "Pasing"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "startTime": "2026-11-14T05:30:00Z",
+        "legs": [
+          {
+            "tripId": "golden-6",
+            "routeShortName": "ICE 785",
+            "scheduledStartTime": "2026-11-14T05:30:00Z",
+            "scheduledEndTime": "2026-11-14T12:45:00Z",
+            "from": {
+              "name": "Hamburg Hbf"
+            },
+            "to": {
+              "name": "München Hbf",
+              "arrival": "2026-11-14T12:45:00Z",
+              "scheduledArrival": "2026-11-14T12:45:00Z"
+            },
+            "cancelled": false,
+            "realTime": false,
+            "intermediateStops": [
+              {
+                "name": "Büchen"
+              },
+              {
+                "name": "Ludwigslust Bahnhof"
+              },
+              {
+                "name": "Wittenberge, Bahnhof"
+              },
+              {
+                "name": "S Spandau Bhf (Berlin)"
+              },
+              {
+                "name": "S+U Berlin Hauptbahnhof"
+              },
+              {
+                "name": "Halle (Saale) Hbf"
+              },
+              {
+                "name": "Erfurt Hbf"
+              },
+              {
+                "name": "Bamberg"
+              },
+              {
+                "name": "Nürnberg Hbf"
+              },
+              {
+                "name": "Donauwörth"
+              },
+              {
+                "name": "Augsburg Hbf"
+              },
+              {
+                "name": "Pasing"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "startTime": "2026-11-14T05:45:00Z",
+        "legs": [
+          {
+            "tripId": "golden-7",
+            "routeShortName": "ICE 703",
+            "scheduledStartTime": "2026-11-14T05:45:00Z",
+            "scheduledEndTime": "2026-11-14T12:55:00Z",
+            "from": {
+              "name": "Hamburg Hbf"
+            },
+            "to": {
+              "name": "München Hbf",
+              "arrival": "2026-11-14T12:55:00Z",
+              "scheduledArrival": "2026-11-14T12:55:00Z"
+            },
+            "cancelled": false,
+            "realTime": false,
+            "intermediateStops": [
+              {
+                "name": "Büchen"
+              },
+              {
+                "name": "Ludwigslust Bahnhof"
+              },
+              {
+                "name": "Wittenberge, Bahnhof"
+              },
+              {
+                "name": "S Spandau Bhf (Berlin)"
+              },
+              {
+                "name": "S+U Berlin Hauptbahnhof"
+              },
+              {
+                "name": "Halle (Saale) Hbf"
+              },
+              {
+                "name": "Erfurt Hbf"
+              },
+              {
+                "name": "Bamberg"
+              },
+              {
+                "name": "Nürnberg Hbf"
+              },
+              {
+                "name": "Donauwörth"
+              },
+              {
+                "name": "Augsburg Hbf"
+              },
+              {
+                "name": "Pasing"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "previousPageCursor": "EARLIER|1794608160",
+    "nextPageCursor": "LATER|1794631920"
+  },
+  "picks": [
+    {
+      "query": {
+        "from": "de_test_ham",
+        "to": "de_test_muc",
+        "date": "2026-11-14",
+        "time": "05:00",
+        "mode": "depart",
+        "before": 60
+      },
+      "expected": {
+        "from": "Hamburg Hbf",
+        "to": "München Hbf",
+        "date": "2026-11-14",
+        "tz": "Europe/Berlin",
+        "picks": [
+          {
+            "id": "7e0298706748",
+            "dep": "2026-11-14T04:15:00Z",
+            "arr": "2026-11-14T10:15:00Z",
+            "duration_min": 360,
+            "changes": 0,
+            "legs": [
+              {
+                "train": "ICE 599",
+                "from": "Hamburg Hbf",
+                "to": "München Hbf",
+                "dep": "2026-11-14T04:15:00Z",
+                "arr": "2026-11-14T10:15:00Z",
+                "trip_id": "golden-1",
+                "via": [
+                  "Büchen",
+                  "Ludwigslust Bahnhof",
+                  "Wittenberge, Bahnhof",
+                  "S Spandau Bhf (Berlin)",
+                  "S+U Berlin Hauptbahnhof",
+                  "Halle (Saale) Hbf",
+                  "Erfurt Hbf",
+                  "Bamberg",
+                  "Nürnberg Hbf",
+                  "Donauwörth",
+                  "Augsburg Hbf",
+                  "Pasing"
+                ]
+              }
+            ],
+            "odds": {
+              "p20": 0.5971,
+              "p60": 0.2453,
+              "late": 27,
+              "n": 44,
+              "weekday": "Saturday",
+              "basis": "history"
+            },
+            "already_posted": false,
+            "cancelled": false,
+            "is_kurts_pick": true,
+            "ride_instead": {
+              "dep": "2026-11-14T03:30:00Z",
+              "arr": "2026-11-14T10:21:00Z",
+              "changes": 0,
+              "trains": [
+                "ICE 785"
+              ],
+              "delta_arr_min": 6
+            },
+            "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T05:15:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false"
+          },
+          {
+            "id": "971448b2c0a4",
+            "dep": "2026-11-14T04:30:00Z",
+            "arr": "2026-11-14T11:00:00Z",
+            "duration_min": 390,
+            "changes": 0,
+            "legs": [
+              {
+                "train": "ICE 703",
+                "from": "Hamburg Hbf",
+                "to": "München Hbf",
+                "dep": "2026-11-14T04:30:00Z",
+                "arr": "2026-11-14T11:00:00Z",
+                "trip_id": "golden-2",
+                "via": [
+                  "Büchen",
+                  "Ludwigslust Bahnhof",
+                  "Wittenberge, Bahnhof",
+                  "S Spandau Bhf (Berlin)",
+                  "S+U Berlin Hauptbahnhof",
+                  "Halle (Saale) Hbf",
+                  "Erfurt Hbf",
+                  "Bamberg",
+                  "Nürnberg Hbf",
+                  "Donauwörth",
+                  "Augsburg Hbf",
+                  "Pasing"
+                ]
+              }
+            ],
+            "odds": {
+              "p20": 0.2651,
+              "p60": 0.0648,
+              "late": 8,
+              "n": 34,
+              "weekday": "Saturday",
+              "basis": "history"
+            },
+            "already_posted": true,
+            "cancelled": false,
+            "is_kurts_pick": false,
+            "ride_instead": {
+              "dep": "2026-11-14T04:15:00Z",
+              "arr": "2026-11-14T10:15:00Z",
+              "changes": 0,
+              "trains": [
+                "ICE 599"
+              ],
+              "delta_arr_min": -45
+            },
+            "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T05:30:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false"
+          },
+          {
+            "id": "a7a3e0367965",
+            "dep": "2026-11-14T04:45:00Z",
+            "arr": "2026-11-14T11:15:00Z",
+            "duration_min": 390,
+            "changes": 0,
+            "legs": [
+              {
+                "train": "ICE 703",
+                "from": "Hamburg Hbf",
+                "to": "München Hbf",
+                "dep": "2026-11-14T04:45:00Z",
+                "arr": "2026-11-14T11:15:00Z",
+                "trip_id": "golden-3",
+                "via": [
+                  "Büchen",
+                  "Ludwigslust Bahnhof",
+                  "Wittenberge, Bahnhof",
+                  "S Spandau Bhf (Berlin)",
+                  "S+U Berlin Hauptbahnhof",
+                  "Halle (Saale) Hbf",
+                  "Erfurt Hbf",
+                  "Bamberg",
+                  "Nürnberg Hbf",
+                  "Donauwörth",
+                  "Augsburg Hbf",
+                  "Pasing"
+                ]
+              }
+            ],
+            "odds": {
+              "p20": 0.2651,
+              "p60": 0.0648,
+              "late": 8,
+              "n": 34,
+              "weekday": "Saturday",
+              "basis": "history"
+            },
+            "already_posted": true,
+            "cancelled": true,
+            "is_kurts_pick": false,
+            "ride_instead": {
+              "dep": "2026-11-14T05:15:00Z",
+              "arr": "2026-11-14T11:30:00Z",
+              "changes": 0,
+              "trains": [
+                "FLX 123"
+              ],
+              "delta_arr_min": 15
+            },
+            "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T05:45:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false"
+          },
+          {
+            "id": "7cbd2a6b1aea",
+            "dep": "2026-11-14T05:45:00Z",
+            "arr": "2026-11-14T12:55:00Z",
+            "duration_min": 430,
+            "changes": 0,
+            "legs": [
+              {
+                "train": "ICE 703",
+                "from": "Hamburg Hbf",
+                "to": "München Hbf",
+                "dep": "2026-11-14T05:45:00Z",
+                "arr": "2026-11-14T12:55:00Z",
+                "trip_id": "golden-7",
+                "via": [
+                  "Büchen",
+                  "Ludwigslust Bahnhof",
+                  "Wittenberge, Bahnhof",
+                  "S Spandau Bhf (Berlin)",
+                  "S+U Berlin Hauptbahnhof",
+                  "Halle (Saale) Hbf",
+                  "Erfurt Hbf",
+                  "Bamberg",
+                  "Nürnberg Hbf",
+                  "Donauwörth",
+                  "Augsburg Hbf",
+                  "Pasing"
+                ]
+              }
+            ],
+            "odds": {
+              "p20": 0.2651,
+              "p60": 0.0648,
+              "late": 8,
+              "n": 34,
+              "weekday": "Saturday",
+              "basis": "history"
+            },
+            "already_posted": false,
+            "cancelled": false,
+            "is_kurts_pick": false,
+            "ride_instead": {
+              "dep": "2026-11-14T05:15:00Z",
+              "arr": "2026-11-14T11:30:00Z",
+              "changes": 0,
+              "trains": [
+                "FLX 123"
+              ],
+              "delta_arr_min": -85
+            },
+            "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T06:45:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false"
+          },
+          {
+            "id": "0b7843733549",
+            "dep": "2026-11-14T05:30:00Z",
+            "arr": "2026-11-14T12:45:00Z",
+            "duration_min": 435,
+            "changes": 0,
+            "legs": [
+              {
+                "train": "ICE 785",
+                "from": "Hamburg Hbf",
+                "to": "München Hbf",
+                "dep": "2026-11-14T05:30:00Z",
+                "arr": "2026-11-14T12:45:00Z",
+                "trip_id": "golden-6",
+                "via": [
+                  "Büchen",
+                  "Ludwigslust Bahnhof",
+                  "Wittenberge, Bahnhof",
+                  "S Spandau Bhf (Berlin)",
+                  "S+U Berlin Hauptbahnhof",
+                  "Halle (Saale) Hbf",
+                  "Erfurt Hbf",
+                  "Bamberg",
+                  "Nürnberg Hbf",
+                  "Donauwörth",
+                  "Augsburg Hbf",
+                  "Pasing"
+                ]
+              }
+            ],
+            "odds": {
+              "p20": 0.2223,
+              "p60": 0.0693,
+              "late": 10,
+              "n": 45,
+              "weekday": "Saturday",
+              "basis": "history"
+            },
+            "already_posted": false,
+            "cancelled": false,
+            "is_kurts_pick": false,
+            "ride_instead": {
+              "dep": "2026-11-14T05:45:00Z",
+              "arr": "2026-11-14T12:55:00Z",
+              "changes": 0,
+              "trains": [
+                "ICE 703"
+              ],
+              "delta_arr_min": 10
+            },
+            "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T06:30:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false"
+          },
+          {
+            "id": "4a6752586ac1",
+            "dep": "2026-11-14T05:00:00Z",
+            "arr": "2026-11-14T10:00:00Z",
+            "duration_min": 300,
+            "changes": 0,
+            "legs": [
+              {
+                "train": "TGV 123",
+                "from": "Hamburg Hbf",
+                "to": "München Hbf",
+                "dep": "2026-11-14T05:00:00Z",
+                "arr": "2026-11-14T10:00:00Z",
+                "trip_id": "golden-4",
+                "via": [
+                  "Büchen",
+                  "Ludwigslust Bahnhof",
+                  "Wittenberge, Bahnhof",
+                  "S Spandau Bhf (Berlin)",
+                  "S+U Berlin Hauptbahnhof",
+                  "Halle (Saale) Hbf",
+                  "Erfurt Hbf",
+                  "Bamberg",
+                  "Nürnberg Hbf",
+                  "Donauwörth",
+                  "Augsburg Hbf",
+                  "Pasing"
+                ]
+              }
+            ],
+            "odds": {
+              "p20": null,
+              "p60": null,
+              "late": null,
+              "n": null,
+              "weekday": "Saturday",
+              "basis": "none"
+            },
+            "already_posted": false,
+            "cancelled": false,
+            "is_kurts_pick": false,
+            "ride_instead": {
+              "dep": "2026-11-14T04:15:00Z",
+              "arr": "2026-11-14T10:15:00Z",
+              "changes": 0,
+              "trains": [
+                "ICE 599"
+              ],
+              "delta_arr_min": 15
+            },
+            "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T06:00:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false"
+          },
+          {
+            "id": "8e00cb9ed96d",
+            "dep": "2026-11-14T05:15:00Z",
+            "arr": "2026-11-14T11:30:00Z",
+            "duration_min": 375,
+            "changes": 0,
+            "legs": [
+              {
+                "train": "FLX 123",
+                "from": "Hamburg Hbf",
+                "to": "München Hbf",
+                "dep": "2026-11-14T05:15:00Z",
+                "arr": "2026-11-14T11:30:00Z",
+                "trip_id": "golden-5",
+                "via": [
+                  "Büchen",
+                  "Ludwigslust Bahnhof",
+                  "Wittenberge, Bahnhof",
+                  "S Spandau Bhf (Berlin)",
+                  "S+U Berlin Hauptbahnhof",
+                  "Halle (Saale) Hbf",
+                  "Erfurt Hbf",
+                  "Bamberg",
+                  "Nürnberg Hbf",
+                  "Donauwörth",
+                  "Augsburg Hbf",
+                  "Pasing"
+                ]
+              }
+            ],
+            "odds": {
+              "p20": null,
+              "p60": null,
+              "late": null,
+              "n": null,
+              "weekday": "Saturday",
+              "basis": "none"
+            },
+            "already_posted": false,
+            "cancelled": false,
+            "is_kurts_pick": false,
+            "ride_instead": {
+              "dep": "2026-11-14T04:15:00Z",
+              "arr": "2026-11-14T10:15:00Z",
+              "changes": 0,
+              "trains": [
+                "ICE 599"
+              ],
+              "delta_arr_min": -75
+            },
+            "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T06:15:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false"
+          }
+        ],
+        "note": "2 of 7 connections have too little history for odds.",
+        "kurt_call": "pick",
+        "strike": null
+      }
+    },
+    {
+      "query": {
+        "from": "de_test_ham",
+        "to": "de_test_muc",
+        "date": "2026-11-14",
+        "time": "14:00",
+        "mode": "arrive",
+        "before": 60
+      },
+      "expected": {
+        "from": "Hamburg Hbf",
+        "to": "München Hbf",
+        "date": "2026-11-14",
+        "tz": "Europe/Berlin",
+        "picks": [
+          {
+            "id": "7e0298706748",
+            "dep": "2026-11-14T04:15:00Z",
+            "arr": "2026-11-14T10:15:00Z",
+            "duration_min": 360,
+            "changes": 0,
+            "legs": [
+              {
+                "train": "ICE 599",
+                "from": "Hamburg Hbf",
+                "to": "München Hbf",
+                "dep": "2026-11-14T04:15:00Z",
+                "arr": "2026-11-14T10:15:00Z",
+                "trip_id": "golden-1",
+                "via": [
+                  "Büchen",
+                  "Ludwigslust Bahnhof",
+                  "Wittenberge, Bahnhof",
+                  "S Spandau Bhf (Berlin)",
+                  "S+U Berlin Hauptbahnhof",
+                  "Halle (Saale) Hbf",
+                  "Erfurt Hbf",
+                  "Bamberg",
+                  "Nürnberg Hbf",
+                  "Donauwörth",
+                  "Augsburg Hbf",
+                  "Pasing"
+                ]
+              }
+            ],
+            "odds": {
+              "p20": 0.5971,
+              "p60": 0.2453,
+              "late": 27,
+              "n": 44,
+              "weekday": "Saturday",
+              "basis": "history"
+            },
+            "already_posted": false,
+            "cancelled": false,
+            "is_kurts_pick": true,
+            "ride_instead": null,
+            "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T05:15:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false",
+            "spare_min": 165,
+            "p_miss": 0.0909,
+            "late_ok": {
+              "unlock": true,
+              "refund25": true,
+              "refund50": true
+            },
+            "group": "late_ok"
+          },
+          {
+            "id": "971448b2c0a4",
+            "dep": "2026-11-14T04:30:00Z",
+            "arr": "2026-11-14T11:00:00Z",
+            "duration_min": 390,
+            "changes": 0,
+            "legs": [
+              {
+                "train": "ICE 703",
+                "from": "Hamburg Hbf",
+                "to": "München Hbf",
+                "dep": "2026-11-14T04:30:00Z",
+                "arr": "2026-11-14T11:00:00Z",
+                "trip_id": "golden-2",
+                "via": [
+                  "Büchen",
+                  "Ludwigslust Bahnhof",
+                  "Wittenberge, Bahnhof",
+                  "S Spandau Bhf (Berlin)",
+                  "S+U Berlin Hauptbahnhof",
+                  "Halle (Saale) Hbf",
+                  "Erfurt Hbf",
+                  "Bamberg",
+                  "Nürnberg Hbf",
+                  "Donauwörth",
+                  "Augsburg Hbf",
+                  "Pasing"
+                ]
+              }
+            ],
+            "odds": {
+              "p20": 0.2651,
+              "p60": 0.0648,
+              "late": 8,
+              "n": 34,
+              "weekday": "Saturday",
+              "basis": "history"
+            },
+            "already_posted": true,
+            "cancelled": false,
+            "is_kurts_pick": false,
+            "ride_instead": null,
+            "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T05:30:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false",
+            "spare_min": 120,
+            "p_miss": 0.0449,
+            "late_ok": {
+              "unlock": true,
+              "refund25": true,
+              "refund50": true
+            },
+            "group": "late_ok"
+          },
+          {
+            "id": "a7a3e0367965",
+            "dep": "2026-11-14T04:45:00Z",
+            "arr": "2026-11-14T11:15:00Z",
+            "duration_min": 390,
+            "changes": 0,
+            "legs": [
+              {
+                "train": "ICE 703",
+                "from": "Hamburg Hbf",
+                "to": "München Hbf",
+                "dep": "2026-11-14T04:45:00Z",
+                "arr": "2026-11-14T11:15:00Z",
+                "trip_id": "golden-3",
+                "via": [
+                  "Büchen",
+                  "Ludwigslust Bahnhof",
+                  "Wittenberge, Bahnhof",
+                  "S Spandau Bhf (Berlin)",
+                  "S+U Berlin Hauptbahnhof",
+                  "Halle (Saale) Hbf",
+                  "Erfurt Hbf",
+                  "Bamberg",
+                  "Nürnberg Hbf",
+                  "Donauwörth",
+                  "Augsburg Hbf",
+                  "Pasing"
+                ]
+              }
+            ],
+            "odds": {
+              "p20": 0.2651,
+              "p60": 0.0648,
+              "late": 8,
+              "n": 34,
+              "weekday": "Saturday",
+              "basis": "history"
+            },
+            "already_posted": true,
+            "cancelled": true,
+            "is_kurts_pick": false,
+            "ride_instead": {
+              "dep": "2026-11-14T05:15:00Z",
+              "arr": "2026-11-14T11:30:00Z",
+              "changes": 0,
+              "trains": [
+                "FLX 123"
+              ],
+              "delta_arr_min": 15
+            },
+            "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T05:45:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false",
+            "spare_min": 105,
+            "p_miss": 0.0479,
+            "late_ok": {
+              "unlock": true,
+              "refund25": true,
+              "refund50": false
+            },
+            "group": "late_ok"
+          },
+          {
+            "id": "bf74a0df5b1b",
+            "dep": "2026-11-14T03:30:00Z",
+            "arr": "2026-11-14T10:21:00Z",
+            "duration_min": 411,
+            "changes": 0,
+            "legs": [
+              {
+                "train": "ICE 785",
+                "from": "Hamburg Hbf",
+                "to": "München Hbf",
+                "dep": "2026-11-14T03:30:00Z",
+                "arr": "2026-11-14T10:21:00Z",
+                "trip_id": "golden-0",
+                "via": [
+                  "Büchen",
+                  "Ludwigslust Bahnhof",
+                  "Wittenberge, Bahnhof",
+                  "S Spandau Bhf (Berlin)",
+                  "S+U Berlin Hauptbahnhof",
+                  "Halle (Saale) Hbf",
+                  "Erfurt Hbf",
+                  "Bamberg",
+                  "Nürnberg Hbf",
+                  "Donauwörth",
+                  "Augsburg Hbf",
+                  "Pasing"
+                ]
+              }
+            ],
+            "odds": {
+              "p20": 0.2223,
+              "p60": 0.0693,
+              "late": 10,
+              "n": 45,
+              "weekday": "Saturday",
+              "basis": "history"
+            },
+            "already_posted": false,
+            "cancelled": false,
+            "is_kurts_pick": false,
+            "ride_instead": {
+              "dep": "2026-11-14T04:15:00Z",
+              "arr": "2026-11-14T10:15:00Z",
+              "changes": 0,
+              "trains": [
+                "ICE 599"
+              ],
+              "delta_arr_min": -6
+            },
+            "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T04:30:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false",
+            "spare_min": 159,
+            "p_miss": 0.0498,
+            "late_ok": {
+              "unlock": true,
+              "refund25": true,
+              "refund50": true
+            },
+            "group": "late_ok"
+          },
+          {
+            "id": "4a6752586ac1",
+            "dep": "2026-11-14T05:00:00Z",
+            "arr": "2026-11-14T10:00:00Z",
+            "duration_min": 300,
+            "changes": 0,
+            "legs": [
+              {
+                "train": "TGV 123",
+                "from": "Hamburg Hbf",
+                "to": "München Hbf",
+                "dep": "2026-11-14T05:00:00Z",
+                "arr": "2026-11-14T10:00:00Z",
+                "trip_id": "golden-4",
+                "via": [
+                  "Büchen",
+                  "Ludwigslust Bahnhof",
+                  "Wittenberge, Bahnhof",
+                  "S Spandau Bhf (Berlin)",
+                  "S+U Berlin Hauptbahnhof",
+                  "Halle (Saale) Hbf",
+                  "Erfurt Hbf",
+                  "Bamberg",
+                  "Nürnberg Hbf",
+                  "Donauwörth",
+                  "Augsburg Hbf",
+                  "Pasing"
+                ]
+              }
+            ],
+            "odds": {
+              "p20": null,
+              "p60": null,
+              "late": null,
+              "n": null,
+              "weekday": "Saturday",
+              "basis": "none"
+            },
+            "already_posted": false,
+            "cancelled": false,
+            "is_kurts_pick": false,
+            "ride_instead": null,
+            "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T06:00:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false",
+            "spare_min": 180,
+            "p_miss": null,
+            "late_ok": {
+              "unlock": true,
+              "refund25": true,
+              "refund50": true
+            },
+            "group": "late_ok"
+          },
+          {
+            "id": "8e00cb9ed96d",
+            "dep": "2026-11-14T05:15:00Z",
+            "arr": "2026-11-14T11:30:00Z",
+            "duration_min": 375,
+            "changes": 0,
+            "legs": [
+              {
+                "train": "FLX 123",
+                "from": "Hamburg Hbf",
+                "to": "München Hbf",
+                "dep": "2026-11-14T05:15:00Z",
+                "arr": "2026-11-14T11:30:00Z",
+                "trip_id": "golden-5",
+                "via": [
+                  "Büchen",
+                  "Ludwigslust Bahnhof",
+                  "Wittenberge, Bahnhof",
+                  "S Spandau Bhf (Berlin)",
+                  "S+U Berlin Hauptbahnhof",
+                  "Halle (Saale) Hbf",
+                  "Erfurt Hbf",
+                  "Bamberg",
+                  "Nürnberg Hbf",
+                  "Donauwörth",
+                  "Augsburg Hbf",
+                  "Pasing"
+                ]
+              }
+            ],
+            "odds": {
+              "p20": null,
+              "p60": null,
+              "late": null,
+              "n": null,
+              "weekday": "Saturday",
+              "basis": "none"
+            },
+            "already_posted": false,
+            "cancelled": false,
+            "is_kurts_pick": false,
+            "ride_instead": null,
+            "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T06:15:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false",
+            "spare_min": 90,
+            "p_miss": null,
+            "late_ok": {
+              "unlock": true,
+              "refund25": true,
+              "refund50": false
+            },
+            "group": "late_ok"
+          },
+          {
+            "id": "7cbd2a6b1aea",
+            "dep": "2026-11-14T05:45:00Z",
+            "arr": "2026-11-14T12:55:00Z",
+            "duration_min": 430,
+            "changes": 0,
+            "legs": [
+              {
+                "train": "ICE 703",
+                "from": "Hamburg Hbf",
+                "to": "München Hbf",
+                "dep": "2026-11-14T05:45:00Z",
+                "arr": "2026-11-14T12:55:00Z",
+                "trip_id": "golden-7",
+                "via": [
+                  "Büchen",
+                  "Ludwigslust Bahnhof",
+                  "Wittenberge, Bahnhof",
+                  "S Spandau Bhf (Berlin)",
+                  "S+U Berlin Hauptbahnhof",
+                  "Halle (Saale) Hbf",
+                  "Erfurt Hbf",
+                  "Bamberg",
+                  "Nürnberg Hbf",
+                  "Donauwörth",
+                  "Augsburg Hbf",
+                  "Pasing"
+                ]
+              }
+            ],
+            "odds": {
+              "p20": 0.2651,
+              "p60": 0.0648,
+              "late": 8,
+              "n": 34,
+              "weekday": "Saturday",
+              "basis": "history"
+            },
+            "already_posted": false,
+            "cancelled": false,
+            "is_kurts_pick": false,
+            "ride_instead": null,
+            "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T06:45:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false",
+            "spare_min": 5,
+            "p_miss": 0.4646,
+            "late_ok": {
+              "unlock": false,
+              "refund25": false,
+              "refund50": false
+            },
+            "group": "on_time"
+          },
+          {
+            "id": "0b7843733549",
+            "dep": "2026-11-14T05:30:00Z",
+            "arr": "2026-11-14T12:45:00Z",
+            "duration_min": 435,
+            "changes": 0,
+            "legs": [
+              {
+                "train": "ICE 785",
+                "from": "Hamburg Hbf",
+                "to": "München Hbf",
+                "dep": "2026-11-14T05:30:00Z",
+                "arr": "2026-11-14T12:45:00Z",
+                "trip_id": "golden-6",
+                "via": [
+                  "Büchen",
+                  "Ludwigslust Bahnhof",
+                  "Wittenberge, Bahnhof",
+                  "S Spandau Bhf (Berlin)",
+                  "S+U Berlin Hauptbahnhof",
+                  "Halle (Saale) Hbf",
+                  "Erfurt Hbf",
+                  "Bamberg",
+                  "Nürnberg Hbf",
+                  "Donauwörth",
+                  "Augsburg Hbf",
+                  "Pasing"
+                ]
+              }
+            ],
+            "odds": {
+              "p20": 0.2223,
+              "p60": 0.0693,
+              "late": 10,
+              "n": 45,
+              "weekday": "Saturday",
+              "basis": "history"
+            },
+            "already_posted": false,
+            "cancelled": false,
+            "is_kurts_pick": false,
+            "ride_instead": {
+              "dep": "2026-11-14T05:45:00Z",
+              "arr": "2026-11-14T12:55:00Z",
+              "changes": 0,
+              "trains": [
+                "ICE 703"
+              ],
+              "delta_arr_min": 10
+            },
+            "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T06:30:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false",
+            "spare_min": 15,
+            "p_miss": 0.2687,
+            "late_ok": {
+              "unlock": false,
+              "refund25": false,
+              "refund50": false
+            },
+            "group": "on_time"
+          }
+        ],
+        "note": "2 of 8 connections have too little history for odds.",
+        "kurt_call": "pick",
+        "strike": null,
+        "mode": "arrive",
+        "arrive_by": "2026-11-14T13:00:00Z"
+      }
+    }
+  ],
+  "claims": [
+    {
+      "args": [
+        null,
+        null,
+        false
+      ],
+      "expected": {
+        "due": false,
+        "pct": 0,
+        "amount_eur": null,
+        "reason": "No delay recorded yet."
+      }
+    },
+    {
+      "args": [
+        null,
+        60,
+        false
+      ],
+      "expected": {
+        "due": true,
+        "pct": 25,
+        "amount_eur": null,
+        "reason": "25 % of the ticket price is owed. Enter the price to see the amount."
+      }
+    },
+    {
+      "args": [
+        9.99,
+        59,
+        false
+      ],
+      "expected": {
+        "due": false,
+        "pct": 0,
+        "amount_eur": null,
+        "reason": "Under 60 minutes late (59 min): no compensation is due."
+      }
+    },
+    {
+      "args": [
+        9.99,
+        60,
+        false
+      ],
+      "expected": {
+        "due": false,
+        "pct": 25,
+        "amount_eur": null,
+        "reason": "25 % would be 2.50 EUR; DB pays nothing under 4.00 EUR. Still yours: the lifted Zugbindung from 20 minutes late, and a full refund if you give up the trip at an expected 60+ minutes."
+      }
+    },
+    {
+      "args": [
+        79.9,
+        60,
+        false
+      ],
+      "expected": {
+        "due": true,
+        "pct": 25,
+        "amount_eur": 20.0,
+        "reason": "60 min late: 25 % of 79.90 EUR, rounded up to 5 cents."
+      }
+    },
+    {
+      "args": [
+        79.9,
+        119,
+        false
+      ],
+      "expected": {
+        "due": true,
+        "pct": 25,
+        "amount_eur": 20.0,
+        "reason": "119 min late: 25 % of 79.90 EUR, rounded up to 5 cents."
+      }
+    },
+    {
+      "args": [
+        79.9,
+        120,
+        false
+      ],
+      "expected": {
+        "due": true,
+        "pct": 50,
+        "amount_eur": 39.95,
+        "reason": "120 min late: 50 % of 79.90 EUR, rounded up to 5 cents."
+      }
+    },
+    {
+      "args": [
+        34.99,
+        71,
+        false
+      ],
+      "expected": {
+        "due": true,
+        "pct": 25,
+        "amount_eur": 8.75,
+        "reason": "71 min late: 25 % of 34.99 EUR, rounded up to 5 cents."
+      }
+    },
+    {
+      "args": [
+        12.9,
+        65,
+        false
+      ],
+      "expected": {
+        "due": false,
+        "pct": 25,
+        "amount_eur": null,
+        "reason": "25 % would be 3.25 EUR; DB pays nothing under 4.00 EUR. Still yours: the lifted Zugbindung from 20 minutes late, and a full refund if you give up the trip at an expected 60+ minutes."
+      }
+    },
+    {
+      "args": [
+        79.9,
+        120,
+        true
+      ],
+      "expected": {
+        "due": false,
+        "pct": 0,
+        "amount_eur": null,
+        "reason": "You switched trains: compensation depends on your actual arrival on the train you took. If you arrived under 60 minutes late, nothing is owed; 60–119 minutes gives 25 % of the ticket price, 120+ gives 50 % (minimum payout 4 EUR). Fill in your actual arrival yourself."
+      }
+    }
+  ],
+  "timeline": {
+    "args": [
+      {
+        "at": "0",
+        "delay_min": null,
+        "cancelled": false
+      },
+      {
+        "at": "1",
+        "delay_min": 18,
+        "cancelled": false
+      },
+      {
+        "at": "2",
+        "delay_min": 20,
+        "cancelled": false
+      },
+      {
+        "at": "3",
+        "delay_min": 19,
+        "cancelled": false
+      },
+      {
+        "at": "4",
+        "delay_min": 22,
+        "cancelled": false
+      },
+      {
+        "at": "5",
+        "delay_min": 60,
+        "cancelled": false
+      },
+      {
+        "at": "6",
+        "delay_min": 61,
+        "cancelled": true
+      },
+      {
+        "at": "7",
+        "delay_min": 62,
+        "cancelled": true
+      }
+    ],
+    "expected": [
+      {
+        "at": "1",
+        "delay_min": 18,
+        "cancelled": false
+      },
+      {
+        "at": "2",
+        "delay_min": 20,
+        "cancelled": false
+      },
+      {
+        "at": "3",
+        "delay_min": 19,
+        "cancelled": false
+      },
+      {
+        "at": "4",
+        "delay_min": 22,
+        "cancelled": false
+      },
+      {
+        "at": "5",
+        "delay_min": 60,
+        "cancelled": false
+      },
+      {
+        "at": "6",
+        "delay_min": 61,
+        "cancelled": true
+      },
+      {
+        "at": "7",
+        "delay_min": 62,
+        "cancelled": true
+      }
+    ]
+  }
+}

@@ -7,10 +7,11 @@
     "build:mock": "VITE_MOCK=1 tsc && VITE_MOCK=1 vite build",
     "preview": "vite preview",
     "typecheck": "tsc",
-    "test": "node --test tests/"
+    "test": "node --test tests/*.test.ts tests/core/*.test.ts"
   },
   "type": "module",
   "dependencies": {
+    "@duckdb/duckdb-wasm": "1.32.0",
     "@fontsource/inter": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@fontsource/space-grotesk": "^5.3.0",
@@ -30,7 +31,10 @@
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
     "vite-plugin-pwa": "^2.0.0",
-    "workbox-precaching": "^7.4.1"
+    "workbox-expiration": "^7.4.1",
+    "workbox-precaching": "^7.4.1",
+    "workbox-routing": "^7.4.1",
+    "workbox-strategies": "^7.4.1"
   },
   "private": true
 }

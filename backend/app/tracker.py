@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 
 from .alternatives import refresh_alternatives
 from .db import connect
+from .i18n import money
 from .transitous import SourceUnavailable, Transitous
 from .trips import FINISH_AFTER, derive_state, latest_snapshot, trip_view
 
@@ -151,7 +152,43 @@ def _hhmm(ts: str) -> str:
     return _t(ts).astimezone(BERLIN).strftime("%H:%M")
 
 
+def german_message(row: dict, view: dict, kind: str) -> dict:
+    legs = view["booked"].get("legs") or [{}]
+    train = ("Dein " + (legs[0].get("train") or "Zug")) if len(legs) == 1 else "Deine Verbindung"
+    n = view["delay_min"]
+    stop = view.get("at_stop")
+    where = f" in {stop['name']}" if stop else " erwartet"
+    if kind == "cancelled":
+        title = "Dein Zug fällt aus"
+        body = "Zugbindung aufgehoben: Nimm einen anderen Zug oder lass dir den Fahrpreis erstatten."
+    elif kind == "20":
+        title = "Verspätet. Du gewinnst."
+        body = f"{train}: +{n} Min.{where}. Zugbindung aufgehoben: Du darfst jeden Zug nehmen."
+        if view["alternatives"]:
+            best = view["alternatives"][0]
+            body += f" Kurts Tipp: Abfahrt {_hhmm(best['dep'])}, Ankunft {_hhmm(best['arr'])}."
+    else:
+        pct = 25 if kind == "60" else 50
+        title = "25 % zurück" if pct == 25 else "Die Hälfte zurück"
+        amount = next(t["amount_eur"] for t in view["thresholds"] if t["at"] == int(kind))
+        cash = f" ({money(amount)})" if amount is not None else ""
+        back = f"Du bekommst {pct} % deines Ticketpreises zurück{cash}."
+        if view["finished"] or (stop and stop["name"] == legs[-1].get("to")):
+            arrived_at = f" in {stop['name']}" if stop else ""
+            body = f"+{n} Min.{arrived_at}: {back}"
+        else:
+            dest = legs[-1].get("to")
+            arrives = f"Kommt er so spät in {dest} an" if dest else "Kommt er so spät an"
+            body = f"+{n} Min.{where}. {arrives}, bekommst du {pct} % deines Ticketpreises zurück{cash}."
+    if row["is_replay"]:
+        title = f"Wiedergabe · {title}"
+        body += f" (Wiedergabe vom {row['replay_of']})"
+    return {"title": title, "body": body, "url": f"/trip/{row['id']}", "lang": row.get("lang") or "en"}
+
+
 def message(row: dict, view: dict, kind: str) -> dict:
+    if row.get("lang") == "de":
+        return german_message(row, view, kind)
     legs = view["booked"].get("legs") or [{}]
     train = legs[0].get("train") if len(legs) == 1 else "connection"
     n = view["delay_min"]
@@ -188,7 +225,7 @@ def message(row: dict, view: dict, kind: str) -> dict:
     if row["is_replay"]:
         title = f"Replay · {title}"
         body = f"{body} (replay of {row['replay_of']})"
-    return {"title": title, "body": body, "url": f"/trip/{row['id']}"}
+    return {"title": title, "body": body, "url": f"/trip/{row['id']}", "lang": row.get("lang") or "en"}
 
 
 async def record(
@@ -258,8 +295,9 @@ async def strike_alerts(
                 fresh.append(row)
     conn.close()
     for row in fresh:
-        body = f"Strike announced for your travel day: {title}"
-        await notify(db_path, row, {"title": "Strike announced", "body": body,
+        german = row.get("lang") == "de"
+        body = f"Streik an deinem Reisetag angekündigt: {title}" if german else f"Strike announced for your travel day: {title}"
+        await notify(db_path, row, {"title": "Streik angekündigt" if german else "Strike announced", "body": body,
                                     "url": f"/trip/{row['id']}"})  # fmt: skip
     return [row["id"] for row in fresh]
 

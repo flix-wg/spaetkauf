@@ -1,3 +1,4 @@
+import { tx, tr, useT } from '../i18n'
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { api, ApiError, type HistoryQuery, type Pick } from '../api'
@@ -39,6 +40,7 @@ function useEarlier() {
 }
 
 export function Picks() {
+  useT()
   const [sp] = useSearchParams()
   const { search } = useLocation()
   const { open } = useSheet()
@@ -90,7 +92,7 @@ export function Picks() {
 
   return (
     <>
-      <ScreenHeader title="Kurt’s picks" />
+      <ScreenHeader title={tr('kurtSPicks')} />
       {/* Phone: one column. Desktop: route and Kurt's pick on the left, all trains on the right. */}
       <div className="flex flex-col gap-3 px-4 pb-8 lg:grid lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:items-start lg:gap-x-10 lg:px-10 lg:pb-12 2xl:grid-cols-[minmax(0,520px)_minmax(0,1fr)]">
         <div className="contents lg:flex lg:flex-col lg:gap-4">
@@ -101,12 +103,12 @@ export function Picks() {
             <span className="min-w-0 py-2 leading-snug">
               {shortStation(sp.get('fn'))} → {shortStation(sp.get('tn'))}{' '}
               <span className="whitespace-nowrap">· {date ? dayLabel(`${date}T12:00:00Z`) : ''}</span>
-              {arrive && <span className="whitespace-nowrap"> · by {time}</span>}
+              {arrive && <span className="whitespace-nowrap"> {tr('by')} {time}</span>}
             </span>
-            <span className="shrink-0 pl-2 text-[13px] font-normal text-muted lg:text-[15px]">change</span>
+            <span className="shrink-0 pl-2 text-[13px] font-normal text-muted lg:text-[15px]">{tr('change')}</span>
           </Link>
           {picks.status === 'ok' && strikeDay && strike && (
-            <StrikeCall s={strike} day={date ? dayLabel(`${date}T12:00:00Z`) : 'this day'} tryHref={tryHref} />
+            <StrikeCall s={strike} day={date ? dayLabel(`${date}T12:00:00Z`) : tr('thisDay')} tryHref={tryHref} />
           )}
           {picks.status === 'ok' && picks.data.picks.length > 0 && (
             <>
@@ -119,68 +121,59 @@ export function Picks() {
               )}
               {strike && !strikeDay && call !== 'strike_unclear' && <StrikeLine s={strike} tone="plain" />}
               {!hasKurts && !strikeDay && (
-                <section className="flex items-start gap-3 rounded-[22px] bg-surface p-4 lg:gap-4 lg:p-6" aria-label="No pick">
+                <section className="flex items-start gap-3 rounded-[22px] bg-surface p-4 lg:gap-4 lg:p-6" aria-label={tr('noPick')}>
                   <Kurt width={56} className="mt-0.5 shrink-0" />
                   <span className="flex flex-col gap-1">
-                    <span className="font-display text-[18px] font-bold leading-tight lg:text-[24px]">No pick here</span>
+                    <span className="font-display text-[18px] font-bold leading-tight lg:text-[24px]">{tr('noPickHere')}</span>
                     <span className="text-[13px] leading-snug text-muted lg:text-[16px]">
                       {arrive
-                        ? `None is late often enough and still in by ${by}.`
+                        ? tx('noArrivalPick', by)
                         : lateNoSwitch
-                          ? 'The likely late ones have no quicker train to switch to. Try another time.'
-                          : 'None is late often enough. Try another time.'}
+                          ? tr('theLikelyLateOnesHaveNoQuicker')
+                          : tr('noneIsLateOftenEnoughTryAnother')}
                     </span>
                   </span>
                 </section>
               )}
-              <p className="px-1 text-[12px] leading-snug text-muted lg:text-[14px]">
-                A delay already posted when you buy doesn't count.{' '}
-                <button type="button" onClick={() => open('backtest')} className="-my-3 inline-flex min-h-[44px] items-center font-semibold text-accent-text underline">
-                  How good is Kurt?
-                </button>
+              <p className="px-1 text-[12px] leading-snug text-muted lg:text-[14px]">{tr('aDelayAlreadyPostedWhenYouBuy')}{' '}
+                <button type="button" onClick={() => open('backtest')} className="-my-3 inline-flex min-h-[44px] items-center font-semibold text-accent-text underline">{tr('howGoodIsKurt')} </button>
               </p>
               {!arrive && (
                 <label className="flex min-h-[44px] items-center gap-2 px-1 text-[13px] lg:text-[15px]">
-                  <input type="checkbox" checked={earlier} onChange={(e) => setEarlier(e.target.checked)} className="size-4 accent-[#FD4F00]" />
-                  Ride instead: also up to 1 h earlier
-                </label>
+                  <input type="checkbox" checked={earlier} onChange={(e) => setEarlier(e.target.checked)} className="size-4 accent-[#FD4F00]" />{tr('rideInsteadAlsoUpTo1H')} </label>
               )}
               <AddonCard />
             </>
           )}
         </div>
         <div className="contents lg:flex lg:flex-col lg:gap-3">
-          {picks.status === 'loading' && <Loading label="Kurt is looking up late trains…" />}
+          {picks.status === 'loading' && <Loading label={tr('kurtIsLookingUpLateTrains')} />}
           {picks.status === 'error' &&
             (picks.error instanceof ApiError && picks.error.status === 429 ? (
               <Empty
-                title="Kurt is out of searches today"
+                title={tr('kurtIsOutOfSearchesToday')}
                 action={
                   <div className="flex flex-col gap-2">
-                    <Link to="/late" className="btn-primary">See what’s late now</Link>
-                    <Link to="/trips" className="btn-ghost">My trips</Link>
+                    <Link to="/late" className="btn-primary">{tr('seeWhatSLateNow')}</Link>
+                    <Link to="/trips" className="btn-ghost">{tr('myTrips')}</Link>
                   </div>
                 }
-              >
-                Today’s searches are used up. Saved trips keep updating.
-              </Empty>
+              >{tr('todaySSearchesAreUsedUpSaved')} </Empty>
             ) : (
               <ErrorState error={picks.error} retry={retry} />
             ))}
           {picks.status === 'ok' && picks.data.picks.length === 0 && (
             <Empty
-              title="No long-distance trains found"
-              action={<Link to={back} className="btn-ghost">Try another date or station</Link>}
-            >
-              No ICE, IC or EC at this time.
-            </Empty>
+              title={tr('noLongDistanceTrainsFound')}
+              action={<Link to={back} className="btn-ghost">{tr('tryAnotherDateOrStation')}</Link>}
+            >{tr('noIceIcOrEcAtThis')} </Empty>
           )}
           {picks.status === 'ok' && picks.data.picks.length > 0 && arrive && (
             <>
               {(
                 [
-                  ['Late still works', `In by ${by} even 20+ late`, late],
-                  ['Only on time', `In by ${by} only if on time`, onTime],
+                  [tr('lateStillWorks'), tx('arriveEvenLate', by), late],
+                  [tr('onlyOnTime'), tx('arriveOnlyOnTime', by), onTime],
                 ] as const
               ).map(([title, sub, list]) =>
                 list.length === 0 ? null : (
@@ -202,11 +195,11 @@ export function Picks() {
             <>
               {picks.data.picks.some((p) => !p.is_kurts_pick) && (
                 <h2 className="mt-1 flex items-center gap-1 font-display text-[18px] font-bold lg:mt-0 lg:min-h-[60px] lg:text-[26px]">
-                  {hasKurts ? 'More picks' : 'All trains'} <IconChevron size={16} className="rotate-90 text-muted lg:hidden" />
+                  {hasKurts ? tr('morePicks') : tr('allTrains')} <IconChevron size={16} className="rotate-90 text-muted lg:hidden" />
                 </h2>
               )}
               {picks.data.picks.some((p) => !p.is_kurts_pick) && (
-                <p className="-mt-2 text-[13px] text-muted lg:text-[15px]">More snails: more often 20+ min late. Good for you.</p>
+                <p className="-mt-2 text-[13px] text-muted lg:text-[15px]">{tr('moreSnailsMoreOften20MinLate')}</p>
               )}
               {picks.data.picks
                 .filter((p) => !p.is_kurts_pick)

@@ -1,3 +1,4 @@
+import { tx } from '../i18n-core'
 import type { Threshold } from '../api'
 import { eur } from '../format'
 
@@ -7,12 +8,12 @@ const POS = (m: number) => `${(Math.min(m, MAX) / MAX) * 100}%`
 export function Meter({ delay, thresholds }: { delay: number; thresholds: Threshold[] }) {
   return (
     <div className="pb-1 pt-1">
-      <div className="relative mx-3 h-3 rounded-full bg-black/15 lg:mx-5 lg:h-4" role="img" aria-label={`Delay ${delay} minutes, thresholds at 20, 60 and 120`}>
+      <div className="relative mx-3 h-3 rounded-full bg-black/15 lg:mx-5 lg:h-4" role="img" aria-label={tx('meterDescription', delay)}>
         <div className="meter-fill absolute inset-y-0 left-0 rounded-full bg-ink" style={{ width: POS(Math.max(delay, 0)) }} />
         {thresholds.map((t) => (
           <span
             key={t.at}
-            className={`absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink lg:h-8 lg:w-8 lg:border-[3px] ${t.reached ? 'bg-ink' : 'bg-white'}`}
+            className={`absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink lg:h-8 lg:w-8 lg:border-[3px] ${t.reached ? 'bg-ink' : 'bg-page'}`}
             style={{ left: POS(t.at) }}
           />
         ))}

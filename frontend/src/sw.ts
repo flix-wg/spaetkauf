@@ -1,5 +1,9 @@
 /// <reference lib="webworker" />
 import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, getCacheKeyForURL } from 'workbox-precaching'
+import { ExpirationPlugin } from 'workbox-expiration'
+import { registerRoute } from 'workbox-routing'
+import { StaleWhileRevalidate } from 'workbox-strategies'
+import { jsonCachePlugin } from './jsonCache.ts'
 import { ADDON_ZIP } from './addon'
 
 declare const self: ServiceWorkerGlobalScope
@@ -11,31 +15,23 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
   if (event.request.mode === 'navigate' && url.origin === self.location.origin
       && url.pathname !== '/' && !getCacheKeyForURL(url.origin + url.pathname)
-      && !/^\/api(?:\/|$)/.test(url.pathname) && url.pathname !== ADDON_ZIP) {
+      && !/^\/(?:data|duckdb)\//.test(url.pathname) && url.pathname !== ADDON_ZIP) {
     event.respondWith(appShell({ event, request: event.request, url }))
   }
 })
+
+// Revalidate odds after rebuilds. History Parquet stays in the browser's HTTP cache (ETag revalidation);
+// jsonCachePlugin keeps it out of this cache, so only meta.json goes through it.
+const sameOrigin = (url: URL) => url.origin === self.location.origin
+registerRoute(({ url }) => sameOrigin(url) && url.pathname.startsWith('/data/odds/'),
+  new StaleWhileRevalidate({ cacheName: 'kurt-odds', plugins: [jsonCachePlugin, new ExpirationPlugin({ maxAgeSeconds: 7 * 24 * 3600, maxEntries: 500 })] }))
+registerRoute(({ url, request }) => sameOrigin(url) && url.pathname.startsWith('/data/history/') && !request.headers.has('range'),
+  new StaleWhileRevalidate({ cacheName: 'kurt-history', plugins: [jsonCachePlugin] }))
+
 self.skipWaiting()
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()))
 
-self.addEventListener('push', (event) => {
-  let data: { title?: string; body?: string; url?: string; trip_id?: string } = {}
-  try {
-    data = event.data?.json() ?? {}
-  } catch {
-    data = { body: event.data?.text() }
-  }
-  const url = data.url ?? (data.trip_id ? `/trip/${data.trip_id}` : '/trips')
-  event.waitUntil(
-    self.registration.showNotification(data.title ?? 'Kurt', {
-      body: data.body,
-      icon: '/icon-192.png',
-      badge: '/icon-192.png',
-      data: { url },
-    }),
-  )
-})
-
+// Trip alerts are local notifications shown by watchTrip; a click opens the trip.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
   const url: string = event.notification.data?.url ?? '/trips'

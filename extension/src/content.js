@@ -1,5 +1,7 @@
 (function () {
   'use strict';
+  const msg = (key, fallback, ...values) => globalThis.chrome?.i18n?.getMessage(key, values.map(String)) || fallback.replace(/\$(\d+)/g, (_, n) => String(values[Number(n) - 1] ?? ''));
+
   let enabled = true;
   let timer;
   let retry;
@@ -36,39 +38,9 @@
   }
   async function run(token) {
     const ctx = SpkParse.pageContext(location, document);
-    const words = [ctx.from, ctx.to].filter(Boolean).flatMap(name => name.split(/[^\p{L}]+/u)).filter(word => word.length >= 3);
-    const saved = await chrome.storage.local.get({ specs: {}, failures: {} });
-    let hash = null;
-    let skeleton;
-    let cards;
-    let path = 'none';
-    if (Object.keys(saved.specs).length) {
-      skeleton = SpkSkeleton.build(document.body, { words });
-      hash = await SpkSkeleton.hash(skeleton);
-      if (saved.specs[hash]) {
-        cards = SpkParse.applySpec(document, saved.specs[hash]);
-        if (cards?.length) path = 'adapted';
-      }
-    }
-    if (!cards?.length) {
-      const parsed = SpkParse.parseCards(document);
-      cards = parsed.cards;
-      if (cards.length) path = 'heuristic';
-      else if (parsed.looksLikeResults) {
-        skeleton ??= SpkSkeleton.build(document.body, { words });
-        hash ??= await SpkSkeleton.hash(skeleton);
-        if (!(saved.failures[hash] > Date.now())) {
-          const response = await send({ type: 'adapt', skeleton, hash });
-          if (response.spec) {
-            cards = SpkParse.applySpec(document, response.spec) || [];
-            if (cards.length) path = 'adapted';
-          }
-        }
-      }
-    }
-    cards = SpkParse.assignDates(cards || [], ctx.date);
+    const cards = SpkParse.assignDates(SpkParse.parseCards(document).cards, ctx.date);
     if (!enabled || token !== generation) return;
-    const status = { path, count: cards.length, ldCount: cards.filter(c => c.ldTrains.length).length, to: ctx.to, date: cards[0]?.date || ctx.date, hash, sample: cards.slice(0, 3).map(({ dep, arr, trains }) => ({ dep, arr, trains })), error: null };
+    const status = { path: cards.length ? 'heuristic' : 'none', count: cards.length, ldCount: cards.filter(c => c.ldTrains.length).length, to: ctx.to, date: cards[0]?.date || ctx.date, sample: cards.slice(0, 3).map(({ dep, arr, trains }) => ({ dep, arr, trains })), error: null };
     const selected = cards.filter(c => c.ldTrains.length).slice(0, 30);
     const current = new Set(selected.map(c => c.el));
     for (const old of rendered) if (!current.has(old)) SpkOverlay.clear(old);
@@ -76,13 +48,13 @@
     if (!cards.length || !selected.length) { lastKey = null; lastResponse = null; await report(status); return; }
     if (!ctx.to) {
       for (const el of rendered) SpkOverlay.clear(el);
-      status.error = 'No destination found on this page';
+      status.error = msg("noDestination", "No destination found on this page");
       await report(status);
       return;
     }
     const date = cards[0]?.date || ctx.date;
     const body = { from: ctx.from, to: ctx.to, to_eva: ctx.toEva, date, connections: selected.map(c => ({ dep: c.dep, arr: c.arr, trains: c.trains, posted: c.posted, ...(c.date && c.date !== date ? { date: c.date } : {}) })) };
-    const config = await chrome.storage.sync.get({ server: 'https://65-108-33-75.sslip.io' });
+    const config = await chrome.storage.sync.get({ server: 'https://kurt-34y.pages.dev' });
     const key = JSON.stringify([config.server, body]);
     if (key !== lastKey) {
       const response = await send({ type: 'odds', body });
@@ -97,7 +69,7 @@
       }
     } else {
       for (const el of rendered) SpkOverlay.clear(el);
-      status.error = lastResponse?.error || 'Odds unavailable';
+      status.error = lastResponse?.error || msg("oddsUnavailable", "Odds unavailable");
       // A settled page fires no mutation that would run again, so retry on a timer.
       clearTimeout(retry);
       retry = setTimeout(schedule, 15000);

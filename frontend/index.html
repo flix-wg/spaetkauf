@@ -16,6 +16,20 @@
       try {
         if (sessionStorage.getItem('spaetkauf.splash')) document.documentElement.classList.add('splash-skip')
       } catch {}
+      let pref = 'system'
+      let lang = navigator.languages?.[0]?.toLowerCase().startsWith('de') ? 'de' : 'en'
+      try {
+        const saved = localStorage.getItem('spaetkauf.lang')
+        if (saved === 'de' || saved === 'en') lang = saved
+        const theme = localStorage.getItem('spaetkauf.theme')
+        if (theme === 'light' || theme === 'dark') pref = theme
+      } catch {}
+      const resolved = pref === 'system' ? matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light' : pref
+      document.documentElement.dataset.theme = resolved
+      document.documentElement.lang = lang
+      document.documentElement.style.colorScheme = resolved
+      document.documentElement.style.backgroundColor = resolved === 'dark' ? '#121316' : '#FD4F00'
+      document.querySelector('meta[name="theme-color"]').content = resolved === 'dark' ? '#121316' : '#fff'
     </script>
   </head>
   <body>
@@ -24,16 +38,16 @@
         <span class="sp-trail"></span>
         <span class="sp-kurt">
           <svg class="kurt kurt-crawl" viewBox="0 0 80 60" aria-hidden="true">
-            <path class="kurt-body" fill="#14161A" d="M14 54 C8 54 4.5 51.5 4.5 47 L4.5 33 C4.5 24 19 24 19 33 L19 40 C19 43.5 21 45 24 45 L64 45 C70 45 74 47 77 52.5 C75.5 53.5 73.5 54 70 54 Z" />
+            <path class="kurt-body" fill="var(--color-ink, #14161a)" d="M14 54 C8 54 4.5 51.5 4.5 47 L4.5 33 C4.5 24 19 24 19 33 L19 40 C19 43.5 21 45 24 45 L64 45 C70 45 74 47 77 52.5 C75.5 53.5 73.5 54 70 54 Z" />
             <g class="kurt-head">
-              <path d="M9 26 L7.2 14.5 M15 26 L21.5 13.5" stroke="#14161A" stroke-width="2.6" stroke-linecap="round" />
-              <g class="kurt-eye"><circle cx="7.2" cy="10.5" r="4.4" fill="#14161A" /><circle cx="6" cy="9.2" r="1.4" fill="#fff" /></g>
-              <g class="kurt-eye"><circle cx="21.5" cy="9.5" r="4.4" fill="#14161A" /><circle cx="20.3" cy="8.2" r="1.4" fill="#fff" /></g>
-              <path d="M7.5 33.5 q2.4 2.4 5 0.6" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" />
+              <path d="M9 26 L7.2 14.5 M15 26 L21.5 13.5" stroke="var(--color-ink, #14161a)" stroke-width="2.6" stroke-linecap="round" />
+              <g class="kurt-eye"><circle cx="7.2" cy="10.5" r="4.4" fill="var(--color-ink, #14161a)" /><circle cx="6" cy="9.2" r="1.4" fill="var(--color-page, #fff)" /></g>
+              <g class="kurt-eye"><circle cx="21.5" cy="9.5" r="4.4" fill="var(--color-ink, #14161a)" /><circle cx="20.3" cy="8.2" r="1.4" fill="var(--color-page, #fff)" /></g>
+              <path d="M7.5 33.5 q2.4 2.4 5 0.6" stroke="var(--color-page, #fff)" stroke-width="1.8" fill="none" stroke-linecap="round" />
             </g>
             <g class="kurt-shell">
-              <circle cx="46" cy="27" r="19" fill="#FD4F00" stroke="#14161A" stroke-width="2.6" />
-              <path class="kurt-spiral" d="M47.5 28 a2.3 2.3 0 0 0 -4.6 0 a4.6 4.6 0 0 0 9.2 0 a6.9 6.9 0 0 0 -13.8 0 a9.2 9.2 0 0 0 18.4 0 a11.5 11.5 0 0 0 -23 0" stroke="#14161A" stroke-width="2.6" fill="none" stroke-linecap="round" />
+              <circle cx="46" cy="27" r="19" fill="#FD4F00" stroke="var(--color-ink, #14161a)" stroke-width="2.6" />
+              <path class="kurt-spiral" d="M47.5 28 a2.3 2.3 0 0 0 -4.6 0 a4.6 4.6 0 0 0 9.2 0 a6.9 6.9 0 0 0 -13.8 0 a9.2 9.2 0 0 0 18.4 0 a11.5 11.5 0 0 0 -23 0" stroke="var(--color-ink, #14161a)" stroke-width="2.6" fill="none" stroke-linecap="round" />
               <path d="M33.5 15.5 a16 16 0 0 1 9 -4.6" stroke="#fff" stroke-opacity=".55" stroke-width="2.4" fill="none" stroke-linecap="round" />
             </g>
           </svg>
@@ -52,6 +66,15 @@
       })()
     </script>
     <div id="root"></div>
+    <script>
+      if (document.documentElement.lang === 'de') {
+        const splash = document.getElementById('splash')
+        splash.setAttribute('aria-label', 'Kurt lädt')
+        const quips = splash.querySelectorAll('.sp-quip span')
+        if (quips[0]) quips[0].textContent = 'Kurt kommt gleich.'
+        if (quips[1]) quips[1].textContent = 'Schneller als dein Zug.'
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

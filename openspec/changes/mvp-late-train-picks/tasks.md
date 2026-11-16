@@ -74,6 +74,9 @@ Checkpoints (Helsinki time): core path on real data by Sat 14 Nov 10:00 · deplo
 - [x] 10.9 Chrome MV3 extension (design D15, D16): parser for bahn.de result cards, badges in a closed shadow root, Kurt's pick, posted-delay flag, service worker with a 10 min cache, popup and settings, `POST /api/ext/odds`; tests `node --test` in `extension/`, `backend/tests/test_ext.py`, and `test/e2e.mjs` on local fixtures and one saved real page
 - [x] 10.10 Selector adapter (design D17): text-free skeleton, `POST /api/ext/adapt` with line grammar, hash check, per-layout cache, daily cap and `ANTHROPIC_API_KEY`; tests in `extension/test/skeleton.test.js` and `test_adapt_*`
 
+- [x] 10.11 Add German/English app and extension UI, settings and localized API/push text; verify typed dictionaries, preference fallback, trip language persistence and German push messages with focused tests and mock DOM checks
+- [x] 10.12 Add persisted system/light/dark appearance and extension popup/options dark styles; verify live system changes, theme metadata, conductor/QR exceptions and WCAG AA token contrast; checked in the browser in both languages and themes
+
 ## Workflow follow-up
 
 - Make the repository readable by the organisers before 15 Nov 10:00 Helsinki time.

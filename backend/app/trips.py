@@ -6,6 +6,7 @@ import json
 import secrets
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+from typing import Literal
 
 from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
@@ -13,6 +14,7 @@ from pydantic import BaseModel, Field, field_validator
 from .alternatives import alternatives_view, origin_departed
 from .claim import WHERE, claim_amount, compute_claim, timeline
 from .db import connect
+from .i18n import lang_from, localize
 from .push import check_subscription
 
 router = APIRouter(prefix="/api/trips")
@@ -57,6 +59,7 @@ def create_trip(
     push: dict | None = None,
     auto: bool = False,
     replay_of: str | None = None,
+    lang: Literal["de", "en"] | None = None,
 ) -> tuple[str, str | None]:
     trip_id = secrets.token_urlsafe(6)
     secret = None if auto else secrets.token_urlsafe(24)
@@ -64,7 +67,7 @@ def create_trip(
     with conn:
         conn.execute(
             "INSERT INTO trips(id, secret_hash, pick, price_eur, push, auto, is_replay,"
-            " replay_of, created_at) VALUES (?,?,?,?,?,?,?,?,?)",
+            " replay_of, created_at, lang) VALUES (?,?,?,?,?,?,?,?,?,?)",
             (
                 trip_id,
                 _hash(secret) if secret else None,
@@ -75,6 +78,7 @@ def create_trip(
                 int(replay_of is not None),
                 replay_of,
                 _iso(_now()),
+                lang,
             ),
         )
     conn.close()
@@ -190,6 +194,7 @@ def _aware(ts) -> bool:
 
 
 class CreateTrip(BaseModel):
+    lang: Literal["de", "en"] | None = None
     pick: dict
     price_eur: Decimal | None = Field(default=None, gt=0, le=3000, decimal_places=2)
     push: dict | None = None
@@ -210,6 +215,7 @@ class CreateTrip(BaseModel):
 
 
 class PatchTrip(BaseModel):
+    lang: Literal["de", "en"] | None = None
     price_eur: Decimal | None = Field(default=None, gt=0, le=3000, decimal_places=2)
     switched: bool | None = None
     push: dict | None = None
@@ -228,7 +234,7 @@ def _secret(secret: str | None, header: str | None) -> str | None:
 @router.post("", status_code=201)
 def post_trip(body: CreateTrip, request: Request):
     trip_id, secret = create_trip(
-        request.app.state.settings.db_path, body.pick, body.price_eur, body.push
+        request.app.state.settings.db_path, body.pick, body.price_eur, body.push, lang=body.lang
     )
     return {"trip_id": trip_id, "secret": secret}
 
@@ -247,7 +253,7 @@ def get_trip(
         "SELECT MAX(delay_min) FROM trip_snapshots WHERE trip_id = ?", (trip_id,)
     ).fetchone()[0]
     conn.close()
-    return {**trip_view(row, latest_snapshot(db, trip_id)), "peak_delay_min": peak_delay}
+    return localize({**trip_view(row, latest_snapshot(db, trip_id)), "peak_delay_min": peak_delay}, lang_from(request))
 
 
 @router.patch("/{trip_id}")
@@ -270,6 +276,8 @@ def patch_trip(
             conn.execute(
                 "UPDATE trips SET switched = ? WHERE id = ?", (int(body.switched), trip_id)
             )
+        if "lang" in sent:
+            conn.execute("UPDATE trips SET lang = ? WHERE id = ?", (body.lang, trip_id))
         if "push" in sent:
             push = json.dumps(body.push) if body.push else None
             conn.execute("UPDATE trips SET push = ? WHERE id = ?", (push, trip_id))
@@ -359,8 +367,8 @@ def get_claim(
             "source": source,
             "observations": timeline(all_snapshots(db, trip_id)),
         }
-    return {
+    return localize({
         **result, "fields": fields, "where": WHERE, "evidence": evidence,
         "switched": switched, "provisional": bool(provisional),
         "is_replay": view["is_replay"], "replay_of": view["replay_of"],
-    }
+    }, lang_from(request))

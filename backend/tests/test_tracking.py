@@ -403,3 +403,20 @@ def test_history_replay_basis_before_first_snapshot(client, monkeypatch):
     assert view["delay_basis"] == "at_stop"
     assert view["booked"]["dep"] == "2026-10-30T10:45:00Z"
     assert view["booked"]["arr"] == "2026-10-30T19:32:00Z"
+
+
+@pytest.mark.parametrize("delay,kind,title,fragment", [
+    (25, "20", "Verspätet. Du gewinnst.", "+25 Min. erwartet"),
+    (65, "60", "25 % zurück", "12,50 €"),
+])
+def test_german_push(settings, delay, kind, title, fragment):
+    from app.tracker import message
+
+    tid, _ = create_trip(settings.db_path, PICK, Decimal(50), lang="de")
+    row = _row(settings.db_path, tid)
+    view = trip_view(row, {"at": T0.isoformat(), "delay_min": delay,
+                           "expected_arr": None, "cancelled": False, "raw": "{}"}, T0)
+    payload = message(row, view, kind)
+    assert payload["title"] == title
+    assert fragment in payload["body"]
+    assert "ICE 703" in payload["body"] if kind == "20" else "Kommt er so spät" in payload["body"]

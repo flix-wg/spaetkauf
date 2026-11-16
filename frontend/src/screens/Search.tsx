@@ -1,3 +1,4 @@
+import { tr, useT } from '../i18n'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api, type Station } from '../api'
@@ -26,6 +27,7 @@ function StationField({
   onChange: (f: Field) => void
   error?: string
 }) {
+  useT()
   const [list, setList] = useState<Station[] | null>(null)
   const [active, setActive] = useState(-1)
   const [focus, setFocus] = useState(false)
@@ -54,7 +56,7 @@ function StationField({
         value={field.text}
         autoComplete="off"
         autoCapitalize="words"
-        placeholder={label === 'From' ? 'Hamburg Hbf' : 'München Hbf'}
+        placeholder={label === tr('from') ? tr('hamburgExample') : tr('munichExample')}
         onFocus={() => setFocus(true)}
         onBlur={() => setTimeout(() => setFocus(false), 150)}
         onChange={(e) => {
@@ -86,17 +88,17 @@ function StationField({
         aria-autocomplete="list"
         aria-activedescendant={focus && list && active >= 0 ? `${id}-option-${active}` : undefined}
         aria-controls={`${id}-list`}
-        className={`h-[52px] w-full rounded-xl border-[1.5px] bg-white pl-4 pr-14 text-[17px] font-semibold focus:border-ink ${error ? 'border-accent-text' : 'border-line'}`}
+        className={`h-[52px] w-full rounded-xl border-[1.5px] bg-page pl-4 pr-14 text-[17px] font-semibold focus:border-ink ${error ? 'border-accent-text' : 'border-line'}`}
       />
       {error && <p className="mt-1 text-[13px] text-accent-text" role="alert">{error}</p>}
       {focus && list && (
         <ul
           id={`${id}-list`}
           role="listbox"
-          className="absolute inset-x-0 top-full z-20 mt-1 max-h-[240px] overflow-auto rounded-xl border border-ink bg-white shadow-lg"
+          className="absolute inset-x-0 top-full z-20 mt-1 max-h-[240px] overflow-auto rounded-xl border border-ink bg-page shadow-lg"
         >
           {list.length === 0 ? (
-            <li className="px-4 py-3 text-[14px] text-muted">Nothing found. Keep typing or try another spelling.</li>
+            <li className="px-4 py-3 text-[14px] text-muted">{tr('nothingFoundKeepTypingOrTryAnother')}</li>
           ) : (
             list.map((s, i) => (
               <li key={s.id} id={`${id}-option-${i}`} role="option" aria-selected={active === i}>
@@ -133,6 +135,7 @@ function seenBefore() {
 }
 
 export function Search() {
+  useT()
   const nav = useNavigate()
   const [seen] = useState(seenBefore)
   const { open } = useSheet()
@@ -148,10 +151,10 @@ export function Search() {
   async function resolve(f: Field, who: 'from' | 'to') {
     if (f.station) return f.station
     const t = f.text.trim()
-    if (!t) return who === 'from' ? Promise.reject('Where do you start?') : Promise.reject('Where are you going?')
+    if (!t) return who === 'from' ? Promise.reject(tr('whereDoYouStart')) : Promise.reject(tr('whereAreYouGoing'))
     const r = await api.stations(t).catch(() => [])
     const exact = r.find((s) => s.name.toLowerCase() === t.toLowerCase()) ?? r[0]
-    if (!exact) throw 'Kurt does not know that station.'
+    if (!exact) throw tr('kurtDoesNotKnowThatStation')
     return exact
   }
 
@@ -188,40 +191,36 @@ export function Search() {
 
   return (
     <>
-      <ScreenHeader title="Kurt" deskOnly />
+      <ScreenHeader title={tr('kurt')} deskOnly />
       <div className="flex flex-col gap-5 px-5 pb-8 pt-4 lg:pt-0 lg:grid lg:grid-cols-[minmax(0,560px)_minmax(0,1fr)] lg:items-start lg:gap-x-14 lg:px-10 lg:pb-12">
         <div className="contents lg:flex lg:flex-col lg:gap-6">
           <div className={`${seen ? 'hidden lg:flex' : 'flex'} flex-col gap-3 rounded-[22px] bg-tint p-4 lg:p-6`}>
             <div className="flex items-end gap-3">
               <Kurt width={76} className="hidden shrink-0 lg:block" />
-              <p className="text-[15px] font-semibold leading-snug lg:text-[20px]">
-                Buy the cheap ticket for the train that’s usually late. Ride the better one.
-              </p>
+              <p className="text-[15px] font-semibold leading-snug lg:text-[20px]">{tr('buyTheCheapTicketForTheTrain')} </p>
             </div>
             <div className="flex flex-col gap-2 lg:hidden">
               <Rules />
-              <button type="button" onClick={() => open('sources')} className="min-h-[36px] self-start text-[14px] font-semibold text-accent-text underline">
-                How it works, and exceptions
-              </button>
+              <button type="button" onClick={() => open('sources')} className="min-h-[36px] self-start text-[14px] font-semibold text-accent-text underline">{tr('howItWorksAndExceptions')} </button>
             </div>
         </div>
         <form onSubmit={go} className="flex flex-col gap-3">
           <div className="relative flex flex-col gap-3">
-            <StationField label="From" field={from} onChange={setFrom} error={errs.from} />
-            <StationField label="To" field={to} onChange={setTo} error={errs.to} />
+            <StationField label={tr('from')} field={from} onChange={setFrom} error={errs.from} />
+            <StationField label={tr('to335')} field={to} onChange={setTo} error={errs.to} />
             <button
               type="button"
-              aria-label="Swap from and to"
+              aria-label={tr('swapFromAndTo')}
               onClick={() => {
                 setFrom(to)
                 setTo(from)
               }}
-              className="absolute right-3 top-[58px] flex h-11 w-11 items-center justify-center rounded-full border border-line bg-white text-muted hover:bg-surface"
+              className="absolute right-3 top-[58px] flex h-11 w-11 items-center justify-center rounded-full border border-line bg-page text-muted hover:bg-surface"
             >
               <IconSwap size={20} className="rotate-90" />
             </button>
           </div>
-          <div role="radiogroup" aria-label="The time is when you" className="grid grid-cols-2 gap-1 rounded-xl bg-surface p-1">
+          <div role="radiogroup" aria-label={tr('theTimeIsWhenYou')} className="grid grid-cols-2 gap-1 rounded-xl bg-surface p-1">
             {(['depart', 'arrive'] as const).map((m) => (
               <button
                 key={m}
@@ -229,30 +228,30 @@ export function Search() {
                 role="radio"
                 aria-checked={mode === m}
                 onClick={() => setMode(m)}
-                className={`min-h-[44px] rounded-lg text-[15px] font-semibold ${mode === m ? 'bg-white text-ink shadow-[0_1px_2px_rgba(20,22,26,0.12)]' : 'text-muted hover:text-ink'}`}
+                className={`min-h-[44px] rounded-lg text-[15px] font-semibold ${mode === m ? 'bg-page text-ink shadow-[0_1px_2px_var(--color-shadow)]' : 'text-muted hover:text-ink'}`}
               >
-                {m === 'depart' ? 'Depart at' : 'Arrive by'}
+                {m === 'depart' ? tr('departAt') : tr('arriveBy392')}
               </button>
             ))}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="date" className="mb-1 block text-[13px] font-semibold text-muted">Date</label>
+              <label htmlFor="date" className="mb-1 block text-[13px] font-semibold text-muted">{tr('date')}</label>
               <input id="date" type="date" required value={date} onChange={(e) => setDate(e.target.value)}
-                className="h-[52px] w-full min-w-0 rounded-xl border-[1.5px] border-line bg-white px-3 text-[16px] font-semibold focus:border-ink" />
+                className="h-[52px] w-full min-w-0 rounded-xl border-[1.5px] border-line bg-page px-3 text-[16px] font-semibold focus:border-ink" />
             </div>
             <div>
-              <label htmlFor="time" className="mb-1 block text-[13px] font-semibold text-muted">{mode === 'arrive' ? 'Arrive by' : 'Depart at'}</label>
+              <label htmlFor="time" className="mb-1 block text-[13px] font-semibold text-muted">{mode === 'arrive' ? tr('arriveBy392') : tr('departAt')}</label>
               <input id="time" type="time" required value={time} onChange={(e) => setTime(e.target.value)}
-                className="h-[52px] w-full min-w-0 rounded-xl border-[1.5px] border-line bg-white px-3 text-[16px] font-semibold focus:border-ink" />
+                className="h-[52px] w-full min-w-0 rounded-xl border-[1.5px] border-line bg-page px-3 text-[16px] font-semibold focus:border-ink" />
             </div>
           </div>
           <button type="submit" disabled={busy} className="btn-primary mt-1 !min-h-[54px] !text-[16px]">
-            <IconSearch size={20} /> {busy ? 'Looking…' : 'Find late trains'}
+            <IconSearch size={20} /> {busy ? tr('looking') : tr('findLateTrains')}
           </button>
         </form>
         <div className="flex flex-col gap-2">
-          <span className="text-[13px] font-semibold text-muted">Try a busy route</span>
+          <span className="text-[13px] font-semibold text-muted">{tr('tryABusyRoute')}</span>
           <div className="flex flex-wrap gap-2">
             {[['Hamburg Hbf', 'München Hbf'], ['Berlin Hbf', 'Köln Hbf'], ['Frankfurt(Main)Hbf', 'Hannover Hbf']].map(([a, b]) => (
               <button key={a} type="button" onClick={() => quick(a, b)}
@@ -264,21 +263,15 @@ export function Search() {
         </div>
         {seen && (
           <details className="group rounded-[22px] bg-tint lg:hidden">
-            <summary className="flex min-h-[52px] cursor-pointer list-none items-center justify-between px-4 text-[15px] font-semibold [&::-webkit-details-marker]:hidden">
-              What a delay gets you
-              <IconChevron size={18} className="text-muted transition-transform group-open:rotate-90 motion-reduce:transition-none" />
+            <summary className="flex min-h-[52px] cursor-pointer list-none items-center justify-between px-4 text-[15px] font-semibold [&::-webkit-details-marker]:hidden">{tr('whatADelayGetsYou')} <IconChevron size={18} className="text-muted transition-transform group-open:rotate-90 motion-reduce:transition-none" />
             </summary>
             <div className="flex flex-col gap-2 px-4 pb-4">
               <Rules untitled />
-              <button type="button" onClick={() => open('sources')} className="min-h-[36px] self-start text-[14px] font-semibold text-accent-text underline">
-                How it works, and exceptions
-              </button>
+              <button type="button" onClick={() => open('sources')} className="min-h-[36px] self-start text-[14px] font-semibold text-accent-text underline">{tr('howItWorksAndExceptions')} </button>
             </div>
           </details>
         )}
-        <button type="button" onClick={() => open('backtest')} className="min-h-[44px] self-start text-[14px] font-semibold text-accent-text underline">
-          How good is Kurt?
-        </button>
+        <button type="button" onClick={() => open('backtest')} className="min-h-[44px] self-start text-[14px] font-semibold text-accent-text underline">{tr('howGoodIsKurt')} </button>
         </div>
         <div className="hidden rounded-[28px] bg-surface p-8 lg:block">
           <HowItWorks big />

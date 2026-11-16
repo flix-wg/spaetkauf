@@ -59,26 +59,6 @@
     cards=cards.filter(c=>c.dep && c.arr && (unique(scan(c.core).times.map(x=>x.value)).length<=8 || groups.get(c.el)?.length>1));
     return {cards,looksLikeResults:s.times.length>=4 && s.trains.length>=1,timeCount:s.times.length,trainCount:s.trains.length};
   }
-  function query(rootNode, selector) {
-    const out = [], matches = new Set(rootNode.querySelectorAll(selector));
-    if (rootNode.shadowRoot) for (const el of rootNode.shadowRoot.querySelectorAll(selector)) matches.add(el);
-    function visit(n) {
-      if (skip(n)) return;
-      if (matches.has(n)) out.push(n);
-      if (n.shadowRoot) for (const el of n.shadowRoot.querySelectorAll(selector)) matches.add(el);
-      for (const child of children(n)) if (child.nodeType !== 3) visit(child);
-    }
-    for (const child of children(rootNode)) if (child.nodeType !== 3) visit(child);
-    return out;
-  }
-  function applySpec(rootNode,spec) {
-    try {
-      if(!spec || !['card','train','dep','arr'].every(k=>typeof spec[k]==='string' && spec[k].trim())) return null;
-      const els=query(rootNode,spec.card); if(els.length<2 || els.some((a,i)=>els.some((b,j)=>i!==j && contains(a,b)))) return null;
-      const cards=els.map(el=>{ const ds=query(el,spec.dep), as=query(el,spec.arr), ts=query(el,spec.train); const de=ds[0], ar=as[spec.dep===spec.arr?as.length-1:0]; const c=card(el,common([de,ar,...ts].filter(Boolean),el)); c.dep=de && scan(de).times[0]?.value; c.arr=ar && scan(ar).times[0]?.value; c.trains=unique(ts.flatMap(t=>scan(t).trains.map(x=>x.value))); c.ldTrains=c.trains.filter(isLongDistance); return c; });
-      return cards.every(c=>c.dep && c.arr) && cards.filter(c=>c.trains.length).length/cards.length>=.8 ? cards:null;
-    } catch { return null; }
-  }
   function pageContext(loc,doc) {
     const url=new URL(typeof loc==='string'?loc:loc.href), p=new URLSearchParams(url.search); for(const [k,v] of new URLSearchParams(url.hash.slice(1))) p.set(k,v);
     const hd=p.get('hd')||'', fallback=scan(doc).ranges.map(r=>r.el.textContent.match(/^\s*(?:Nach|To):\s*([^\n:]+)\s*$/i)).find(Boolean);
@@ -92,6 +72,6 @@
     let date=fallbackDate, previous=null, heading=null;
     for(const c of cards) { const pos=s.ranges.find(r=>r.el===c.el)?.start??0; const h=headings.filter(h=>(s.ranges.find(r=>r.el===h.el)?.start??Infinity)<=pos).pop(); if(h && h!==heading) { date=h.date; heading=h; } else if(date && previous && minutes(previous)-minutes(c.dep)>360)date=new Date(Date.parse(date+'T12:00:00Z')+86400000).toISOString().slice(0,10); c.date=date||null; previous=c.dep; } return cards;
   }
-  const SpkParse={posted,LD_TYPES,REGIONAL_TYPES,normTrain,isLongDistance,parseCards,applySpec,pageContext,assignDates,scan,skip,children,parent,contains,trainSource,timeSource};
+  const SpkParse={posted,LD_TYPES,REGIONAL_TYPES,normTrain,isLongDistance,parseCards,pageContext,assignDates};
   root.SpkParse=SpkParse; if(typeof module!=='undefined')module.exports=SpkParse;
 })(typeof globalThis!=='undefined'?globalThis:this);

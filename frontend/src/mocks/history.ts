@@ -1,8 +1,9 @@
+import { tr, tx } from '../i18n-core'
 import { ApiError, type HistoryRuns, type Pick, type RouteTrains, type TrainStops } from '../api'
 import { hhmm, WEEKDAYS, weekdayIndex } from '../format'
 import { at } from './fixtures'
 
-const SOURCE = 'Deutsche Bahn arrival data via piebro/deutsche-bahn-data, CC BY 4.0'
+const SOURCE = () => tr('historySource')
 const LAST_DAY = '2026-11-13'
 
 // Same numbers every time for the same key, so screenshots are stable.
@@ -56,12 +57,12 @@ export function arrivePicksFor(date: string, from: string, to: string, by: strin
 
 // mock.history=none: 404 (no such train or stop), =down: 503 (history file missing).
 function gate(mode: string, what: string) {
-  if (mode === 'none') throw new ApiError(404, `No history for ${what}.`)
-  if (mode === 'down') throw new ApiError(503, 'Run history unavailable.')
+  if (mode === 'none') throw new ApiError(404, tx('mockHistoryFor', what))
+  if (mode === 'down') throw new ApiError(503, tr('mockHistoryUnavailable'))
 }
 function trainName(train: string) {
   const m = train.trim().match(/^([A-Za-z]+)\s*(\d+)$/)
-  if (!m) throw new ApiError(404, `'${train}' is not a train like 'ICE 1103'.`)
+  if (!m) throw new ApiError(404, tx('mockInvalidTrain', train))
   return `${m[1].toUpperCase()} ${m[2]}`
 }
 
@@ -95,7 +96,7 @@ export function historyRuns(q: URLSearchParams, mode: string, picks: Pick[] = []
   return {
     train, stop, weekday: wd === null ? null : WEEKDAYS[Number(wd)], runs,
     summary: { n: runs.length, late20: late(20), late60: late(60), late120: late(120), cancelled: runs.filter((x) => x.cancelled).length },
-    source: SOURCE,
+    source: SOURCE(),
   }
 }
 
@@ -110,7 +111,7 @@ export function trainStops(q: URLSearchParams, mode: string): TrainStops {
     const late20 = Math.round(n * (0.05 + i * 0.045 + r() * 0.05))
     return { stop, key: stop.toLowerCase(), n, late20, late20_share: Math.round((late20 / n) * 10000) / 10000 }
   }).sort((a, b) => a.stop.localeCompare(b.stop))
-  return { train, weekday: null, stops, source: SOURCE }
+  return { train, weekday: null, stops, source: SOURCE() }
 }
 
 export function routeTrains(q: URLSearchParams, mode: string): RouteTrains {
@@ -131,5 +132,5 @@ export function routeTrains(q: URLSearchParams, mode: string): RouteTrains {
       late60: l60, late60_share: Math.round((l60 / n) * 10000) / 10000, median_delay_min: Math.round(r() * 180) / 10,
     }
   })
-  return { from, to, weekday: wd === null ? null : WEEKDAYS[Number(wd)], trains, source: SOURCE }
+  return { from, to, weekday: wd === null ? null : WEEKDAYS[Number(wd)], trains, source: SOURCE() }
 }

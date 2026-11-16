@@ -1,30 +1,25 @@
-import type { TripRef, Created } from './api'
+import type { TripRef } from './api'
+import { deleteTrip, listTrips } from './core/trips.ts'
 
-const KEY = 'spaetkauf.trips'
+// Trips saved by the old server version kept {id, secret} pairs here.
+const LEGACY = 'spaetkauf.trips'
 
-export function loadTrips(): TripRef[] {
-  try {
-    const v = JSON.parse(localStorage.getItem(KEY) ?? '[]')
-    return Array.isArray(v) ? v.filter((t) => t && typeof t.id === 'string' && typeof t.secret === 'string') : []
-  } catch {
-    return []
-  }
-}
-function save(list: TripRef[]) {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(list))
-  } catch {
-    /* storage blocked: the trip still opens this session via the URL */
-  }
-}
-export function addTrip(c: Created): TripRef {
-  const ref = { id: c.trip_id, secret: c.secret }
-  save([ref, ...loadTrips().filter((t) => t.id !== ref.id)])
-  return ref
-}
+export const loadTrips = (): TripRef[] => listTrips().map((t) => ({ id: t.id }))
+export const findTrip = (id: string) => loadTrips().find((t) => t.id === id)
 export function removeTrip(id: string) {
-  save(loadTrips().filter((t) => t.id !== id))
+  try {
+    deleteTrip(id)
+  } catch {
+    /* storage blocked: there was nothing to remove */
+  }
 }
-export function findTrip(id: string): TripRef | undefined {
-  return loadTrips().find((t) => t.id === id)
+// A link or saved entry from the old Kurt server: /trip(s)/<id>?secret=…
+export function oldServerTrip(id: string, search: string) {
+  if (new URLSearchParams(search).has('secret')) return true
+  try {
+    const old = JSON.parse(localStorage.getItem(LEGACY) ?? '[]')
+    return Array.isArray(old) && old.some((t) => t?.id === id)
+  } catch {
+    return false
+  }
 }

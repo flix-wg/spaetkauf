@@ -17,3 +17,7 @@ __pycache__/
 data/history.duckdb
 data/history.tmp
 data/history.duckdb.wal
+*.tsbuildinfo
+frontend/public/data/
+
+frontend/public/duckdb/extensions/

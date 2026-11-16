@@ -1,3 +1,4 @@
+import { useT } from './i18n'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 export type Async<T> =
@@ -7,6 +8,7 @@ export type Async<T> =
 
 // Once data is shown, polls and retries refresh quietly: no loading flash, and a failed refresh keeps the old data.
 export function useAsync<T>(fn: () => Promise<T>, deps: unknown[], pollMs?: number) {
+  const { lang } = useT()
   const [state, setState] = useState<Async<T>>({ status: 'loading' })
   const [tick, setTick] = useState(0)
   const fnRef = useRef(fn)
@@ -41,7 +43,7 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[], pollMs?: numb
       if (id) window.clearInterval(id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...deps, tick, pollMs])
+  }, [...deps, tick, pollMs, lang])
 
   const retry = useCallback(() => setTick((t) => t + 1), [])
   return [state, retry] as const

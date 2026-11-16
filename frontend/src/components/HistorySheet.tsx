@@ -1,5 +1,6 @@
+import { tx, tr, useT } from '../i18n'
 import { api, ApiError, type HistoryQuery, type Pick } from '../api'
-import { dayLabel, hhmm, signedMin, stopName, WEEKDAYS, weekdayIndex } from '../format'
+import { dayLabel, hhmm, signedMin, stopName, WEEKDAYS, weekdayPlural, weekdayIndex } from '../format'
 import { useAsync } from '../hooks'
 import { Sheet } from './Sheet'
 import { Loading } from './States'
@@ -14,20 +15,21 @@ export function historyOf(p: Pick): HistoryQuery | null {
 }
 
 export function HistorySheet({ q, onClose }: { q: HistoryQuery; onClose: () => void }) {
+  useT()
   const [res, retry] = useAsync(() => api.history(q), [q.train, q.stop, q.weekday])
-  const days = q.weekday === undefined ? 'runs' : `${WEEKDAYS[q.weekday]}s`
+  const days = q.weekday === undefined ? tr('runs') : weekdayPlural(WEEKDAYS[q.weekday])
   return (
-    <Sheet title={`${q.train} at ${stopName(q.stop) || q.stop}`} onClose={onClose}>
-      {res.status === 'loading' && <Loading label="Kurt is reading the old timetables…" />}
+    <Sheet title={tx('trainAtStop', q.train, stopName(q.stop) || q.stop)} onClose={onClose}>
+      {res.status === 'loading' && <Loading label={tr('kurtIsReadingTheOldTimetables')} />}
       {res.status === 'error' && <Missing error={res.error} retry={retry} />}
       {res.status === 'ok' && (
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-3 gap-2 rounded-2xl bg-tint p-3 lg:p-4">
             {(
               [
-                ['runs', res.data.summary.n],
-                ['20+ late', res.data.summary.late20],
-                ['cancelled', res.data.summary.cancelled],
+                [tr('runs'), res.data.summary.n],
+                [tr('20Late'), res.data.summary.late20],
+                [tr('cancelled'), res.data.summary.cancelled],
               ] as const
             ).map(([label, v]) => (
               <div key={label} className="flex flex-col">
@@ -36,9 +38,9 @@ export function HistorySheet({ q, onClose }: { q: HistoryQuery; onClose: () => v
               </div>
             ))}
           </div>
-          <p className="-mt-2 text-[13px] text-muted lg:text-[15px]">{days[0].toUpperCase() + days.slice(1)}, newest first</p>
+          <p className="-mt-2 text-[13px] text-muted lg:text-[15px]">{days[0].toUpperCase() + days.slice(1)}{tr('newestFirst')}</p>
           {res.data.runs.length === 0 ? (
-            <p className="text-[14px] text-muted">No runs on record for this stop{q.weekday === undefined ? '' : ' on that weekday'}.</p>
+            <p className="text-[14px] text-muted">{tr('noRunsOnRecordForThisStop')}{q.weekday === undefined ? '' : tr('onThatWeekday')}.</p>
           ) : (
             <ul className="flex flex-col divide-y divide-line border-y border-line">
               {res.data.runs.slice(0, SHOWN).map((r) => {
@@ -50,7 +52,7 @@ export function HistorySheet({ q, onClose }: { q: HistoryQuery; onClose: () => v
                       <span className="mono text-muted">{hhmm(r.planned)}</span>
                     </span>
                     <span className={`mono font-bold ${late ? 'text-accent-text' : ''}`}>
-                      {r.cancelled ? 'cancelled' : r.delay_min === null ? 'no data' : `${signedMin(r.delay_min)} min`}
+                      {r.cancelled ? tr('cancelled') : r.delay_min === null ? tr('noData') : tx('delayMinutes', signedMin(r.delay_min))}
                     </span>
                   </li>
                 )
@@ -58,7 +60,7 @@ export function HistorySheet({ q, onClose }: { q: HistoryQuery; onClose: () => v
             </ul>
           )}
           {res.data.runs.length > SHOWN && (
-            <p className="text-[13px] text-muted">{res.data.runs.length - SHOWN} older runs not shown.</p>
+            <p className="text-[13px] text-muted">{res.data.runs.length - SHOWN} {tr('olderRunsNotShown')}</p>
           )}
           <p className="text-[12px] leading-snug text-muted lg:text-[13px]">{res.data.source}</p>
         </div>
@@ -69,17 +71,16 @@ export function HistorySheet({ q, onClose }: { q: HistoryQuery; onClose: () => v
 
 // 404 (no such train or stop in the history) and 503 (history file not loaded) are expected gaps, not failures.
 export function Missing({ error, retry }: { error: Error; retry: () => void }) {
+  useT()
   const status = error instanceof ApiError ? error.status : 0
   return (
     <div className="flex flex-col gap-2 rounded-2xl bg-surface p-4 text-[14px] leading-snug lg:text-[16px]">
       <p className="font-semibold">
-        {status === 404 ? 'Kurt has no run history for this.' : status === 503 ? 'The run history is not loaded right now.' : 'Kurt could not reach the run history.'}
+        {status === 404 ? tr('kurtHasNoRunHistoryForThis') : status === 503 ? tr('theRunHistoryIsNotLoadedRight') : tr('kurtCouldNotReachTheRunHistory')}
       </p>
       {status === 404 && error.message && <p className="text-muted">{error.message.split(';')[0]}</p>}
       {status !== 404 && (
-        <button type="button" onClick={retry} className="-my-2 inline-flex min-h-[44px] items-center self-start font-semibold text-accent-text underline">
-          Try again
-        </button>
+        <button type="button" onClick={retry} className="-my-2 inline-flex min-h-[44px] items-center self-start font-semibold text-accent-text underline">{tr('tryAgain')} </button>
       )}
     </div>
   )

@@ -1,0 +1,903 @@
+[
+  {
+    "fn": "parseTrain",
+    "args": [
+      "ICE 785"
+    ],
+    "expected": [
+      "ICE",
+      "785"
+    ],
+    "label": ""
+  },
+  {
+    "fn": "parseTrain",
+    "args": [
+      "FLX10"
+    ],
+    "expected": null,
+    "label": ""
+  },
+  {
+    "fn": "parseTrain",
+    "args": [
+      " ic 02013 "
+    ],
+    "expected": [
+      "IC",
+      "2013"
+    ],
+    "label": ""
+  },
+  {
+    "fn": "parseTrain",
+    "args": [
+      null
+    ],
+    "expected": null,
+    "label": ""
+  },
+  {
+    "fn": "stationKey",
+    "args": [
+      "Köln Hbf (DE)"
+    ],
+    "expected": "koeln",
+    "label": ""
+  },
+  {
+    "fn": "stationKey",
+    "args": [
+      "Frankfurt(M) Flughafen Fernbf"
+    ],
+    "expected": "fernbahnhof flughafen frankfurt main",
+    "label": ""
+  },
+  {
+    "fn": "stationKey",
+    "args": [
+      "Berlin Hbf (tief)"
+    ],
+    "expected": "berlin",
+    "label": ""
+  },
+  {
+    "fn": "stationKey",
+    "args": [
+      "S+U Berlin Hbf"
+    ],
+    "expected": "berlin",
+    "label": ""
+  },
+  {
+    "fn": "findStats",
+    "args": [
+      "ICE",
+      "785",
+      "München Hbf",
+      4
+    ],
+    "expected": {
+      "n": 46,
+      "n_cancel": 3,
+      "ge5": 24,
+      "ge10": 16,
+      "ge15": 15,
+      "ge20": 12,
+      "ge30": 6,
+      "ge45": 5,
+      "ge60": 5,
+      "ge90": 4,
+      "ge120": 3,
+      "first_date": "2025-12-19",
+      "last_date": "2026-10-30",
+      "eva": "08000261",
+      "station_name": "München Hbf",
+      "train_type": "ICE",
+      "train_number": "785",
+      "station_key": "muenchen",
+      "match": "exact",
+      "weekday": 4,
+      "type_fallback": false,
+      "status": "ok"
+    },
+    "label": "ok"
+  },
+  {
+    "fn": "findStats",
+    "args": [
+      "D",
+      "10300",
+      "Berlin Hbf",
+      0
+    ],
+    "expected": {
+      "n": 5,
+      "n_cancel": 4,
+      "ge5": 4,
+      "ge10": 4,
+      "ge15": 4,
+      "ge20": 4,
+      "ge30": 4,
+      "ge45": 4,
+      "ge60": 4,
+      "ge90": 4,
+      "ge120": 4,
+      "first_date": "2026-05-25",
+      "last_date": "2026-10-05",
+      "eva": "08011160,08098160",
+      "station_name": "Berlin Hauptbahnhof",
+      "train_type": "D",
+      "train_number": "10300",
+      "station_key": "berlin",
+      "match": "exact",
+      "weekday": 0,
+      "type_fallback": false,
+      "status": "thin"
+    },
+    "label": "thin"
+  },
+  {
+    "fn": "findStats",
+    "args": [
+      "ICE",
+      "99999",
+      "München Hbf",
+      4
+    ],
+    "expected": {
+      "status": "unknown_train",
+      "train_type": "ICE",
+      "train_number": "99999"
+    },
+    "label": "unknown_train"
+  },
+  {
+    "fn": "findStats",
+    "args": [
+      "ICE",
+      "785",
+      "Atlantis",
+      4
+    ],
+    "expected": {
+      "status": "stop_not_matched",
+      "train_type": "ICE",
+      "train_number": "785",
+      "stop_key": "atlantis",
+      "known_keys": [
+        "aller verden",
+        "augsburg",
+        "bremen",
+        "fulda",
+        "goettingen",
+        "hamburg",
+        "hamburg harburg",
+        "hannover",
+        "hannover laatzen messe",
+        "ingolstadt",
+        "kassel wilhelmshoehe",
+        "lueneburg",
+        "muenchen",
+        "nuernberg",
+        "uelzen",
+        "wuerzburg"
+      ]
+    },
+    "label": "stop_not_matched"
+  },
+  {
+    "fn": "findStats",
+    "args": [
+      "IC",
+      "785",
+      "München Hbf",
+      4
+    ],
+    "expected": {
+      "n": 46,
+      "n_cancel": 3,
+      "ge5": 24,
+      "ge10": 16,
+      "ge15": 15,
+      "ge20": 12,
+      "ge30": 6,
+      "ge45": 5,
+      "ge60": 5,
+      "ge90": 4,
+      "ge120": 3,
+      "first_date": "2025-12-19",
+      "last_date": "2026-10-30",
+      "eva": "08000261",
+      "station_name": "München Hbf",
+      "train_type": "ICE",
+      "train_number": "785",
+      "station_key": "muenchen",
+      "match": "exact",
+      "weekday": 4,
+      "type_fallback": true,
+      "status": "ok"
+    },
+    "label": "family fallback"
+  },
+  {
+    "fn": "findStats",
+    "args": [
+      "ECE",
+      "150",
+      "Frankfurt",
+      4
+    ],
+    "expected": {
+      "n": 27,
+      "n_cancel": 1,
+      "ge5": 12,
+      "ge10": 4,
+      "ge15": 4,
+      "ge20": 4,
+      "ge30": 3,
+      "ge45": 3,
+      "ge60": 2,
+      "ge90": 1,
+      "ge120": 1,
+      "first_date": "2025-12-19",
+      "last_date": "2026-10-30",
+      "eva": "08000105",
+      "station_name": "Frankfurt (Main) Hbf",
+      "train_type": "ECE",
+      "train_number": "150",
+      "station_key": "frankfurt main",
+      "match": "alias",
+      "weekday": 4,
+      "type_fallback": false,
+      "status": "ok"
+    },
+    "label": "alias"
+  },
+  {
+    "fn": "findStats",
+    "args": [
+      "D",
+      "10300",
+      "Berlin Hbf",
+      4
+    ],
+    "expected": {
+      "n": 0,
+      "n_cancel": 0,
+      "ge5": 0,
+      "ge10": 0,
+      "ge15": 0,
+      "ge20": 0,
+      "ge30": 0,
+      "ge45": 0,
+      "ge60": 0,
+      "ge90": 0,
+      "ge120": 0,
+      "first_date": null,
+      "last_date": null,
+      "eva": null,
+      "station_name": null,
+      "train_type": "D",
+      "train_number": "10300",
+      "station_key": "berlin",
+      "match": "exact",
+      "weekday": 4,
+      "type_fallback": false,
+      "status": "thin"
+    },
+    "label": "missing weekday"
+  },
+  {
+    "fn": "findStats",
+    "args": [
+      "D",
+      "10300",
+      "Berlin Hbf",
+      6
+    ],
+    "expected": {
+      "n": 26,
+      "n_cancel": 6,
+      "ge5": 11,
+      "ge10": 9,
+      "ge15": 8,
+      "ge20": 8,
+      "ge30": 8,
+      "ge45": 7,
+      "ge60": 7,
+      "ge90": 7,
+      "ge120": 6,
+      "first_date": "2025-12-14",
+      "last_date": "2026-10-25",
+      "eva": "08011160,08098160",
+      "station_name": "Berlin Hauptbahnhof",
+      "train_type": "D",
+      "train_number": "10300",
+      "station_key": "berlin",
+      "match": "exact",
+      "weekday": 6,
+      "type_fallback": false,
+      "status": "ok"
+    },
+    "label": "multi-EVA aggregation"
+  },
+  {
+    "fn": "connectionOdds",
+    "args": [
+      [
+        {
+          "train": "ICE 785",
+          "to": "München Hbf",
+          "dep": "2027-03-26T08:00:00Z",
+          "arr": "2027-03-26T12:00:00Z"
+        }
+      ]
+    ],
+    "expected": {
+      "p20": 0.2408,
+      "p60": 0.0999,
+      "late": 12,
+      "n": 46,
+      "weekday": "Friday",
+      "basis": "history"
+    },
+    "label": "direct"
+  },
+  {
+    "fn": "connectionOdds",
+    "args": [
+      [
+        {
+          "train": "ICE 785",
+          "to": "Würzburg Hbf",
+          "dep": "2027-03-26T08:00:00Z",
+          "arr": "2027-03-26T10:00:00Z"
+        },
+        {
+          "train": "ICE 785",
+          "to": "München Hbf",
+          "dep": "2027-03-26T10:23:00Z",
+          "arr": "2027-03-26T12:00:00Z"
+        }
+      ]
+    ],
+    "expected": {
+      "p20": 0.3926,
+      "p60": 0.0999,
+      "late": 12,
+      "n": 46,
+      "weekday": "Friday",
+      "basis": "estimate"
+    },
+    "label": "two legs"
+  },
+  {
+    "fn": "connectionOdds",
+    "args": [
+      [
+        {
+          "train": "ICE 785",
+          "to": "Würzburg Hbf",
+          "dep": "2027-03-26T08:00:00Z",
+          "arr": "2027-03-26T10:00:00Z"
+        },
+        {
+          "train": "ICE 785",
+          "to": "Nürnberg Hbf",
+          "dep": "2027-03-26T10:23:00Z",
+          "arr": "2027-03-26T11:00:00Z"
+        },
+        {
+          "train": "ICE 785",
+          "to": "München Hbf",
+          "dep": "2027-03-26T11:07:00Z",
+          "arr": "2027-03-26T12:00:00Z"
+        }
+      ]
+    ],
+    "expected": {
+      "p20": 0.6867,
+      "p60": 0.0999,
+      "late": 12,
+      "n": 46,
+      "weekday": "Friday",
+      "basis": "estimate"
+    },
+    "label": "three legs"
+  },
+  {
+    "fn": "connectionOdds",
+    "args": [
+      [
+        {
+          "train": "ICE 785",
+          "to": "Würzburg Hbf",
+          "dep": "2027-03-26T08:00:00Z",
+          "arr": "2027-03-26T10:00:00Z"
+        },
+        {
+          "train": "ICE 99999",
+          "to": "Nürnberg Hbf",
+          "dep": "2027-03-26T10:23:00Z",
+          "arr": "2027-03-26T11:00:00Z"
+        },
+        {
+          "train": "ICE 785",
+          "to": "München Hbf",
+          "dep": "2027-03-26T11:07:00Z",
+          "arr": "2027-03-26T12:00:00Z"
+        }
+      ]
+    ],
+    "expected": {
+      "p20": null,
+      "p60": null,
+      "late": null,
+      "n": null,
+      "weekday": "Friday",
+      "basis": "none"
+    },
+    "label": "middle leg without history"
+  },
+  {
+    "fn": "connectionOdds",
+    "args": [
+      [
+        {
+          "train": "FLX10",
+          "to": "München Hbf",
+          "dep": "2027-03-26T08:00:00Z",
+          "arr": "2027-03-26T12:00:00Z"
+        }
+      ]
+    ],
+    "expected": {
+      "p20": null,
+      "p60": null,
+      "late": null,
+      "n": null,
+      "weekday": "Friday",
+      "basis": "none"
+    },
+    "label": "no history"
+  },
+  {
+    "fn": "connectionOdds",
+    "args": [
+      [
+        {
+          "train": "ICE 785",
+          "to": "München Hbf",
+          "dep": "2027-03-26T08:00:00Z",
+          "arr": "2027-03-28T01:30:00Z"
+        }
+      ]
+    ],
+    "expected": {
+      "p20": 0.1714,
+      "p60": 0.0807,
+      "late": 5,
+      "n": 44,
+      "weekday": "Sunday",
+      "basis": "history"
+    },
+    "label": "DST"
+  },
+  {
+    "fn": "legOdds",
+    "args": [
+      "ICE 785",
+      "München Hbf",
+      "2027-03-26T12:00:00Z"
+    ],
+    "expected": {
+      "n": 46,
+      "n_cancel": 3,
+      "ge5": 24,
+      "ge10": 16,
+      "ge15": 15,
+      "ge20": 12,
+      "ge30": 6,
+      "ge45": 5,
+      "ge60": 5,
+      "ge90": 4,
+      "ge120": 3,
+      "first_date": "2025-12-19",
+      "last_date": "2026-10-30",
+      "eva": "08000261",
+      "station_name": "München Hbf",
+      "train_type": "ICE",
+      "train_number": "785",
+      "station_key": "muenchen",
+      "match": "exact",
+      "weekday": 4,
+      "type_fallback": false,
+      "status": "ok",
+      "parent": {
+        "n": 319,
+        "ge5": 132,
+        "ge10": 100,
+        "ge15": 84,
+        "ge20": 69,
+        "ge30": 50,
+        "ge45": 37,
+        "ge60": 29,
+        "ge90": 20,
+        "ge120": 17
+      },
+      "type_rates": {
+        "ge5": 0.5331427387837196,
+        "ge10": 0.3959321054611062,
+        "ge15": 0.3160982443135053,
+        "ge20": 0.2606559432249906,
+        "ge30": 0.18673014973209565,
+        "ge45": 0.12648573811327748,
+        "ge60": 0.09692904759049607,
+        "ge90": 0.07173840761796785,
+        "ge120": 0.06295016379503
+      }
+    },
+    "label": ""
+  },
+  {
+    "fn": "legOdds",
+    "args": [
+      "IC 785",
+      "München Hbf",
+      "2027-03-26T12:00:00Z"
+    ],
+    "expected": {
+      "n": 46,
+      "n_cancel": 3,
+      "ge5": 24,
+      "ge10": 16,
+      "ge15": 15,
+      "ge20": 12,
+      "ge30": 6,
+      "ge45": 5,
+      "ge60": 5,
+      "ge90": 4,
+      "ge120": 3,
+      "first_date": "2025-12-19",
+      "last_date": "2026-10-30",
+      "eva": "08000261",
+      "station_name": "München Hbf",
+      "train_type": "ICE",
+      "train_number": "785",
+      "station_key": "muenchen",
+      "match": "exact",
+      "weekday": 4,
+      "type_fallback": true,
+      "status": "ok",
+      "parent": {
+        "n": 319,
+        "ge5": 132,
+        "ge10": 100,
+        "ge15": 84,
+        "ge20": 69,
+        "ge30": 50,
+        "ge45": 37,
+        "ge60": 29,
+        "ge90": 20,
+        "ge120": 17
+      },
+      "type_rates": {
+        "ge5": 0.5331427387837196,
+        "ge10": 0.3959321054611062,
+        "ge15": 0.3160982443135053,
+        "ge20": 0.2606559432249906,
+        "ge30": 0.18673014973209565,
+        "ge45": 0.12648573811327748,
+        "ge60": 0.09692904759049607,
+        "ge90": 0.07173840761796785,
+        "ge120": 0.06295016379503
+      }
+    },
+    "label": ""
+  },
+  {
+    "fn": "legOdds",
+    "args": [
+      "FLX10",
+      "München Hbf",
+      "2027-03-26T12:00:00Z"
+    ],
+    "expected": {
+      "status": "no_train_number"
+    },
+    "label": ""
+  },
+  {
+    "fn": "legOdds",
+    "args": [
+      "FLX 12345",
+      "München Hbf",
+      "2027-03-26T12:00:00Z"
+    ],
+    "expected": {
+      "status": "unknown_train",
+      "train_type": "FLX",
+      "train_number": "12345"
+    },
+    "label": ""
+  },
+  {
+    "fn": "missOdds",
+    "args": [
+      [
+        {
+          "train": "ICE 785",
+          "to": "Würzburg Hbf",
+          "dep": "2027-03-26T08:00:00Z",
+          "arr": "2027-03-26T10:00:00Z"
+        },
+        {
+          "train": "ICE 785",
+          "to": "München Hbf",
+          "dep": "2027-03-26T10:23:00Z",
+          "arr": "2027-03-26T12:00:00Z"
+        }
+      ],
+      3
+    ],
+    "expected": 1.0,
+    "label": ""
+  },
+  {
+    "fn": "missOdds",
+    "args": [
+      [
+        {
+          "train": "ICE 785",
+          "to": "Würzburg Hbf",
+          "dep": "2027-03-26T08:00:00Z",
+          "arr": "2027-03-26T10:00:00Z"
+        },
+        {
+          "train": "ICE 785",
+          "to": "München Hbf",
+          "dep": "2027-03-26T10:23:00Z",
+          "arr": "2027-03-26T12:00:00Z"
+        }
+      ],
+      20
+    ],
+    "expected": 0.4216,
+    "label": ""
+  },
+  {
+    "fn": "missOdds",
+    "args": [
+      [
+        {
+          "train": "ICE 785",
+          "to": "Würzburg Hbf",
+          "dep": "2027-03-26T08:00:00Z",
+          "arr": "2027-03-26T10:00:00Z"
+        },
+        {
+          "train": "ICE 785",
+          "to": "München Hbf",
+          "dep": "2027-03-26T10:23:00Z",
+          "arr": "2027-03-26T12:00:00Z"
+        }
+      ],
+      75
+    ],
+    "expected": 0.3025,
+    "label": ""
+  },
+  {
+    "fn": "missOdds",
+    "args": [
+      [
+        {
+          "train": "FLX10",
+          "to": "München Hbf",
+          "dep": "2027-03-26T08:00:00Z",
+          "arr": "2027-03-26T12:00:00Z"
+        }
+      ],
+      3
+    ],
+    "expected": null,
+    "label": ""
+  },
+  {
+    "fn": "connectionOdds",
+    "args": [
+      [
+        {
+          "train": "ICE 785",
+          "to": "Würzburg Hbf",
+          "dep": "2027-03-26T08:00:00Z",
+          "arr": "2027-03-26T10:00:00Z"
+        },
+        {
+          "train": "ICE 785",
+          "to": "München Hbf",
+          "dep": "2027-03-26T10:23:00Z",
+          "arr": "2027-03-26T12:00:00Z"
+        }
+      ],
+      0
+    ],
+    "expected": {
+      "p20": 0.4216,
+      "p60": 0.1087,
+      "late": 12,
+      "n": 46,
+      "weekday": "Friday",
+      "basis": "estimate"
+    },
+    "label": "unshrunk"
+  },
+  {
+    "fn": "round4",
+    "args": [
+      0.03125
+    ],
+    "expected": 0.0312,
+    "label": "exact half tie"
+  },
+  {
+    "fn": "round4",
+    "args": [
+      0.09375
+    ],
+    "expected": 0.0938,
+    "label": "exact half tie"
+  },
+  {
+    "fn": "round4",
+    "args": [
+      0.00015
+    ],
+    "expected": 0.0001,
+    "label": "exact half tie"
+  },
+  {
+    "fn": "shrink",
+    "args": [
+      1,
+      32,
+      0,
+      0
+    ],
+    "expected": 0.03125,
+    "label": ""
+  },
+  {
+    "fn": "weekdayBerlin",
+    "args": [
+      "2027-03-28T00:30:00Z"
+    ],
+    "expected": 6,
+    "label": ""
+  },
+  {
+    "fn": "berlinDate",
+    "args": [
+      "2027-03-28T00:30:00Z"
+    ],
+    "expected": "2027-03-28",
+    "label": ""
+  },
+  {
+    "fn": "berlinLocal",
+    "args": [
+      "2027-03-28T00:30:00Z"
+    ],
+    "expected": "2027-03-28T01:30:00",
+    "label": ""
+  },
+  {
+    "fn": "weekdayBerlin",
+    "args": [
+      "2027-03-28T01:30:00Z"
+    ],
+    "expected": 6,
+    "label": ""
+  },
+  {
+    "fn": "berlinDate",
+    "args": [
+      "2027-03-28T01:30:00Z"
+    ],
+    "expected": "2027-03-28",
+    "label": ""
+  },
+  {
+    "fn": "berlinLocal",
+    "args": [
+      "2027-03-28T01:30:00Z"
+    ],
+    "expected": "2027-03-28T03:30:00",
+    "label": ""
+  },
+  {
+    "fn": "weekdayBerlin",
+    "args": [
+      "2027-03-28T22:30:00Z"
+    ],
+    "expected": 0,
+    "label": ""
+  },
+  {
+    "fn": "berlinDate",
+    "args": [
+      "2027-03-28T22:30:00Z"
+    ],
+    "expected": "2027-03-29",
+    "label": ""
+  },
+  {
+    "fn": "berlinLocal",
+    "args": [
+      "2027-03-28T22:30:00Z"
+    ],
+    "expected": "2027-03-29T00:30:00",
+    "label": ""
+  },
+  {
+    "fn": "weekdayBerlin",
+    "args": [
+      "2027-10-31T01:30:00Z"
+    ],
+    "expected": 6,
+    "label": ""
+  },
+  {
+    "fn": "berlinDate",
+    "args": [
+      "2027-10-31T01:30:00Z"
+    ],
+    "expected": "2027-10-31",
+    "label": ""
+  },
+  {
+    "fn": "berlinLocal",
+    "args": [
+      "2027-10-31T01:30:00Z"
+    ],
+    "expected": "2027-10-31T02:30:00",
+    "label": ""
+  },
+  {
+    "fn": "zonedToUtc",
+    "args": [
+      "2027-03-28",
+      "01:30"
+    ],
+    "expected": "2027-03-28T00:30:00.000Z",
+    "label": ""
+  },
+  {
+    "fn": "zonedToUtc",
+    "args": [
+      "2027-03-28",
+      "02:30"
+    ],
+    "expected": "2027-03-28T01:30:00.000Z",
+    "label": ""
+  },
+  {
+    "fn": "zonedToUtc",
+    "args": [
+      "2027-03-28",
+      "03:30"
+    ],
+    "expected": "2027-03-28T01:30:00.000Z",
+    "label": ""
+  },
+  {
+    "fn": "zonedToUtc",
+    "args": [
+      "2027-10-31",
+      "02:30"
+    ],
+    "expected": "2027-10-31T00:30:00.000Z",
+    "label": ""
+  }
+]
