@@ -20,8 +20,8 @@ self.addEventListener('fetch', (event) => {
   }
 })
 
-// Revalidate odds after rebuilds. History Parquet is read with Range requests, which the
-// Cache API can't serve correctly, so only whole-file reads (meta.json) go through the cache.
+// Revalidate odds after rebuilds. History Parquet stays in the browser's HTTP cache (ETag revalidation);
+// jsonCachePlugin keeps it out of this cache, so only meta.json goes through it.
 const sameOrigin = (url: URL) => url.origin === self.location.origin
 registerRoute(({ url }) => sameOrigin(url) && url.pathname.startsWith('/data/odds/'),
   new StaleWhileRevalidate({ cacheName: 'kurt-odds', plugins: [jsonCachePlugin, new ExpirationPlugin({ maxAgeSeconds: 7 * 24 * 3600, maxEntries: 500 })] }))

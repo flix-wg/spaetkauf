@@ -23,6 +23,6 @@ The current file has 2,964,486 events in 357,131 runs.
 
 ## In the browser
 
-The static site queries monthly Parquet files with DuckDB-WASM using HTTP range reads. Run
+The static site downloads the monthly Parquet files once per session (about 40 MB; Cloudflare Pages ignores Range requests) and queries them in memory with DuckDB-WASM. Run
 `scripts/fetch_duckdb_ext.sh` before a frontend build or test to fetch the self-hosted Parquet extension. The
 WASM module ships gzipped; the CSP needs `script-src wasm-unsafe-eval` and `connect-src self blob:`.

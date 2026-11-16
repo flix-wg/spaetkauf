@@ -123,9 +123,14 @@ async function initialize() {
   try {
     try { await db.instantiate(moduleURL) }
     finally { URL.revokeObjectURL(moduleURL) }
-    await db.open({ filesystem: { reliableHeadRequests: true, allowFullHTTPReads: false, forceFullHTTPReads: false } })
+    // Cloudflare Pages answers Range requests with the whole file, so load each file once and query it in memory.
     const files = meta.files!
-    for (const file of files) await db.registerFileURL(file, new URL(`/data/history/${file}`, location.href).href, duck.DuckDBDataProtocol.HTTP, false)
+    const buffers = await Promise.all(files.map(async file => {
+      const part = await fetch(`/data/history/${file}`)
+      if (!part.ok) throw new Error('Run history unavailable')
+      return new Uint8Array(await part.arrayBuffer())
+    }))
+    for (const [i, file] of files.entries()) await db.registerFileBuffer(file, buffers[i])
     const conn = await db.connect()
     await conn.query(`SET custom_extension_repository = '${location.origin}/duckdb/extensions'`)
     await conn.query('LOAD parquet')
