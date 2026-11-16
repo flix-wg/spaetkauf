@@ -40,7 +40,7 @@ export function Legal({ page }: { page: 'impressum' | 'datenschutz' }) {
           <li><b>Statistik:</b> Cloudflare Web Analytics zählt Seitenaufrufe und Ladezeiten, ohne Cookies und ohne etwas auf deinem Gerät zu speichern. Wir sehen nur zusammengefasste Zahlen.</li>
           <li><b>Chrome-Erweiterung (optional):</b> Sie lädt Zugdateien von der eingestellten Kurt-Seite und schickt Start, Ziel, Datum und Abfahrtszeit an Transitous. Ihre Einstellungen gleicht Google bei aktiver Chrome-Synchronisierung ab.</li>
         </ul>
-        <p>Rechtsgrundlage ist jeweils Art. 6 Abs. 1 lit. f DSGVO (Bereitstellung und Verbesserung der Website). Cloudflare ist unser Auftragsverarbeiter; Übermittlungen in die USA erfolgen nach dem EU-US Data Privacy Framework.</p>
+        <p>Rechtsgrundlage ist jeweils Art. 6 Abs. 1 lit. f DSGVO (Bereitstellung und Verbesserung der Website). Cloudflare ist unser Auftragsverarbeiter; Übermittlungen in die USA erfolgen nach dem EU-US Data Privacy Framework. Wir selbst speichern keine dieser Daten; Cloudflare und Transitous löschen sie, sobald sie für Betrieb und Sicherheit nicht mehr nötig sind.</p>
         <h2>Auf deinem Gerät</h2>
         <p>Kurt setzt keine Cookies und hat kein Konto. Gespeicherte Fahrten, Einstellungen und Zwischenspeicher liegen nur im Speicher deines Browsers (§ 25 Abs. 2 Nr. 2 TDDDG) und gehen nicht an uns. Du löschst sie in der App oder über deinen Browser.</p>
         <h2>Deine Rechte</h2>
