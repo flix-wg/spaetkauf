@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 
-test('Pages headers allow browser data, DuckDB and the inline bootstrap scripts', () => {
+test('Pages headers allow browser data, DuckDB, the inline bootstrap scripts and Cloudflare Web Analytics', () => {
   const blocks = new Map<string, Map<string, string>>()
   let headers: Map<string, string>
   for (const line of readFileSync(new URL('../public/_headers', import.meta.url), 'utf8').split('\n')) {
@@ -19,8 +19,8 @@ test('Pages headers allow browser data, DuckDB and the inline bootstrap scripts'
     return [name, sources]
   }))
   for (const [directive, sources] of Object.entries({
-    'default-src': ["'self'"], 'connect-src': ["'self'", 'blob:', 'https://api.transitous.org'],
-    'script-src': ["'self'", "'wasm-unsafe-eval'"], 'worker-src': ["'self'"],
+    'default-src': ["'self'"], 'connect-src': ["'self'", 'blob:', 'https://api.transitous.org', 'https://cloudflareinsights.com'],
+    'script-src': ["'self'", "'wasm-unsafe-eval'", 'https://static.cloudflareinsights.com'], 'worker-src': ["'self'"],
     'style-src': ["'self'", "'unsafe-inline'"], 'img-src': ["'self'", 'data:', 'blob:'],
     'font-src': ["'self'"], 'frame-ancestors': ["'none'"], 'base-uri': ["'self'"], 'object-src': ["'none'"],
   })) for (const source of sources) assert.ok(csp.get(directive)?.includes(source), `${directive}: ${source}`)

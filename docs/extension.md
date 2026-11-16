@@ -14,7 +14,7 @@ The service worker computes the odds with the same code as the app. It fetches `
 
 ## What it sends
 
-The Kurt site sees which train files are requested. Transitous gets the start and destination names and the departure time. Nothing goes to bahn.de beyond the page you loaded. No tracking.
+The extension computes odds from Kurt files. The Kurt site receives file requests with IP addresses and technical data. Transitous receives start, destination, date, departure time, IP address and a technical extension identifier. Page structure, prices and account data are not sent. Chrome stores settings; Google syncs them if sync is on. Search counters and status data stay local. The website uses Cloudflare Web Analytics for aggregated usage and loading metrics. Nothing goes to bahn.de beyond the page you loaded.
 
 ## Tests
 

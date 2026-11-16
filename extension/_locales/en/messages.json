@@ -30,7 +30,7 @@
     "message": "Reset to default"
   },
   "privacy": {
-    "message": "The odds files come from your Kurt site, which sees only the train names it is asked for.\nTo count a change like the app, the start and destination names and the departure time go to Transitous (api.transitous.org). No tracking."
+    "message": "The extension computes the odds itself from files on your Kurt site; the site sees which trains are requested and your IP address. Transitous receives start, destination, date, departure time and IP address. Chrome stores settings; Google syncs them if sync is on."
   },
   "unreachable": {
     "message": "Unreachable: no odds until the server is back"

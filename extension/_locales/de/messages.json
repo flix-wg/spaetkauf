@@ -30,7 +30,7 @@
     "message": "Auf Standard zurücksetzen"
   },
   "privacy": {
-    "message": "Die Chancen-Dateien kommen von deiner Kurt-Seite, die nur die angefragten Zugnamen sieht.\nUm einen Umstieg wie die App zu zählen, gehen Start, Ziel und Abfahrtszeit an Transitous (api.transitous.org). Kein Tracking."
+    "message": "Die Erweiterung berechnet die Chancen selbst aus Dateien deiner Kurt-Seite; die Seite sieht, welche Züge angefragt werden, und deine IP-Adresse. Transitous erhält Start, Ziel, Datum, Abfahrtszeit und IP-Adresse. Chrome speichert Einstellungen; bei aktiver Synchronisierung gleicht Google sie ab."
   },
   "unreachable": {
     "message": "Nicht erreichbar: keine Chancen, bis der Server wieder da ist"
