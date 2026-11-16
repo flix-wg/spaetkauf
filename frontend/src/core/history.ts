@@ -125,11 +125,12 @@ async function initialize() {
     finally { URL.revokeObjectURL(moduleURL) }
     // Cloudflare Pages answers Range requests with the whole file, so load each file once and query it in memory.
     const files = meta.files!
+    const downloads = new AbortController()
     const buffers = await Promise.all(files.map(async file => {
-      const part = await fetch(`/data/history/${file}`)
+      const part = await fetch(`/data/history/${file}`, { signal: downloads.signal })
       if (!part.ok) throw new Error('Run history unavailable')
       return new Uint8Array(await part.arrayBuffer())
-    }))
+    })).catch(error => { downloads.abort(); throw error })
     for (const [i, file] of files.entries()) await db.registerFileBuffer(file, buffers[i])
     const conn = await db.connect()
     await conn.query(`SET custom_extension_repository = '${location.origin}/duckdb/extensions'`)
