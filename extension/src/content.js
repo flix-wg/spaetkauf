@@ -54,7 +54,7 @@
     }
     const date = cards[0]?.date || ctx.date;
     const body = { from: ctx.from, to: ctx.to, to_eva: ctx.toEva, date, connections: selected.map(c => ({ dep: c.dep, arr: c.arr, trains: c.trains, posted: c.posted, ...(c.date && c.date !== date ? { date: c.date } : {}) })) };
-    const config = await chrome.storage.sync.get({ server: 'https://65-108-33-75.sslip.io' });
+    const config = await chrome.storage.sync.get({ server: 'https://kurt-34y.pages.dev' });
     const key = JSON.stringify([config.server, body]);
     if (key !== lastKey) {
       const response = await send({ type: 'odds', body });

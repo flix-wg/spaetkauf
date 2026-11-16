@@ -36,3 +36,12 @@ test('an unreachable site gives no odds and does not throw',async()=>{
     assert.equal(response.kurt,null);
   } finally { globalThis.fetch=original; }
 });
+
+test('default site is Pages and localhost permissions remain available',()=>{
+  const origin='https://kurt-34y.pages.dev';
+  const manifest=require('../manifest.json');
+  for(const host of [origin+'/*','http://127.0.0.1/*','http://localhost/*']) assert.ok(manifest.host_permissions.includes(host));
+  for(const name of ['sw.js','content.js','options.js','popup.js','options.html']) {
+    assert.ok(fs.readFileSync(path.join(__dirname,'../src',name),'utf8').includes(origin),name);
+  }
+});

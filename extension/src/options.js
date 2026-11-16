@@ -3,7 +3,7 @@
 document.documentElement.lang = globalThis.chrome?.i18n?.getUILanguage?.()?.startsWith('de') ? 'de' : 'en';
 for (const element of document.querySelectorAll('[data-i18n]')) element.textContent = msg(element.dataset.i18n, element.textContent);
 
-const DEFAULT_SERVER = 'https://65-108-33-75.sslip.io';
+const DEFAULT_SERVER = 'https://kurt-34y.pages.dev';
 const input = document.getElementById('server');
 const message = document.getElementById('message');
 chrome.storage.sync.get({ server: DEFAULT_SERVER }).then(config => { input.value = config.server; });

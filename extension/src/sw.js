@@ -2,7 +2,7 @@
 importScripts('../dist/odds.js');
 const msg = (key, fallback, ...values) => globalThis.chrome?.i18n?.getMessage(key, values.map(String)) || fallback.replace(/\$(\d+)/g, (_, n) => String(values[Number(n) - 1] ?? ''));
 
-const DEFAULT_SERVER = 'https://65-108-33-75.sslip.io';
+const DEFAULT_SERVER = 'https://kurt-34y.pages.dev';
 const oddsCache = new Map();
 const pending = new Map();
 const sources = new Map();

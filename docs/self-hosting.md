@@ -1,41 +1,17 @@
-# Self-hosting
+# Static hosting
 
-Kurt runs as two containers: the app (FastAPI, which also serves the built web app) and Caddy for HTTPS. A small Linux VM with Docker and the Compose plugin is enough; the app uses about 150 MB of RAM. Open ports 80 and 443 and point a host name at the VM. Without a domain, `<ip-with-dashes>.sslip.io` works.
+Kurt runs entirely in the browser. Cloudflare Pages serves `frontend/dist`; no backend, VM or database server is deployed. The public site is https://kurt-34y.pages.dev (Pages project `kurt`).
 
-## Configure
+Follow the data preparation steps in [README](../README.md), then run `cd frontend && npm ci && npm run build`. Odds are exported from `data/odds.sqlite`; history Parquet files and `meta.json` are copied from the committed `data/static/history/`. `scripts/fetch_duckdb_ext.sh` downloads and verifies the self-hosted DuckDB Parquet extension. Every deployed file must be at most 25 MiB.
 
-```bash
-git clone https://github.com/flix-wg/spaetkauf.git /opt/spaetkauf && cd /opt/spaetkauf
-cp .env.example .env
-```
+Set `VITE_OPERATOR_NAME`, `VITE_OPERATOR_ADDRESS` (lines separated by `;`), `VITE_OPERATOR_EMAIL` and `VITE_OPERATOR_LINKEDIN` at build time; see `frontend/.env.example`. Keep real operator details out of git.
 
-Empty values in `.env` fall back to defaults. The ones that matter:
+## Pages deployment
 
-| Variable | Notes |
-|---|---|
-| `SITE_ADDRESS` | Your host name, or several, comma separated. |
-| `SPAETKAUF_CLIENT_NAME` | User-Agent with a contact, e.g. `kurt-yourname/0.1 (+https://example.org)`. Transitous asks every client for one. |
-| `SPAETKAUF_PLAN_BUDGET` | Route searches per day (default 700). Keep the load on Transitous light. |
-| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Push alerts. Generate the keys with `cd backend && uv run python scripts/gen_vapid.py`. |
-| `OPERATOR_NAME`, `OPERATOR_ADDRESS`, `OPERATOR_EMAIL`, `LEGAL_HOSTING`, `LEGAL_CDN` | Shown on `/impressum` and `/datenschutz`. |
+CI tests the backend, frontend and extension. A push to `main` builds and deploys the static site with Wrangler. Configure repository secrets `CLOUDFLARE_API_TOKEN` (Pages deployment access) and `CLOUDFLARE_ACCOUNT_ID`, and repository variables `OPERATOR_NAME`, `OPERATOR_ADDRESS`, `OPERATOR_EMAIL`, `OPERATOR_LINKEDIN`; CI maps them to `VITE_OPERATOR_*` for the build.
 
-`.env.example` lists the optional API keys as well (news, strike monitors, the extension's layout helper). Kurt works without them. If you change the code or turn on other services, update the privacy page in `frontend/src/screens/Legal.tsx` to match.
+To redeploy, run the CI workflow manually. Its optional `ref` accepts a branch, tag or commit; `main` deploys production and any other ref deploys the `preview` branch. For a production rollback, deploy the old ref as a preview first, then promote it in Pages. The job checks the published odds URL for HTTP 200 and JSON, retrying for propagation.
 
-## Start
+Pages copies `frontend/public/_headers` to the build: one-day data caching, immutable hashed assets, a CSP with hashes for the inline bootstrap scripts, and raw gzip bytes for DuckDB (the app decompresses them itself). `vite preview` does not reproduce these headers. After deploying, check history queries and range responses in a fresh browser, alongside search, PWA installation and the extension. Pages returns the app shell for unknown paths, so a 200 response alone does not prove a data file exists.
 
-```bash
-docker compose --env-file .env -f deploy/docker-compose.yml up -d --build
-curl -fsS https://<your-host>/api/health
-```
-
-Caddy fetches the certificate on the first request. Saved trips live in the `appdata` volume. The app deletes a trip 30 days after it arrives (a year after saving if it never finished) and cached searches after 7 days.
-
-The "past runs" lists also need `data/history.duckdb`; see [history.md](history.md).
-
-## Day to day
-
-- Update: `git pull`, then run the `up -d --build` command again. From another machine, `HEALTH_URL=https://<your-host>/api/health deploy/ship.sh user@host [git-ref]` does the same.
-- Delete all trips and push subscriptions: `docker compose ... down`, `docker volume rm deploy_appdata`, then `up -d`.
-- The app logs the host name of every outbound call, so you can check that it never contacts bahn.de: `docker compose --env-file .env -f deploy/docker-compose.yml logs app | grep outbound`.
-
-Behind Cloudflare, turn on the proxy only after Caddy has its certificate, use SSL mode "Full (strict)", leave "Always Use HTTPS" off and bypass the cache for `/api/*`, `/sw.js` and `/manifest.webmanifest`. Set `LEGAL_CDN=cloudflare`.
+Saved trips live in IndexedDB in each browser; clearing site data removes them. The retained `backend/` and `deploy/` are legacy code and are not part of this deployment.

@@ -4,7 +4,7 @@ document.documentElement.lang = globalThis.chrome?.i18n?.getUILanguage?.()?.star
 for (const element of document.querySelectorAll('[data-i18n]')) element.textContent = msg(element.dataset.i18n, element.textContent);
 
 (async () => {
-  const config = await chrome.storage.sync.get({ enabled: true, server: 'https://65-108-33-75.sslip.io' });
+  const config = await chrome.storage.sync.get({ enabled: true, server: 'https://kurt-34y.pages.dev' });
   const toggle = document.getElementById('enabled');
   toggle.checked = config.enabled;
   toggle.addEventListener('change', () => chrome.storage.sync.set({ enabled: toggle.checked }));

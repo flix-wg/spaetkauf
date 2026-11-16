@@ -11,11 +11,16 @@ Kurt started at Junction 2026. It is not affiliated with Deutsche Bahn and never
 To run your own copy you need Python 3.12 with [uv](https://docs.astral.sh/uv/) and Node 22 or newer:
 
 ```bash
-cd backend && uv sync --frozen && uv run uvicorn app.main:app --port 8710
-cd frontend && npm ci && npm run dev    # second terminal
+uv run --project backend python scripts/export_static.py --odds data/odds.sqlite --out frontend/public/data
+mkdir -p frontend/public/data/history
+cp data/static/history/*.parquet data/static/history/meta.json frontend/public/data/history/
+bash scripts/fetch_duckdb_ext.sh
+cd frontend && npm ci && npm run dev
 ```
 
-Then open http://localhost:5710. No API keys are needed. Tests: `cd backend && uv run pytest`. A guide for hosting your own copy as a static site will follow once Kurt moves to one.
+Open http://localhost:5710. No backend or API keys are needed: the browser computes odds, queries history with DuckDB-WASM, and requests routes from Transitous. Booked trips stay in this browser. Set operator details in `frontend/.env.local` using `frontend/.env.example`.
+
+Checks: in `frontend/`, run `npm test`, `npm run typecheck` and `npm run build`; in `extension/`, run `npm test`. The retained backend has its own checks: `cd backend && uv run ruff check . && uv run pytest -q`. See [self-hosting](docs/self-hosting.md) for the static build and Pages deployment.
 
 ## Browser extension
 

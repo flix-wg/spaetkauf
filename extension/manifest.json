@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "description": "__MSG_description__",
   "permissions": ["storage", "declarativeNetRequestWithHostAccess"],
-  "host_permissions": ["https://65-108-33-75.sslip.io/*", "https://api.transitous.org/*", "http://127.0.0.1/*", "http://localhost/*"],
+  "host_permissions": ["https://kurt-34y.pages.dev/*", "https://api.transitous.org/*", "http://127.0.0.1/*", "http://localhost/*"],
   "optional_host_permissions": ["https://*/*"],
   "background": {"service_worker": "src/sw.js"},
   "action": {"default_popup": "src/popup.html", "default_icon": {"16": "icons/16.png", "32": "icons/32.png"}},
