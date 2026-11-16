@@ -20,10 +20,11 @@ test('Pages headers allow browser data, DuckDB and the inline bootstrap scripts'
   }))
   for (const [directive, sources] of Object.entries({
     'default-src': ["'self'"], 'connect-src': ["'self'", 'blob:', 'https://api.transitous.org'],
-    'script-src': ["'self'", "'wasm-unsafe-eval'"], 'worker-src': ["'self'", 'blob:'],
+    'script-src': ["'self'", "'wasm-unsafe-eval'"], 'worker-src': ["'self'"],
     'style-src': ["'self'", "'unsafe-inline'"], 'img-src': ["'self'", 'data:', 'blob:'],
     'font-src': ["'self'"], 'frame-ancestors': ["'none'"], 'base-uri': ["'self'"], 'object-src': ["'none'"],
   })) for (const source of sources) assert.ok(csp.get(directive)?.includes(source), `${directive}: ${source}`)
+  assert.deepEqual(csp.get('worker-src'), ["'self'"])
   assert.ok(!csp.get('script-src')!.includes("'unsafe-inline'"))
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8')
   for (const [, script] of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) {

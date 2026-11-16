@@ -18,7 +18,12 @@ const userAgent = chrome.declarativeNetRequest.updateSessionRules({
   }]
 });
 async function settings() {
-  return chrome.storage.sync.get({ enabled: true, server: DEFAULT_SERVER });
+  const config = await chrome.storage.sync.get({ enabled: true, server: DEFAULT_SERVER });
+  if (config.server === 'https://65-108-33-75.sslip.io') {
+    config.server = DEFAULT_SERVER;
+    await chrome.storage.sync.set({ server: DEFAULT_SERVER });
+  }
+  return config;
 }
 function serverURL(value) {
   const url = new URL(value);
@@ -92,5 +97,5 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
   handle(message, sender).then(respond, error => respond({ ok: false, status: 0, error: error.message }));
   return true;
 });
-chrome.runtime.onInstalled.addListener(() => { chrome.storage.local.remove(['specs', 'failures']); });
+chrome.runtime.onInstalled.addListener(() => { chrome.storage.local.remove(['specs', 'failures']); settings(); });
 chrome.tabs.onRemoved.addListener(tabId => { chrome.storage.session.remove('tab:' + tabId); });

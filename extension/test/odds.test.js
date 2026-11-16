@@ -45,3 +45,28 @@ test('default site is Pages and localhost permissions remain available',()=>{
     assert.ok(fs.readFileSync(path.join(__dirname,'../src',name),'utf8').includes(origin),name);
   }
 });
+
+test('saved legacy default migrates once while custom origins stay unchanged',async()=>{
+  let server='https://65-108-33-75.sslip.io', writes=0;
+  const context=vm.createContext({
+    importScripts(){},
+    chrome:{
+      declarativeNetRequest:{updateSessionRules:async()=>{}},
+      runtime:{id:'test',getManifest:()=>({version:'1'}),onMessage:{addListener(){}},onInstalled:{addListener(){}}},
+      tabs:{TAB_ID_NONE:-1,onRemoved:{addListener(){}}},
+      storage:{sync:{
+        get:async defaults=>({...defaults,server}),
+        set:async value=>{server=value.server;writes++;},
+      }},
+    },
+  });
+  vm.runInContext(fs.readFileSync(path.join(__dirname,'../src/sw.js'),'utf8'),context);
+  assert.equal((await vm.runInContext('settings()',context)).server,'https://kurt-34y.pages.dev');
+  await vm.runInContext('settings()',context);
+  assert.equal(writes,1);
+  for(const custom of ['https://custom.example','http://localhost:5710','https://65-108-33-75.sslip.io/']) {
+    server=custom;
+    assert.equal((await vm.runInContext('settings()',context)).server,custom);
+  }
+  assert.equal(writes,1);
+});

@@ -21,6 +21,8 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
@@ -36,6 +38,8 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -43,7 +47,10 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - uses: astral-sh/setup-uv@v7
-      - run: uv run --project ../backend python ../scripts/export_static.py --odds ../data/odds.sqlite --out public/data
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv run --frozen --project ../backend python ../scripts/export_static.py --odds ../data/odds.sqlite --out public/data
       - run: mkdir -p public/data/history && cp ../data/static/history/*.parquet ../data/static/history/meta.json public/data/history/
       - run: bash ../scripts/fetch_duckdb_ext.sh
       - run: npm test
@@ -57,13 +64,18 @@ jobs:
         working-directory: extension
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: extension/package-lock.json
       - uses: astral-sh/setup-uv@v7
-      - run: uv run --project ../backend python ../scripts/export_static.py --odds ../data/odds.sqlite --out ../frontend/public/data
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv run --frozen --project ../backend python ../scripts/export_static.py --odds ../data/odds.sqlite --out ../frontend/public/data
       - run: npm ci
       - run: npm test
 
@@ -75,16 +87,38 @@ jobs:
       group: pages-deploy
       cancel-in-progress: false
     steps:
+      - name: Check deployment configuration
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DEPLOY_REF: ${{ inputs.ref || github.ref }}
+          VITE_OPERATOR_NAME: ${{ vars.OPERATOR_NAME }}
+          VITE_OPERATOR_ADDRESS: ${{ vars.OPERATOR_ADDRESS }}
+          VITE_OPERATOR_EMAIL: ${{ vars.OPERATOR_EMAIL }}
+          VITE_OPERATOR_LINKEDIN: ${{ vars.OPERATOR_LINKEDIN }}
+        run: |
+          python3 - <<'PYTHON'
+          import os
+          required = ['CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_ACCOUNT_ID']
+          if os.environ['DEPLOY_REF'] in ('main', 'refs/heads/main'):
+              required += ['VITE_OPERATOR_NAME', 'VITE_OPERATOR_ADDRESS', 'VITE_OPERATOR_EMAIL', 'VITE_OPERATOR_LINKEDIN']
+          missing = [key for key in required if not os.environ.get(key, '').strip()]
+          if missing:
+              raise SystemExit('Missing deployment configuration: ' + ', '.join(missing))
+          PYTHON
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - run: uv run --project backend python scripts/export_static.py --odds data/odds.sqlite --out frontend/public/data
+      - run: uv run --frozen --project backend python scripts/export_static.py --odds data/odds.sqlite --out frontend/public/data
       - run: mkdir -p frontend/public/data/history && cp data/static/history/*.parquet data/static/history/meta.json frontend/public/data/history/
       - run: bash scripts/fetch_duckdb_ext.sh
       - run: npm ci && npm run build
@@ -126,17 +160,16 @@ jobs:
       - name: Check published odds
         env:
           DEPLOY_URL: ${{ steps.deploy.outputs.url }}
-          DEPLOY_REF: ${{ inputs.ref || github.ref }}
         run: |
           origin="$DEPLOY_URL"
-          if [[ "$DEPLOY_REF" == main || "$DEPLOY_REF" == refs/heads/main ]]; then origin=https://kurt-34y.pages.dev; fi
           for attempt in {1..6}; do
             if curl --silent --show-error --location --connect-timeout 10 --max-time 30 \
               --output /tmp/kurt-odds.json --write-out '%{http_code} %{content_type}' \
               "$origin/data/odds/index.json" | grep -Eq '^200 application/json([; ]|$)'; then
-              python3 -m json.tool /tmp/kurt-odds.json > /dev/null && exit 0
+              if python3 -m json.tool /tmp/kurt-odds.json > /dev/null && \
+                cmp --silent frontend/public/data/odds/index.json /tmp/kurt-odds.json; then exit 0; fi
             fi
             sleep 10
           done
-          echo 'Published odds did not return 200 JSON' >&2
+          echo 'Published odds did not return 200 JSON matching the local index' >&2
           exit 1
