@@ -73,8 +73,6 @@ const enLabels = {
   "moreSnailsMoreOften20MinLate": "More snails: more often 20+ min late. Good for you.",
   "routesTrainsAndLiveDelaysOpenMotis": "Routes, trains and live delays (open MOTIS service).",
   "pastArrivalDelaysBehindEveryPercentageLicence": "Past arrival delays behind every percentage, licence CC BY 4.0.",
-  "citedNewsOnStrikesClosuresAndTrack": "Cited news on strikes, closures and track works for your day. Kurt’s pick warns when past runs may not cover them.",
-  "watchesStrikeAnnouncementPagesForChanges": "Watches strike announcement pages for changes.",
   "sources": "Sources",
   "kurtIsIndependentItIsNotAffiliated": "Kurt is independent. It is not affiliated with Deutsche Bahn and does not sell or book tickets.",
   "historyDataRangeUsed": "History data range used:",
@@ -127,7 +125,6 @@ const enLabels = {
   "impressum": "Legal notice",
   "datenschutz": "Privacy",
   "quellcode": "Source code",
-  "transitousQuellen": "Transitous sources",
   "test": "TEST",
   "viaContextDevPageMonitor": "via Context.dev page monitor",
   "strikeWatch": "Strike watch:",
@@ -430,7 +427,8 @@ const enLabels = {
   "alertsWhileOpen": "Kurt alerts you while this page is open.",
   "noAlternativesStatic": "Kurt doesn’t look up other trains here. Check DB Navigator.",
   "osmContributors": "© OpenStreetMap contributors",
-  "delayData": "Delay data",
+  "dataAndSources": "Data & sources",
+  "reportProblem": "Report a problem",
 }
 const deLabels: { [K in keyof typeof enLabels]: typeof enLabels[K] } = {
   "nothingHere": "Hier gibt es nichts",
@@ -506,8 +504,6 @@ const deLabels: { [K in keyof typeof enLabels]: typeof enLabels[K] } = {
   "moreSnailsMoreOften20MinLate": "Mehr Schnecken: öfter 20+ Min. verspätet. Gut für dich.",
   "routesTrainsAndLiveDelaysOpenMotis": "Verbindungen, Züge und Echtzeitverspätungen (offener MOTIS-Dienst).",
   "pastArrivalDelaysBehindEveryPercentageLicence": "Vergangene Ankunftsverspätungen hinter jeder Prozentzahl, Lizenz CC BY 4.0.",
-  "citedNewsOnStrikesClosuresAndTrack": "Belegte Nachrichten zu Streiks, Sperrungen und Bauarbeiten für deinen Reisetag. Kurt warnt, wenn vergangene Fahrten sie nicht abbilden.",
-  "watchesStrikeAnnouncementPagesForChanges": "Beobachtet Änderungen auf Streikankündigungsseiten.",
   "sources": "Quellen",
   "kurtIsIndependentItIsNotAffiliated": "Kurt ist unabhängig, gehört nicht zur Deutschen Bahn und verkauft oder bucht keine Tickets.",
   "historyDataRangeUsed": "Zeitraum der verwendeten Daten:",
@@ -560,7 +556,6 @@ const deLabels: { [K in keyof typeof enLabels]: typeof enLabels[K] } = {
   "impressum": "Impressum",
   "datenschutz": "Datenschutz",
   "quellcode": "Quellcode",
-  "transitousQuellen": "Transitous-Quellen",
   "test": "TEST",
   "viaContextDevPageMonitor": "über Context.dev-Seitenbeobachtung",
   "strikeWatch": "Streikbeobachtung:",
@@ -863,7 +858,8 @@ const deLabels: { [K in keyof typeof enLabels]: typeof enLabels[K] } = {
   "alertsWhileOpen": "Kurt meldet sich, solange diese Seite offen ist.",
   "noAlternativesStatic": "Kurt sucht hier keine anderen Züge. Schau im DB Navigator nach.",
   "osmContributors": "© OpenStreetMap-Mitwirkende",
-  "delayData": "Verspätungsdaten",
+  "dataAndSources": "Daten & Quellen",
+  "reportProblem": "Problem melden",
 }
 
 export function initialLang(): Lang {
