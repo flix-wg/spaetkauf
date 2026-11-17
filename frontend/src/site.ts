@@ -52,7 +52,7 @@ export const FAQ: Record<Lang, [string, string][]> = {
     ['Was ist Kurt?',
       'Kurt ist eine kostenlose Web-App für Bahnreisen in Deutschland. Kurt zeigt, wie oft ein Fernzug früher 20 Minuten oder mehr zu spät an deinem Ziel ankam, und beobachtet deine gebuchte Fahrt live. Kurt gehört nicht zur Deutschen Bahn und arbeitet nicht mit ihr zusammen.'],
     ['Wie spare ich mit einem Zug, der oft zu spät ist?',
-      'Ist dein Zug voraussichtlich 20 Minuten oder mehr zu spät an deinem Ziel, ist die Zugbindung aufgehoben. Dein Sparpreis oder Super Sparpreis gilt dann auch in anderen Zügen auf der Strecke, außer in reservierungspflichtigen. Du buchst also das günstige Ticket für den Zug, der oft zu spät ist, und nimmst im Zweifel einen schnelleren oder bequemeren.'],
+      'Ist dein Zug voraussichtlich 20 Minuten oder mehr zu spät an deinem Ziel, ist die Zugbindung aufgehoben. Dein Sparpreis oder Super Sparpreis gilt dann auch in anderen Zügen auf der Strecke, außer in reservierungspflichtigen. Du buchst also das günstige Ticket für den Zug, der oft zu spät ist, und nimmst im Zweifel einen schnelleren oder bequemeren. Eine Verspätung, die beim Buchen schon angekündigt war, zählt nicht.'],
     ['Wann bekomme ich Geld zurück?',
       'Ab 60 Minuten Verspätung am Ziel bekommst du 25 % des Fahrpreises zurück, ab 120 Minuten 50 %. Steht schon vor der Abfahrt fest, dass du 60 Minuten oder mehr zu spät ankommst, kannst du auf die Reise verzichten und bekommst den ganzen Fahrpreis zurück. Beträge unter 4 € zahlt die Bahn nicht aus. Den Antrag stellst du selbst bei der Bahn.'],
     ['Woher hat Kurt die Zahlen?',
@@ -70,7 +70,7 @@ export const FAQ: Record<Lang, [string, string][]> = {
     ['What is Kurt?',
       'Kurt is a free web app for train travel in Germany. It shows how often a long-distance train arrived 20 minutes or more late at your stop in the past, and watches your booked trip live. Kurt is not part of Deutsche Bahn and doesn’t work with it.'],
     ['How do I save money with a train that’s often late?',
-      'When your train is expected to reach your destination 20 minutes or more late, the train-specific booking (Zugbindung) no longer applies. Your Sparpreis or Super Sparpreis ticket is then valid on other trains on that route, except reservation-only ones. So you buy the cheap ticket for the train that’s often late, and when it is, you take a faster or more comfortable one.'],
+      'When your train is expected to reach your destination 20 minutes or more late, the train-specific booking (Zugbindung) no longer applies. Your Sparpreis or Super Sparpreis ticket is then valid on other trains on that route, except reservation-only ones. So you buy the cheap ticket for the train that’s often late, and when it is, you take a faster or more comfortable one. A delay already announced when you book doesn’t count.'],
     ['When do I get money back?',
       'At 60 minutes late at your destination you get 25 % of the fare back, at 120 minutes 50 %. If you know before you set off that you’ll be 60 minutes or more late, you can skip the trip and get the full fare back. Deutsche Bahn doesn’t pay out amounts under 4 €. You claim it from Deutsche Bahn yourself.'],
     ['Where do Kurt’s numbers come from?',
@@ -198,7 +198,7 @@ export const LLMS_TXT = `# Kurt
 
 The rules Kurt builds on (Deutsche Bahn passenger rights for national trips):
 
-- 20+ min expected delay at the destination: the train-specific booking (Zugbindung) no longer applies, so a Sparpreis or Super Sparpreis ticket is valid on other trains on the route, except reservation-only ones.
+- 20+ min expected delay at the destination: the train-specific booking (Zugbindung) no longer applies, so a Sparpreis or Super Sparpreis ticket is valid on other trains on the route, except reservation-only ones. A delay already announced at booking doesn't count.
 - 60+ min late: 25 % of the fare back. If the delay is known before departure, you can skip the trip for a full refund.
 - 120+ min late: 50 % of the fare back. Amounts under 4 € are not paid out.
 

@@ -6,9 +6,10 @@ import { IconChevron } from './Icons'
 
 // A plain link, so the page loads in the other language the same way a search engine sees it.
 function OtherLang({ className }: { className: string }) {
-  const { lang } = useT()
+  const { lang, setLang } = useT()
   const other = lang === 'de' ? 'en' : 'de'
-  return <a href={landingPath(other)} hrefLang={other} lang={other} className={className}>{COPY[lang].other}</a>
+  // Saved, so a choice made earlier in Settings doesn't switch `/` back.
+  return <a href={landingPath(other)} hrefLang={other} lang={other} onClick={() => setLang(other)} className={className}>{COPY[lang].other}</a>
 }
 
 // First visit on the landing page in a language the browser doesn't prefer: offer the other one.
