@@ -11,9 +11,8 @@ Kurt started at Junction 2026. It is not affiliated with Deutsche Bahn and never
 To run your own copy you need Python 3.12 with [uv](https://docs.astral.sh/uv/) and Node 22 or newer:
 
 ```bash
-uv run --project backend python scripts/export_static.py --odds data/odds.sqlite --out frontend/public/data
-mkdir -p frontend/public/data/history
-cp data/static/history/*.parquet data/static/history/meta.json frontend/public/data/history/
+bash scripts/fetch_data.sh
+uv run --project backend python scripts/export_static.py --odds data/odds.sqlite --history data/history.duckdb --out frontend/public/data
 bash scripts/fetch_duckdb_ext.sh
 cd frontend && npm ci && npm run dev
 ```
@@ -30,7 +29,7 @@ More in `docs/`: [how the odds are computed](docs/odds.md), [run history](docs/h
 
 ## Data and license
 
-Delay history: Deutsche Bahn (DB InfraGO Timetables API), collected by [piebro/deutsche-bahn-data](https://github.com/piebro/deutsche-bahn-data) and licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). `data/odds.sqlite` and `data/backtest.json` are derived from it (arrivals from December 2025 to October 2026, aggregated into late rates per train and stop) and are also CC BY 4.0.
+Delay history: Deutsche Bahn (DB InfraGO Timetables API), collected by [piebro/deutsche-bahn-data](https://github.com/piebro/deutsche-bahn-data) and licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The odds and run history are derived from it (arrivals in the newest 12 months it publishes, aggregated into late rates per train and stop; rebuilt when a new month comes out and published as `data-*` releases of this repository), as is `data/backtest.json`; all are also CC BY 4.0.
 
 Routes and live delays: [Transitous](https://transitous.org) ([data sources](https://transitous.org/sources/)), map data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors.
 

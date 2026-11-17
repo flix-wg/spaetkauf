@@ -21,7 +21,9 @@ import duckdb
 
 sys.path[:0] = [str(Path(__file__).parent), str(Path(__file__).resolve().parent.parent / "backend")]
 from app.odds import shrunk_rate
-from build_odds import MONTHS, ROOT, download, load_events
+from build_odds import ROOT, download, load_events
+
+MONTHS = ["2025-12"] + [f"2026-{m:02d}" for m in range(1, 11)]  # the backtest keeps its fixed periods
 
 TRAIN = ("2025-12-14", "2026-08-31")
 HOLDOUT_FROM = "2026-08-01"
@@ -73,7 +75,7 @@ def with_late(con, name: str) -> None:
 
 
 def main() -> None:
-    files = download(MONTHS)
+    files = download(dict.fromkeys(MONTHS))
     con = duckdb.connect()
     load_events(con, files, *TRAIN)
     with_late(con, "train_events")

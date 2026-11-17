@@ -8,6 +8,8 @@ const require = createRequire(import.meta.url)
 const dist = new URL('../../node_modules/@duckdb/duckdb-wasm/dist/', import.meta.url).pathname
 const data = new URL('../../public/data/history/', import.meta.url)
 const golden = JSON.parse(readFileSync(new URL('./golden/history.json', import.meta.url), 'utf8'))
+const meta = JSON.parse(readFileSync(new URL('meta.json', data), 'utf8'))
+const afterRange = new Date(Date.parse(`${meta.date_to}T12:00:00Z`) + 86_400_000).toISOString().slice(0, 10)
 let db, conn, history
 before(async () => {
   assert.ok(existsSync(data), 'History Parquet data missing; run scripts/export_static.py --history <history.duckdb> --out frontend/public/data')
@@ -52,11 +54,11 @@ test('train stops match Python', async () => {
   assert.deepEqual(await history.historyTrain('ICE 785', 4), golden.train)
 })
 test('DST stop-day matches Python', async () => {
-  assert.deepEqual(await history.historyStopDay('München Hbf', '2026-03-29'), golden.day)
+  assert.deepEqual(await history.historyStopDay('München Hbf', golden.day.date), golden.day)
 })
 test('unknown train and out-of-range date retain the Python errors', async () => {
   await assert.rejects(history.historyRuns('ICE 99999', 'München Hbf'), new NotFound('No history for ICE 99999'))
-  await assert.rejects(history.historyStopDay('München Hbf', '2027-01-01'), new NotFound('The history covers 2025-12-14 to 2026-10-31, not 2027-01-01'))
+  await assert.rejects(history.historyStopDay('München Hbf', afterRange), new NotFound(`The history covers ${meta.date_from} to ${meta.date_to}, not ${afterRange}`))
 })
 
 test('shares round exact halves to even like Python', async () => {

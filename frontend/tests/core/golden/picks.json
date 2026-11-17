@@ -566,8 +566,8 @@
               }
             ],
             "odds": {
-              "p20": 0.5971,
-              "p60": 0.2453,
+              "p20": 0.5969,
+              "p60": 0.2451,
               "late": 27,
               "n": 44,
               "weekday": "Saturday",
@@ -618,10 +618,10 @@
               }
             ],
             "odds": {
-              "p20": 0.2651,
-              "p60": 0.0648,
+              "p20": 0.2425,
+              "p60": 0.0632,
               "late": 8,
-              "n": 34,
+              "n": 41,
               "weekday": "Saturday",
               "basis": "history"
             },
@@ -670,10 +670,10 @@
               }
             ],
             "odds": {
-              "p20": 0.2651,
-              "p60": 0.0648,
+              "p20": 0.2425,
+              "p60": 0.0632,
               "late": 8,
-              "n": 34,
+              "n": 41,
               "weekday": "Saturday",
               "basis": "history"
             },
@@ -722,10 +722,10 @@
               }
             ],
             "odds": {
-              "p20": 0.2651,
-              "p60": 0.0648,
+              "p20": 0.2425,
+              "p60": 0.0632,
               "late": 8,
-              "n": 34,
+              "n": 41,
               "weekday": "Saturday",
               "basis": "history"
             },
@@ -774,8 +774,8 @@
               }
             ],
             "odds": {
-              "p20": 0.2223,
-              "p60": 0.0693,
+              "p20": 0.2221,
+              "p60": 0.0692,
               "late": 10,
               "n": 45,
               "weekday": "Saturday",
@@ -951,8 +951,8 @@
               }
             ],
             "odds": {
-              "p20": 0.5971,
-              "p60": 0.2453,
+              "p20": 0.5969,
+              "p60": 0.2451,
               "late": 27,
               "n": 44,
               "weekday": "Saturday",
@@ -1003,10 +1003,10 @@
               }
             ],
             "odds": {
-              "p20": 0.2651,
-              "p60": 0.0648,
+              "p20": 0.2425,
+              "p60": 0.0632,
               "late": 8,
-              "n": 34,
+              "n": 41,
               "weekday": "Saturday",
               "basis": "history"
             },
@@ -1016,7 +1016,7 @@
             "ride_instead": null,
             "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T05:30:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false",
             "spare_min": 120,
-            "p_miss": 0.0449,
+            "p_miss": 0.0456,
             "late_ok": {
               "unlock": true,
               "refund25": true,
@@ -1055,10 +1055,10 @@
               }
             ],
             "odds": {
-              "p20": 0.2651,
-              "p60": 0.0648,
+              "p20": 0.2425,
+              "p60": 0.0632,
               "late": 8,
-              "n": 34,
+              "n": 41,
               "weekday": "Saturday",
               "basis": "history"
             },
@@ -1076,7 +1076,7 @@
             },
             "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T05:45:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false",
             "spare_min": 105,
-            "p_miss": 0.0479,
+            "p_miss": 0.048,
             "late_ok": {
               "unlock": true,
               "refund25": true,
@@ -1115,8 +1115,8 @@
               }
             ],
             "odds": {
-              "p20": 0.2223,
-              "p60": 0.0693,
+              "p20": 0.2221,
+              "p60": 0.0692,
               "late": 10,
               "n": 45,
               "weekday": "Saturday",
@@ -1136,7 +1136,7 @@
             },
             "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T04:30:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false",
             "spare_min": 159,
-            "p_miss": 0.0498,
+            "p_miss": 0.0496,
             "late_ok": {
               "unlock": true,
               "refund25": true,
@@ -1279,10 +1279,10 @@
               }
             ],
             "odds": {
-              "p20": 0.2651,
-              "p60": 0.0648,
+              "p20": 0.2425,
+              "p60": 0.0632,
               "late": 8,
-              "n": 34,
+              "n": 41,
               "weekday": "Saturday",
               "basis": "history"
             },
@@ -1292,7 +1292,7 @@
             "ride_instead": null,
             "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T06:45:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false",
             "spare_min": 5,
-            "p_miss": 0.4646,
+            "p_miss": 0.455,
             "late_ok": {
               "unlock": false,
               "refund25": false,
@@ -1331,8 +1331,8 @@
               }
             ],
             "odds": {
-              "p20": 0.2223,
-              "p60": 0.0693,
+              "p20": 0.2221,
+              "p60": 0.0692,
               "late": 10,
               "n": 45,
               "weekday": "Saturday",
@@ -1352,7 +1352,7 @@
             },
             "bahn_url": "https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=Hamburg%20Hbf&zo=M%C3%BCnchen%20Hbf&soid=A%3D1%40O%3DHamburg%20Hbf%40L%3D8002549%40&zoid=A%3D1%40O%3DM%C3%BCnchen%20Hbf%40L%3D8000261%40&hd=2026-11-14T06:30:00&hza=D&ar=false&s=true&d=false&fm=false&bp=false",
             "spare_min": 15,
-            "p_miss": 0.2687,
+            "p_miss": 0.2686,
             "late_ok": {
               "unlock": false,
               "refund25": false,
