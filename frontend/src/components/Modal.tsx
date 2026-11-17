@@ -35,7 +35,8 @@ export function Modal({
   useLayoutEffect(() => {
     const d = ref.current
     if (!d) return
-    const closed = () => latest.current()
+    // A close queued by an earlier unmount (StrictMode remount) can land after reopening: ignore it.
+    const closed = () => { if (!d.open) latest.current() }
     d.addEventListener('close', closed)
     d.showModal()
     ;(initialFocus?.current ?? d).focus()
