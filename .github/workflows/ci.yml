@@ -50,8 +50,8 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: backend/uv.lock
-      - run: uv run --frozen --project ../backend python ../scripts/export_static.py --odds ../data/odds.sqlite --out public/data
-      - run: mkdir -p public/data/history && cp ../data/static/history/*.parquet ../data/static/history/meta.json public/data/history/
+      - run: bash ../scripts/fetch_data.sh
+      - run: uv run --frozen --project ../backend python ../scripts/export_static.py --odds ../data/odds.sqlite --history ../data/history.duckdb --out public/data
       - run: bash ../scripts/fetch_duckdb_ext.sh
       - run: npm test
       - run: npm run typecheck
@@ -75,6 +75,7 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: backend/uv.lock
+      - run: bash ../scripts/fetch_data.sh odds.sqlite
       - run: uv run --frozen --project ../backend python ../scripts/export_static.py --odds ../data/odds.sqlite --out ../frontend/public/data
       - run: npm ci
       - run: npm test
@@ -118,8 +119,8 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - run: uv run --frozen --project backend python scripts/export_static.py --odds data/odds.sqlite --out frontend/public/data
-      - run: mkdir -p frontend/public/data/history && cp data/static/history/*.parquet data/static/history/meta.json frontend/public/data/history/
+      - run: bash scripts/fetch_data.sh
+      - run: uv run --frozen --project backend python scripts/export_static.py --odds data/odds.sqlite --history data/history.duckdb --out frontend/public/data
       - run: bash scripts/fetch_duckdb_ext.sh
       - run: npm ci && npm run build
         working-directory: frontend
@@ -139,14 +140,8 @@ jobs:
           with ZipFile('frontend/dist/kurt-extension.zip') as archive:
               assert {'manifest.json', 'dist/odds.js'} <= set(archive.namelist())
           PYTHON
-      - name: Check Pages file size limit
-        run: |
-          python3 - <<'PYTHON'
-          from pathlib import Path
-          oversized = [str(p) for p in Path('frontend/dist').rglob('*') if p.is_file() and p.stat().st_size > 25 * 1024 * 1024]
-          if oversized:
-              raise SystemExit('Files over 25 MiB: ' + ', '.join(oversized))
-          PYTHON
+      - name: Check Pages limits
+        run: python3 -I scripts/check_pages_limits.py frontend/dist
       - name: Deploy Pages
         id: deploy
         env:

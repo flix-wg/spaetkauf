@@ -1,6 +1,6 @@
 # Run history
 
-`data/history.duckdb` lists every long-distance event behind `data/odds.sqlite`, so a line like "late 14 of 46 Saturdays" can be opened run by run. The source DuckDB file is not in git. The deployed app reads the committed monthly Parquet exports in `data/static/history/`, copied to `/data/history/` at build time; no history server is needed.
+`data/history.duckdb` lists every long-distance event behind `data/odds.sqlite`, so a line like "late 14 of 46 Saturdays" can be opened run by run. The DuckDB file is not in git; it ships with each data release next to `odds.sqlite` (see [odds](odds.md)). The deployed app reads monthly Parquet files exported from it into `/data/history/` at build time; no history server is needed.
 
 ## Building it
 
@@ -11,7 +11,7 @@ uv run scripts/build_history.py   # about 10 s
 
 The events come from the same `load_events` function as the odds, so filters, deduplication and the delay definition match. The script ends with a spot check of three random train, stop and weekday cells against `train_stop_stats`. It pins the same DuckDB version as `backend/pyproject.toml`, because an older DuckDB cannot read a file written by a newer one.
 
-Export a rebuilt source with `uv run --project backend python scripts/export_static.py --history data/history.duckdb --out data/static`, then copy `data/static/history/` to `frontend/public/data/history/` before building.
+Export it with `uv run --project backend python scripts/export_static.py --history data/history.duckdb --out frontend/public/data` before building.
 
 ## Layout
 

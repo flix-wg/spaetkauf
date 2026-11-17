@@ -2,8 +2,9 @@
 
 import json
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
+from types import SimpleNamespace
 
 import duckdb
 
@@ -37,6 +38,19 @@ class OrderedHistory:
         return self.db.execute(sql, args or [])
 
 
+REQUEST = SimpleNamespace(headers={})  # English texts, as the static app's parity tests expect
+
+
+def dst_sunday(date_from: str, date_to: str) -> date:
+    """The spring DST change (last Sunday of March) inside the window, a stop day with a skipped hour."""
+    for year in range(int(date_to[:4]), int(date_from[:4]) - 1, -1):
+        day = date(year, 3, 31)
+        day -= timedelta(days=(day.weekday() + 1) % 7)
+        if date_from <= day.isoformat() <= date_to:
+            return day
+    raise SystemExit(f"no March DST change between {date_from} and {date_to}")
+
+
 def main():
     data = ROOT / "frontend/public/data/history"
     meta = json.loads((data / "meta.json").read_text())
@@ -47,10 +61,10 @@ def main():
         db.executemany("INSERT INTO meta VALUES (?, ?)", [(key, value) for key, value in meta.items() if key != "files"])
         ordered = OrderedHistory(db)
         fixtures = {
-            "runs": runs("ICE 785", "München Hbf", None, ordered),
-            "route": route("Hamburg Hbf", "München Hbf", 4, ordered),
-            "train": train_stops("ICE 785", 4, ordered),
-            "day": stop_day("München Hbf", date(2026, 3, 29), ordered),
+            "runs": runs(REQUEST, "ICE 785", "München Hbf", None, ordered),
+            "route": route(REQUEST, "Hamburg Hbf", "München Hbf", 4, ordered),
+            "train": train_stops(REQUEST, "ICE 785", 4, ordered),
+            "day": stop_day(REQUEST, "München Hbf", dst_sunday(meta["date_from"], meta["date_to"]), ordered),
         }
     target = ROOT / "frontend/tests/core/golden/history.json"
     target.parent.mkdir(parents=True, exist_ok=True)

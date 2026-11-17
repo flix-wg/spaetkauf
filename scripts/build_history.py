@@ -3,8 +3,9 @@
 # dependencies = ["duckdb==2.0.0"]
 # ///
 """Build data/history.duckdb: every long-distance event (arrival and departure) per train, stop and date,
-so each number in odds.sqlite can be traced to individual runs. Same filter, dedup and arrival delay as
-build_odds.py (`load_events`); departure-only rows (a train's first stop) are added.
+so each number in odds.sqlite can be traced to individual runs. Same filter, dedup, arrival delay, files
+and window as data/odds.sqlite (`load_events`, its meta); departure-only rows (a train's first stop) are
+added.
 
 uv run scripts/build_history.py [--raw DIR] [--out FILE]
 
@@ -24,7 +25,7 @@ import duckdb
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_odds
-from build_odds import END, START, load_events
+from build_odds import load_events
 
 from app.matching import LONG_DISTANCE_TYPES, station_key
 
@@ -39,11 +40,16 @@ def main() -> None:
     ap.add_argument("--out", type=Path, default=OUT)
     args = ap.parse_args()
     t0 = time.time()
-    files = sorted(args.raw.glob("data-*.parquet"))
-    if not files:
-        sys.exit(f"no data-*.parquet in {args.raw}; run scripts/build_odds.py first")
+    if not ODDS.exists():
+        sys.exit(f"{ODDS} missing; run scripts/build_odds.py first")
+    with sqlite3.connect(ODDS) as o:
+        odds_meta = dict(o.execute("SELECT key, value FROM meta"))
+    files = [args.raw / name for name in odds_meta["files"].split(",")]
+    if missing := [f.name for f in files if not f.exists()]:
+        sys.exit(f"missing in {args.raw}: {', '.join(missing)}; run scripts/build_odds.py first")
+    start, end = odds_meta["window"].split(",")
     con = duckdb.connect()
-    load_events(con, files, START, END, with_departures=True)
+    load_events(con, files, start, end, with_departures=True)
     names = con.execute("SELECT eva, mode(station_name) FROM events GROUP BY 1 ORDER BY 1").fetchall()
     con.execute("CREATE TABLE stops (id USMALLINT, eva VARCHAR, station_key VARCHAR, name VARCHAR)")
     con.executemany(

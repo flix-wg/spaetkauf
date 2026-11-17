@@ -2,9 +2,9 @@
 
 ## The table
 
-`data/odds.sqlite` is built by `uv run scripts/build_odds.py`. The script downloads the monthly files of [piebro/deutsche-bahn-data](https://huggingface.co/datasets/piebro/deutsche-bahn-data) (CC BY 4.0) into `data/raw/` and takes about 10 seconds once they are there. The app finds the file through `SPAETKAUF_ODDS_PATH` and reads `backtest.json` from the same directory.
+`data/odds.sqlite` is built by `uv run --project backend python scripts/build_odds.py`. The script downloads the newest 12 monthly files of [piebro/deutsche-bahn-data](https://huggingface.co/datasets/piebro/deutsche-bahn-data) (CC BY 4.0) into `data/raw/`, checks their checksums and takes about two minutes once they are there. The odds are not in git: the `Data` workflow checks upstream daily and, when a month is added or reprocessed, rebuilds, runs the checks, publishes the files as a `data-*` release and pins it in `data/release.json`; `scripts/fetch_data.sh` downloads the pinned files. The app finds the file through `SPAETKAUF_ODDS_PATH` and reads `backtest.json` from the same directory.
 
-The current build covers planned arrivals from 2025-12-14 to 2026-10-31: 2,687,871 long-distance arrivals in 209,962 rows, 22.9 MB. `train_stop_stats` has one row per train (type and number), stop (EVA) and weekday, with the run count `n`, the cancellations `n_cancel` and how many runs arrived at least 5, 10, 15, 20, 30, 45, 60, 90 and 120 minutes late (`ge5` to `ge120`). `meta` records the source, date range and build time.
+The build of 2026-11-17 covers planned arrivals from 2025-11-01 to 2026-10-31: 3,051,935 long-distance arrivals in 244,509 rows, 26.6 MB. `train_stop_stats` has one row per train (type and number), stop (EVA) and weekday, with the run count `n`, the cancellations `n_cancel` and how many runs arrived at least 5, 10, 15, 20, 30, 45, 60, 90 and 120 minutes late (`ge5` to `ge120`). `meta` records the source, date range and build time.
 
 Choices made while building it:
 

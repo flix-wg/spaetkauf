@@ -1,0 +1,99 @@
+name: Data
+
+# Rebuilds the odds and history when piebro/deutsche-bahn-data publishes or reprocesses a month
+# (about the 2nd of each month). A daily check is a single API call; nothing is built when unchanged.
+on:
+  schedule:
+    - cron: '23 6 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Rebuild even if upstream is unchanged
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: data-refresh
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.check.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - id: check
+        run: python3 -I scripts/data_release.py check | tee -a "$GITHUB_OUTPUT"
+
+  refresh:
+    needs: check
+    if: needs.check.outputs.changed == 'true' || inputs.force
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0 # export_golden.py reads the pinned reference implementation from git history
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Build odds and history from the newest 12 months
+        run: |
+          uv run --frozen --project backend python scripts/build_odds.py
+          uv run --frozen --project backend python scripts/build_history.py
+          rm -rf data/raw
+          python3 -I scripts/data_release.py guard
+      - name: Export and regenerate parity fixtures
+        run: |
+          uv run --frozen --project backend python scripts/export_static.py --odds data/odds.sqlite --history data/history.duckdb --out frontend/public/data
+          uv run --frozen --project backend python scripts/export_golden.py
+          uv run --frozen --project backend python scripts/export_history_golden.py
+          bash scripts/fetch_duckdb_ext.sh
+      - name: Frontend checks
+        working-directory: frontend
+        run: npm ci && npm test && npm run typecheck && npm run build
+      - name: Extension checks
+        working-directory: extension
+        run: npm ci && npm test
+      - run: python3 -I scripts/check_pages_limits.py frontend/dist
+      - name: Publish the data release and pin it on main
+        run: |
+          tag="data-$(date -u +%Y-%m-%d)-${GITHUB_RUN_NUMBER}"
+          python3 -I scripts/data_release.py write "$tag"
+          range=$(python3 -I -c 'import json; r = json.load(open("data/release.json")); print(r["date_from"], "to", r["date_to"])')
+          gh release create "$tag" data/odds.sqlite data/history.duckdb data/release.json \
+            --title "Data $tag" --notes "Odds and history for arrivals from $range, built from piebro/deutsche-bahn-data (CC BY 4.0)." \
+            --latest=false
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/release.json frontend/tests/core/golden extension/test/golden.json
+          git commit -m "Data: $tag (arrivals from $range)"
+          for attempt in 1 2 3; do
+            git push origin HEAD:main && break
+            [[ $attempt == 3 ]] && exit 1
+            git pull --rebase origin main
+          done
+      - name: Keep the newest three data releases
+        run: |
+          gh release list --limit 100 --json tagName,createdAt \
+            --jq '[.[] | select(.tagName | startswith("data-"))] | sort_by(.createdAt) | reverse | .[3:] | .[].tagName' |
+            while read -r old; do gh release delete "$old" --cleanup-tag --yes; done
+      - name: Deploy
+        # A push with the workflow token starts no workflow; a dispatch does.
+        run: gh workflow run ci.yml --ref main
