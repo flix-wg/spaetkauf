@@ -15,7 +15,7 @@
     "message": "Open a bahn.de search to see odds here."
   },
   "serverSettings": {
-    "message": "Server settings"
+    "message": "Settings"
   },
   "settings": {
     "message": "Kurt settings"
@@ -331,13 +331,10 @@
     "message": "Based on"
   },
   "onTimeScopeAll": {
-    "message": "This train on all days"
+    "message": "All days"
   },
   "onTimeScopeWeekday": {
-    "message": "This train on the same weekday"
-  },
-  "onTimeScopeHint": {
-    "message": "The same weekday is closer to your trip but has fewer runs. If it has too few late runs, the typical delay counts all days."
+    "message": "Same weekday"
   },
   "onTimeAllDaysMarker": {
     "message": "(all days)"
@@ -350,5 +347,32 @@
   },
   "lateBandFallback": {
     "message": "Too few late runs on this weekday for a typical delay, so it counts all days."
+  },
+  "legendOnTime": {
+    "message": "on time"
+  },
+  "legendLate": {
+    "message": "5+ min late"
+  },
+  "legendTypical": {
+    "message": "typical delay"
+  },
+  "runsCaption": {
+    "message": "Example: one train at your stop over three weeks. Each bar is one run; the taller, the later."
+  },
+  "weekLetters": {
+    "message": "MTWTFSS"
+  },
+  "previewLabel": {
+    "message": "On bahn.de"
+  },
+  "serverSection": {
+    "message": "Kurt server"
+  },
+  "scopeNoteAll": {
+    "message": "Counts every run of this train at your stop. More runs, steadier numbers."
+  },
+  "scopeNoteWeekday": {
+    "message": "A Saturday trip counts only Saturdays: closer to your trip, but fewer runs. With too few late runs, the typical delay counts all days."
   }
 }

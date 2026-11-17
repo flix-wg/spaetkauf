@@ -53,7 +53,7 @@ When the setting is on, each badge with history gets a second, quieter pill next
 
 ## Setting
 
-A checkbox on the options page, under the server setting: **Show on-time chance** (`showOnTime` in `chrome.storage.sync`). **Off by default.** Under it, **Based on** with two choices (`onTimeScope`, `all` or `weekday`, default `all`), greyed out while the checkbox is off. Kurt's pitch is the late train that frees your saver ticket. A second percentage pointing the other way on every card would add noise for most users and could be misread as the late chance. People who care about punctuality turn it on once, and Chrome sync carries it to their other browsers. Changing it redraws the badges on open bahn.de tabs without a reload.
+A checkbox on the options page, under the server setting: **Show on-time chance** (`showOnTime` in `chrome.storage.sync`). **Off by default.** Under it, **Based on** with two choices (`onTimeScope`, `all` or `weekday`, default `all`), greyed out while the switch is off. The settings page explains both with a small figure: 21 made-up runs of one train over three weeks as bars, dark when on time and orange when 5+ min late, a dashed line at 5 min and a shaded band for the typical delay. Picking the same weekday fades every day but Saturday, and a preview pill underneath shows what bahn.de would say for that example. The server address moved into a collapsed **Kurt server** section, since few people change it. Kurt's pitch is the late train that frees your saver ticket. A second percentage pointing the other way on every card would add noise for most users and could be misread as the late chance. People who care about punctuality turn it on once, and Chrome sync carries it to their other browsers. Changing it redraws the badges on open bahn.de tabs without a reload.
 
 ## Copy
 
@@ -69,9 +69,10 @@ A checkbox on the options page, under the server setting: **Show on-time chance*
 | `lateBandOpen` | if late, typically $1+ min | sonst meist $1+ Min. |
 | `lateBandNote` | When $1 is late at your stop, half of those runs were under $2 min late ($3 late runs on $4, cancellations not counted). | Wenn $1 an deinem Halt verspätet ist, war die Hälfte dieser Fahrten weniger als $2 Min. zu spät ($3 verspätete Fahrten an $4, Ausfälle nicht mitgezählt). |
 | `onTimeScope` | Based on | Grundlage |
-| `onTimeScopeAll` | This train on all days | Dieser Zug an allen Tagen |
-| `onTimeScopeWeekday` | This train on the same weekday | Dieser Zug am gleichen Wochentag |
-| `onTimeScopeHint` | The same weekday is closer to your trip but has fewer runs. If it has too few late runs, the typical delay counts all days. | Der gleiche Wochentag passt genauer zu deiner Fahrt, hat aber weniger Fahrten. Hat er zu wenige verspätete Fahrten, zählen für die typische Verspätung alle Tage. |
+| `onTimeScopeAll` | All days | Alle Tage |
+| `onTimeScopeWeekday` | Same weekday | Gleicher Wochentag |
+| `scopeNoteAll` | Counts every run of this train at your stop. More runs, steadier numbers. | Zählt jede Fahrt dieses Zuges an deinem Halt. Mehr Fahrten, stabilere Zahlen. |
+| `scopeNoteWeekday` | A Saturday trip counts only Saturdays: closer to your trip, but fewer runs. With too few late runs, the typical delay counts all days. | Eine Fahrt am Samstag zählt nur Samstage: näher an deiner Fahrt, aber weniger Fahrten. Bei zu wenigen verspäteten Fahrten zählen für die typische Verspätung alle Tage. |
 | `onTimeAllDaysMarker` | (all days) | (alle Tage) |
 | `onTimeRunsAllDays` | runs on all days | Fahrten an allen Tagen |
 | `allDays` | all days | allen Tagen |

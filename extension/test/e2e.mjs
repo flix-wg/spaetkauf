@@ -53,6 +53,7 @@ try {
   assert.deepEqual(match, { version: match.version, matched: 1, fromTab: 0, value: `kurt-extension/${match.version} (+https://github.com/flix-wg/spaetkauf)` });
   const options = await context.newPage();
   await options.goto(`chrome-extension://${id}/src/options.html`);
+  await options.locator('#advanced summary').click();
   await options.locator('#server').fill(base);
   await options.getByRole('button', { name: 'Save', exact: true }).click();
   await options.getByText('Saved', { exact: true }).waitFor();

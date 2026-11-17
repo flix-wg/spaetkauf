@@ -15,7 +15,7 @@
     "message": "Öffne eine bahn.de-Suche, um hier Chancen zu sehen."
   },
   "serverSettings": {
-    "message": "Server-Einstellungen"
+    "message": "Einstellungen"
   },
   "settings": {
     "message": "Kurt-Einstellungen"
@@ -331,13 +331,10 @@
     "message": "Grundlage"
   },
   "onTimeScopeAll": {
-    "message": "Dieser Zug an allen Tagen"
+    "message": "Alle Tage"
   },
   "onTimeScopeWeekday": {
-    "message": "Dieser Zug am gleichen Wochentag"
-  },
-  "onTimeScopeHint": {
-    "message": "Der gleiche Wochentag passt genauer zu deiner Fahrt, hat aber weniger Fahrten. Hat er zu wenige verspätete Fahrten, zählen für die typische Verspätung alle Tage."
+    "message": "Gleicher Wochentag"
   },
   "onTimeAllDaysMarker": {
     "message": "(alle Tage)"
@@ -350,5 +347,32 @@
   },
   "lateBandFallback": {
     "message": "Zu wenige verspätete Fahrten an diesem Wochentag für eine typische Verspätung, daher zählen alle Tage."
+  },
+  "legendOnTime": {
+    "message": "pünktlich"
+  },
+  "legendLate": {
+    "message": "5+ Min. verspätet"
+  },
+  "legendTypical": {
+    "message": "typische Verspätung"
+  },
+  "runsCaption": {
+    "message": "Beispiel: ein Zug an deinem Halt über drei Wochen. Jeder Balken ist eine Fahrt; je höher, desto später."
+  },
+  "weekLetters": {
+    "message": "MDMDFSS"
+  },
+  "previewLabel": {
+    "message": "Auf bahn.de"
+  },
+  "serverSection": {
+    "message": "Kurt-Server"
+  },
+  "scopeNoteAll": {
+    "message": "Zählt jede Fahrt dieses Zuges an deinem Halt. Mehr Fahrten, stabilere Zahlen."
+  },
+  "scopeNoteWeekday": {
+    "message": "Eine Fahrt am Samstag zählt nur Samstage: näher an deiner Fahrt, aber weniger Fahrten. Bei zu wenigen verspäteten Fahrten zählen für die typische Verspätung alle Tage."
   }
 }

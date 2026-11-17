@@ -1,1 +1,24 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title data-i18n="settings">Kurt settings</title><link rel="stylesheet" href="ui.css"></head><body class="options"><h1 data-i18n="settings">Kurt settings</h1><label><input type="checkbox" id="onTime"> <span data-i18n="onTimeSetting">Show on-time chance</span></label><p class="muted hint" data-i18n="onTimeSettingHint">Adds how often each train reaches your stop under 5 min late.</p><fieldset id="scope"><legend data-i18n="onTimeScope">Based on</legend><label><input type="radio" name="scope" value="all" checked> <span data-i18n="onTimeScopeAll">This train on all days</span></label><label><input type="radio" name="scope" value="weekday"> <span data-i18n="onTimeScopeWeekday">This train on the same weekday</span></label></fieldset><p class="muted hint" data-i18n="onTimeScopeHint">The same weekday is closer to your trip but has fewer runs. If it has too few late runs, the typical delay counts all days.</p><hr><form id="settings"><label for="server" data-i18n="serverURL">Kurt site URL</label><input type="url" id="server" required placeholder="https://kurtfaehrt.de"><p><button type="submit" data-i18n="save">Save</button> <button class="secondary" id="reset" type="button" data-i18n="reset">Reset to default</button></p></form><p id="message" role="status"></p><hr><p class="muted" data-i18n="privacy">Loads train files from the Kurt site (or your own server), which sees your IP address and which trains you look at. Transitous gets start, destination, date, time, your IP address and an extension identifier that is the same for everyone. Chrome stores settings; Google syncs them if sync is on.</p><script src="options.js"></script></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title data-i18n="settings">Kurt settings</title><link rel="stylesheet" href="ui.css"></head>
+<body class="options">
+<header class="brand"><img src="../icons/48.png" alt=""><h1 data-i18n="settings">Kurt settings</h1></header>
+<section class="panel" id="onTimePanel">
+  <label class="row"><span><strong data-i18n="onTimeSetting">Show on-time chance</strong><span class="muted" data-i18n="onTimeSettingHint">Adds how often each train reaches your stop under 5 min late.</span></span><input type="checkbox" class="switch" id="onTime"></label>
+  <div id="onTimeBody">
+    <figure class="runs">
+      <svg id="runs" viewBox="0 16 440 122" role="img" aria-labelledby="runsCaption"></svg>
+      <ul class="legend"><li><i class="ok"></i><span data-i18n="legendOnTime">on time</span></li><li><i class="late"></i><span data-i18n="legendLate">5+ min late</span></li><li><i class="band"></i><span data-i18n="legendTypical">typical delay</span></li></ul>
+      <figcaption id="runsCaption" class="muted" data-i18n="runsCaption">Example: one train at your stop over three weeks. Each bar is one run; the taller, the later.</figcaption>
+    </figure>
+    <fieldset id="scope"><legend data-i18n="onTimeScope">Based on</legend>
+      <div class="segments"><label><input type="radio" name="scope" value="all" checked><span data-i18n="onTimeScopeAll">All days</span></label><label><input type="radio" name="scope" value="weekday"><span data-i18n="onTimeScopeWeekday">Same weekday</span></label></div>
+    </fieldset>
+    <p class="muted" id="scopeNote"></p>
+    <p class="preview"><span class="muted" data-i18n="previewLabel">On bahn.de</span> <span class="pill" id="preview"></span></p>
+  </div>
+</section>
+<details class="panel" id="advanced"><summary data-i18n="serverSection">Kurt server</summary>
+  <form id="settings"><label for="server" data-i18n="serverURL">Kurt server URL</label><input type="url" id="server" required placeholder="https://kurtfaehrt.de"><p class="buttons"><button type="submit" data-i18n="save">Save</button> <button class="secondary" id="reset" type="button" data-i18n="reset">Reset to default</button></p></form>
+  <p id="message" role="status"></p>
+</details>
+<p class="muted small" data-i18n="privacy">Loads train files from the Kurt site (or your own server), which sees your IP address and which trains you look at. Transitous gets start, destination, date, time, your IP address and an extension identifier that is the same for everyone. Chrome stores settings; Google syncs them if sync is on.</p>
+<script src="options.js"></script></body></html>
