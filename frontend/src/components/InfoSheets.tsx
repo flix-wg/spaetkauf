@@ -8,10 +8,9 @@ import { ErrorState, Loading } from './States'
 import { HowItWorks } from './HowItWorks'
 
 const SOURCES = () => [
-  ['Transitous', tr('routesTrainsAndLiveDelaysOpenMotis')],
-  ['piebro/deutsche-bahn-data', tr('pastArrivalDelaysBehindEveryPercentageLicence')],
-  ['Exa', tr('citedNewsOnStrikesClosuresAndTrack')],
-  ['Context.dev', tr('watchesStrikeAnnouncementPagesForChanges')],
+  ['Transitous', 'https://transitous.org/sources/', tr('routesTrainsAndLiveDelaysOpenMotis')],
+  ['piebro/deutsche-bahn-data', 'https://github.com/piebro/deutsche-bahn-data', tr('pastArrivalDelaysBehindEveryPercentageLicence')],
+  ['OpenStreetMap', 'https://www.openstreetmap.org/copyright', tr('osmContributors')],
 ]
 
 export function SourcesSheet() {
@@ -26,9 +25,9 @@ export function SourcesSheet() {
       <h3 className="mt-2 font-display text-[18px] font-bold lg:text-[20px]">{tr('sources')}</h3>
       <p className="rounded-xl bg-surface p-3 font-semibold">{tr('kurtIsIndependentItIsNotAffiliated')} </p>
       <ul className="flex flex-col divide-y divide-line">
-        {SOURCES().map(([n, d]) => (
+        {SOURCES().map(([n, url, d]) => (
           <li key={n} className="flex flex-col py-2.5">
-            <span className="font-semibold">{n}</span>
+            <a className="self-start font-semibold underline decoration-line underline-offset-4 hover:decoration-current" href={url} target="_blank" rel="noopener noreferrer">{n}</a>
             <span className="text-muted">{d}</span>
           </li>
         ))}

@@ -152,19 +152,19 @@ function SideNav() {
   )
 }
 
-const EMAIL = import.meta.env.VITE_OPERATOR_EMAIL
-
 function Footer() {
   useT()
+  const { open } = useSheet()
+  const link = 'underline-offset-2 hover:text-ink hover:underline'
   return (
-    <footer className="px-5 pb-8 pt-10 text-center text-[13px] text-muted">
-      <Link to="/impressum">{tr('impressum')}</Link> · <Link to="/datenschutz">{tr('datenschutz')}</Link> ·{' '}
-      <a href="https://github.com/flix-wg/spaetkauf">{tr('quellcode')}</a> ·{' '}
-      <a href="https://transitous.org/sources/">{tr('transitousQuellen')}</a> ·{' '}
-      <a href="https://www.openstreetmap.org/copyright">{tr('osmContributors')}</a> ·{' '}
-      {tr('delayData')}: <a href="https://github.com/piebro/deutsche-bahn-data">piebro/deutsche-bahn-data</a>,{' '}
-      <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
-      {EMAIL && <> · <a href={`mailto:${EMAIL}`}>{EMAIL}</a></>}
+    <footer className="px-5 pb-8 pt-12 text-[13px] text-muted">
+      <nav className="mx-auto flex max-w-[640px] flex-wrap justify-center gap-x-5 gap-y-2">
+        <a className={link} href="https://github.com/flix-wg/spaetkauf/issues" target="_blank" rel="noopener noreferrer">{tr('reportProblem')}</a>
+        <button type="button" className={link} onClick={() => open('sources')}>{tr('dataAndSources')}</button>
+        <a className={link} href="https://github.com/flix-wg/spaetkauf" target="_blank" rel="noopener noreferrer">{tr('quellcode')}</a>
+        <Link className={link} to="/impressum">{tr('impressum')}</Link>
+        <Link className={link} to="/datenschutz">{tr('datenschutz')}</Link>
+      </nav>
     </footer>
   )
 }
