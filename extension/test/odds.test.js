@@ -57,16 +57,20 @@ test('on-time chance comes only on request and never beats the late odds',async(
     const end=scope==='all'?all:sum(rows.filter(r=>r[3]===day));
     const p=scope==='all'?allRate:shrink(end[2],end[0],allRate);
     const own=band(end), [late,lateRuns]=own[0]||scope==='all'?own:band(all);
-    return ['ICE 785',Math.round((1-p)*1e4)/1e4,end[0]-end[2],end[0],scope,late,lateRuns,own[0]?scope:'all'];
+    return ['ICE 785',1-p,end[0]-end[2],end[0],scope,late,lateRuns,own[0]?scope:'all'];
   };
   const c=golden.cases[1]; // Saturday 2026-11-21
   const tr=createTransitous({fetch:transitous[c.transitous],storage:null,cacheStorage:null});
   const first=async(extra)=>(await extensionOdds({...c.body,on_time:true,...extra},{odds,tr})).results[0];
   const pick=r=>[r.train,r.on_time,r.on_time_runs,r.on_time_n,r.on_time_scope,r.on_time_late,r.on_time_late_runs,r.on_time_late_scope];
-  assert.deepEqual(pick(await first({on_time_scope:'weekday'})),expect(5,'weekday'));
-  assert.deepEqual(pick(await first({})),expect(null,'all'));
+  const check=(got,want)=>{ // on_time is rounded to 4 places with ties to even
+    assert.ok(Math.abs(got[1]-want[1])<=0.00005,`${got[1]} vs ${want[1]}`);
+    assert.deepEqual([...got.slice(0,1),...got.slice(2)],[...want.slice(0,1),...want.slice(2)]);
+  };
+  check(pick(await first({on_time_scope:'weekday'})),expect(5,'weekday'));
+  check(pick(await first({})),expect(null,'all'));
   const sunday={connections:[{dep:'10:00',arr:'14:00',trains:['ICE 785'],date:'2026-11-22'}],on_time_scope:'weekday'};
-  assert.deepEqual(pick(await first(sunday)),expect(6,'weekday'));
+  check(pick(await first(sunday)),expect(6,'weekday'));
   await assert.rejects(extensionOdds({...c.body,on_time:true,on_time_scope:'monday'},{odds,tr}));
   const route=await first({on_time_scope:'route'});
   assert.deepEqual([route.on_time_route_fallback,route.on_time_scope,route.on_time],[true,'all',(await first({})).on_time]);
