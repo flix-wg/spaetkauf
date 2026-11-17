@@ -4,10 +4,14 @@
 # ///
 """Download the DB history (piebro/deutsche-bahn-data) and build data/odds.sqlite (design D4).
 
-uv run scripts/build_odds.py [--min-n 1]
+uv run --project backend python scripts/build_odds.py [--min-n 1] [--months 2025-11,...,2026-10]
+
+Without --months it takes the newest 12 complete months listed upstream (scripts/data_release.py).
 """
 
 import argparse
+import calendar
+import json
 import os
 import sqlite3
 import sys
@@ -19,30 +23,40 @@ from pathlib import Path
 import duckdb
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backend"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from app.matching import LONG_DISTANCE_TYPES, station_key
+from data_release import sha256, upstream
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "raw"
 OUT = ROOT / "data" / "odds.sqlite"
-MONTHS = ["2025-12"] + [f"2026-{m:02d}" for m in range(1, 11)]
-START, END = "2025-12-14", "2026-10-31"
 URL = "https://huggingface.co/datasets/piebro/deutsche-bahn-data/resolve/main/monthly_processed_data/data-{}.parquet"
 THRESHOLDS = (5, 10, 15, 20, 30, 45, 60, 90, 120)
 
 
-def download(months=MONTHS) -> list[Path]:
+def window(months: list[str]) -> tuple[str, str]:
+    """First and last day of the given months."""
+    year, month = map(int, months[-1].split("-"))
+    return f"{months[0]}-01", f"{months[-1]}-{calendar.monthrange(year, month)[1]:02d}"
+
+
+def download(months: dict[str, str | None]) -> list[Path]:
+    """Fetch data-YYYY-MM.parquet per month; a known sha256 replaces a stale (reprocessed) local file."""
     RAW.mkdir(parents=True, exist_ok=True)
     ua = os.environ.get("SPAETKAUF_CLIENT_NAME", "spaetkauf-demo/0.1")
     paths = []
-    for m in months:
+    for m, sha in months.items():
         p = RAW / f"data-{m}.parquet"
-        if not p.exists() or p.stat().st_size == 0:
+        if not p.exists() or p.stat().st_size == 0 or (sha and sha256(p) != sha):
             print(f"downloading {m}", flush=True)
             req = urllib.request.Request(URL.format(m), headers={"User-Agent": ua})
             tmp = p.with_suffix(".part")
             with urllib.request.urlopen(req, timeout=60) as r, open(tmp, "wb") as f:
                 while chunk := r.read(1 << 20):
                     f.write(chunk)
+            if sha and sha256(tmp) != sha:
+                tmp.unlink()
+                sys.exit(f"checksum mismatch for data-{m}.parquet")
             tmp.rename(p)
         paths.append(p)
     return paths
@@ -121,12 +135,15 @@ def delay_column_check(con, files) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--min-n", type=int, default=1, help="drop (train, stop, weekday) cells with fewer runs")
+    ap.add_argument("--months", help="comma-separated YYYY-MM (default: the newest 12 upstream)")
     args = ap.parse_args()
     t0 = time.time()
-    files = download()
+    months = dict.fromkeys(sorted(args.months.split(","))) if args.months else upstream()
+    files = download(months)
+    start, end = window(list(months))
     con = duckdb.connect()
     delay_column_check(con, files)
-    load_events(con, files, START, END)
+    load_events(con, files, start, end)
     print(con.sql("SELECT train_type, count(*) AS arrivals, count(DISTINCT train_number) AS trains, "
                   "round(avg((cancelled OR delay_min >= 20)::INT), 4) AS p20 FROM events GROUP BY 1 ORDER BY 2 DESC"))
     names = con.execute("SELECT eva, mode(station_name) FROM events GROUP BY 1").fetchall()
@@ -159,6 +176,8 @@ def main() -> None:
     meta = {
         "source": "piebro/deutsche-bahn-data (Hugging Face), CC BY 4.0",
         "files": ",".join(f.name for f in files),
+        "window": f"{start},{end}",
+        "upstream": json.dumps(months) if all(months.values()) else "",
         "date_from": str(date_range[0]), "date_to": str(date_range[1]),
         "train_types": ",".join(LONG_DISTANCE_TYPES),
         "delay_definition": "arrival_change_time - arrival_planned_time; cancelled arrival counts in every ge column",
