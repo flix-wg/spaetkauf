@@ -13,7 +13,8 @@ export { createTransitous, httpOddsSource }
 export interface Connection { dep: string; arr: string; trains: string[]; date?: string | null; posted?: boolean }
 export interface OddsRequest { from?: string | null; to: string; to_eva?: string | null; date: string; connections: Connection[]; on_time?: boolean; on_time_scope?: Scope }
 export interface Result extends Omit<Odds, 'basis'> { i: number; basis: Odds['basis'] | 'last_train'; train: string | null; kurt: boolean; on_time?: number; on_time_runs?: number; on_time_n?: number; on_time_scope?: Scope;
-  on_time_late?: [number, number | null] | null; on_time_late_runs?: number; on_time_late_scope?: Scope }
+  on_time_late?: [number, number | null] | null; on_time_late_runs?: number; on_time_late_scope?: Scope;
+  on_time_route?: { from: string; to: string; trains: number }; on_time_route_fallback?: boolean }
 export interface OddsResponse { to: string; date: string; kurt: number | null; link: string; results: Result[] }
 
 const TRANSIT_WAIT = 4000
@@ -28,7 +29,7 @@ function valid(body: OddsRequest): boolean {
   const text = (value: unknown, max: number) => typeof value === 'string' && value.length <= max
   return text(body.to, 80) && body.to.length > 0 && (body.from == null || text(body.from, 80)) &&
     (body.to_eva == null || /^\d{6,9}$/.test(body.to_eva)) && (body.on_time == null || typeof body.on_time === 'boolean') &&
-    (body.on_time_scope == null || body.on_time_scope === 'weekday' || body.on_time_scope === 'all') && text(body.date, 10) && DAY.test(body.date) &&
+    (body.on_time_scope == null || ['weekday', 'all', 'route'].includes(body.on_time_scope)) && text(body.date, 10) && DAY.test(body.date) &&
     Array.isArray(body.connections) && body.connections.length <= 30 && body.connections.every(c =>
       CLOCK.test(c.dep) && CLOCK.test(c.arr) && (c.date == null || DAY.test(c.date)) &&
       Array.isArray(c.trains) && c.trains.length <= 12 && c.trains.every(t => text(t, 20)))
@@ -82,7 +83,8 @@ export async function extensionOdds(body: OddsRequest, deps: { odds: OddsSource;
     const last = trains.at(-1)
     if (last && LONG_DISTANCE_TYPES.includes(last[0])) {
       const train = last.join(' ')
-      let counted: OddsLeg[] = [{ train, to: stop, dep, arr }]
+      // Only a direct train boards at the page's start; a change's boarding stop comes from Transitous.
+      let counted: OddsLeg[] = [{ train, to: stop, dep, arr, ...(trains.length === 1 && body.from ? { from: body.from } : {}) }]
       const history = await optional(connectionOdds(odds, counted))
       if (history) Object.assign(result, history)
       if (result.p20 !== null) Object.assign(result, { train, basis: trains.length === 1 ? 'history' : 'last_train' })
@@ -98,7 +100,8 @@ export async function extensionOdds(body: OddsRequest, deps: { odds: OddsSource;
       if (body.on_time && result.p20 !== null) {
         const onTime = await optional(onTimeOdds(odds, counted, body.on_time_scope ?? 'all'))
         if (onTime) Object.assign(result, { on_time: onTime.p, on_time_runs: onTime.runs, on_time_n: onTime.n, on_time_scope: onTime.scope,
-          on_time_late: onTime.late, on_time_late_runs: onTime.lateRuns, on_time_late_scope: onTime.lateScope })
+          on_time_late: onTime.late, on_time_late_runs: onTime.lateRuns, on_time_late_scope: onTime.lateScope,
+          ...(onTime.route ? { on_time_route: onTime.route } : {}), ...(onTime.routeFallback ? { on_time_route_fallback: true } : {}) })
       }
     }
     return result

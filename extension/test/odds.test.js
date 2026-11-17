@@ -51,6 +51,8 @@ test('on-time chance comes only on request and never beats the late odds',async(
   const sunday={connections:[{dep:'10:00',arr:'14:00',trains:['ICE 785'],date:'2026-11-22'}],on_time_scope:'weekday'};
   assert.deepEqual(pick(await first(sunday)).slice(3),[44,'weekday',[15,20],116,'all']);
   await assert.rejects(extensionOdds({...c.body,on_time:true,on_time_scope:'monday'},{odds,tr}));
+  const route=await first({on_time_scope:'route'});
+  assert.deepEqual([route.on_time_route_fallback,route.on_time_scope,route.on_time],[true,'all',(await first({})).on_time]);
 });
 test('an unreachable site gives no odds and does not throw',async()=>{
   const original=globalThis.fetch;

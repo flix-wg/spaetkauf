@@ -3,7 +3,7 @@
 uv run --project backend python scripts/export_static.py --odds data/odds.sqlite \
     --history data/history.duckdb --out /tmp/kurt-static
 Copy /tmp/kurt-static/history/ to data/static/history/ for the committed history.
-Either input may be omitted. Backtest and replay JSON are copied from data/.
+Either input may be omitted; --history also writes the per-route counts to odds/routes/. Backtest and replay JSON are copied from data/.
 """
 
 import argparse
@@ -119,6 +119,44 @@ def export_history(source, out):
         })
 
 
+def route_file(key):
+    """odds/routes/<file>: a station key is lowercase ASCII words joined by spaces."""
+    return key.replace(" ", "_") + ".json"
+
+
+def export_routes(source, out):
+    """One file per boarding station: for each later stop, every long-distance run that stopped at both,
+    counted at the later stop like the train files ([weekday, n, n_cancel, ge5..ge120] rows)."""
+    import duckdb
+
+    shutil.rmtree(out, ignore_errors=True)
+    ge = ", ".join(f"sum((arr_cancelled OR arr_delay >= {c[2:]})::INT)" for c in GE)
+    with duckdb.connect(str(source), read_only=True) as db:
+        db.execute("""
+            CREATE TEMP TABLE pairs AS
+            WITH e AS (
+                SELECT e.*, s.station_key AS k FROM events e JOIN stops s ON s.id = e.stop_id
+                WHERE e.run_id IS NOT NULL AND s.station_key <> '')
+            SELECT DISTINCT o.k AS ok, d.k AS dk, d.run_id, d.seq, d.train_id,
+                   d.arr_planned, d.arr_delay, d.arr_cancelled
+            FROM e o JOIN e d ON o.run_id = d.run_id AND o.seq < d.seq AND o.k <> d.k
+            WHERE o.dep_planned IS NOT NULL AND d.arr_planned IS NOT NULL
+        """)
+        trains = {
+            (ok, dk): n
+            for ok, dk, n in db.execute("SELECT ok, dk, count(DISTINCT train_id) FROM pairs GROUP BY ALL").fetchall()
+        }
+        rows = db.execute(f"""
+            SELECT ok, dk, isodow(arr_planned) - 1, count(*), sum(arr_cancelled::INT), {ge}
+            FROM pairs GROUP BY ALL ORDER BY ALL
+        """).fetchall()
+    for origin, group in groupby(rows, key=lambda r: r[0]):
+        routes = {}
+        for dest, dest_rows in groupby(group, key=lambda r: r[1]):
+            routes[dest] = {"trains": trains[origin, dest], "rows": [list(r[2:]) for r in dest_rows]}
+        write_json(out / route_file(origin), routes)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--odds", type=Path)
@@ -131,6 +169,7 @@ def main():
         export_odds(args.odds, args.out / "odds")
     if args.history:
         export_history(args.history, args.out / "history")
+        export_routes(args.history, args.out / "odds" / "routes")
     args.out.mkdir(parents=True, exist_ok=True)
     for name in ("backtest.json", "replays.json"):
         shutil.copyfile(ROOT / "data" / name, args.out / name)

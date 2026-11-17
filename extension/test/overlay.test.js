@@ -131,3 +131,15 @@ test('German runtime messages translate interpolated odds and missing-history st
     delete globalThis.chrome;
   }
 });
+test('route on-time counts the stop pair and marks a fallback to this train', () => {
+  const routed = { ...result, train: 'ICE 599', on_time: 0.655, on_time_scope: 'route', on_time_n: 1240, on_time_runs: 812, on_time_late: [20, 30], on_time_late_runs: 428, on_time_late_scope: 'route', on_time_route: { from: 'Frankfurt(Main)Hbf', to: 'Berlin Hbf', trains: 14 } };
+  assert.deepEqual([text(routed, card).onTime, text(routed, card).onTimeDetail], ['66 % on time · if late, typically 20–30 min',
+    'On time means under 5 min late at your stop. Frankfurt(Main)Hbf → Berlin Hbf: on time 812 of 1240 runs of 14 trains. When trains on this route are late at your stop, half of those runs were under 30 min late (428 late runs, cancellations not counted).']);
+  const thinBand = text({ ...routed, on_time_late_scope: 'all', on_time_late_runs: 100 }, card);
+  assert.equal(thinBand.onTime, '66 % on time · if late, typically 20–30 min (this train)');
+  assert.match(thinBand.onTimeDetail, /of 14 trains\. When ICE 599 is late .*\(100 late runs on all days, .*\)\. Too few late runs on this route for a typical delay, so it counts ICE 599 on all days\.$/);
+  assert.match(text({ ...routed, on_time_route: { ...routed.on_time_route, trains: 1 } }, card).onTimeDetail, /812 of 1240 runs of 1 train\./);
+  const missing = text({ ...routed, on_time_scope: 'all', on_time_route: undefined, on_time_route_fallback: true, on_time_late_scope: 'all', on_time_late: null }, card);
+  assert.equal(missing.onTime, '66 % on time (this train)');
+  assert.match(missing.onTimeDetail, /ICE 599: on time 812 of 1240 runs on all days\. No route data for this stop pair, so this counts ICE 599 on all days\.$/);
+});

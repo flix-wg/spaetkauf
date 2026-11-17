@@ -374,5 +374,89 @@
   },
   "scopeNoteWeekday": {
     "message": "Eine Fahrt am Samstag zählt nur Samstage: näher an deiner Fahrt, aber weniger Fahrten. Bei zu wenigen verspäteten Fahrten zählen für die typische Verspätung alle Tage."
+  },
+  "onTimeScopeRoute": {
+    "message": "Diese Strecke allgemein"
+  },
+  "scopeNoteRoute": {
+    "message": "Zählt alle Fernzüge von deinem Einstieg bis zu deinem Halt: die meisten Fahrten, aber nicht nur dein Zug. Ohne genug Fahrten auf der Strecke zählt dieser Zug an allen Tagen."
+  },
+  "onTimeRouteCounts": {
+    "message": "$ARG1$ → $ARG2$: pünktlich $ARG3$ von $ARG4$ Fahrten von $ARG5$ Zügen.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      },
+      "arg4": {
+        "content": "$4"
+      },
+      "arg5": {
+        "content": "$5"
+      }
+    }
+  },
+  "onTimeRouteCountsOne": {
+    "message": "$ARG1$ → $ARG2$: pünktlich $ARG3$ von $ARG4$ Fahrten von 1 Zug.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      },
+      "arg4": {
+        "content": "$4"
+      }
+    }
+  },
+  "lateBandRouteNote": {
+    "message": "Wenn Züge auf dieser Strecke an deinem Halt verspätet sind, war die Hälfte dieser Fahrten weniger als $ARG1$ Min. zu spät ($ARG2$ verspätete Fahrten, Ausfälle nicht mitgezählt).",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "lateBandRouteNoteOpen": {
+    "message": "Wenn Züge auf dieser Strecke an deinem Halt verspätet sind, war die Hälfte dieser Fahrten $ARG1$+ Min. zu spät ($ARG2$ verspätete Fahrten, Ausfälle nicht mitgezählt).",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "lateBandRouteFallback": {
+    "message": "Zu wenige verspätete Fahrten auf dieser Strecke für eine typische Verspätung, daher zählt $ARG1$ an allen Tagen.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "onTimeRouteMissing": {
+    "message": "Keine Streckendaten für diese Halte, daher zählt $ARG1$ an allen Tagen.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "onTimeThisTrainMarker": {
+    "message": "(dieser Zug)"
   }
 }
