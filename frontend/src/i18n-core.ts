@@ -862,9 +862,18 @@ const deLabels: { [K in keyof typeof enLabels]: typeof enLabels[K] } = {
   "reportProblem": "Problem melden",
 }
 
-export function initialLang(): Lang {
+// `/en/` is the English landing page and `/` the German one; elsewhere the saved choice or the browser decides.
+// index.html repeats this rule for the splash.
+export const pathLang = (path: string): Lang | null => (/^\/en(?:\/|$)/.test(path) ? 'en' : path === '/' ? 'de' : null)
+export const browserLang = (): Lang =>
+  typeof navigator !== 'undefined' && navigator.languages?.[0]?.toLowerCase().startsWith('de') ? 'de' : 'en'
+export function savedLang(): Lang | null {
   try { const saved = localStorage.getItem('spaetkauf.lang'); if (saved === 'de' || saved === 'en') return saved } catch {}
-  return typeof navigator !== 'undefined' && navigator.languages?.[0]?.toLowerCase().startsWith('de') ? 'de' : 'en'
+  return null
+}
+export function initialLang(): Lang {
+  const path = typeof location !== 'undefined' ? location.pathname : ''
+  return pathLang(path) === 'en' ? 'en' : savedLang() ?? pathLang(path) ?? browserLang()
 }
 let language = initialLang()
 export const getLang = () => language

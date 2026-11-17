@@ -56,7 +56,33 @@ jobs:
       - run: bash ../scripts/fetch_duckdb_ext.sh
       - run: npm test
       - run: npm run typecheck
+      # A stand-in operator, so the check below can prove the name stays on the legal pages only.
       - run: npm run build
+        env:
+          VITE_OPERATOR_NAME: Erika Mustermann
+          VITE_OPERATOR_ADDRESS: Musterstraße 1;12345 Musterstadt
+          VITE_OPERATOR_EMAIL: kurt@example.org
+      - name: Check static pages
+        run: |
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          dist = Path("dist")
+          for page, text in {"index.html": "Häufige Fragen", "en/index.html": "Questions and answers", "impressum.html": "Anbieter", "datenschutz.html": "Deine Rechte"}.items():
+              html = (dist / page).read_text()
+              assert text in html, page
+          for page in ("index.html", "en/index.html"):
+              assert 'rel="canonical"' in (dist / page).read_text(), page
+              assert "FAQPage" in (dist / page).read_text(), page
+          for page in ("404.html", "app.html", "impressum.html", "datenschutz.html"):
+              assert "noindex" in (dist / page).read_text(), page
+          for name in ("sitemap.xml", "llms.txt", "robots.txt", "_redirects", "og.png", "og-en.png", "favicon.ico"):
+              assert (dist / name).stat().st_size, name
+          assert "impressum" not in (dist / "sitemap.xml").read_text()
+          name = "Erika Mustermann"
+          assert name in (dist / "impressum.html").read_text()
+          for page in ("index.html", "en/index.html", "404.html", "app.html", "llms.txt", "sitemap.xml"):
+              assert name not in (dist / page).read_text(), page
+          PYTHON
 
   extension:
     runs-on: ubuntu-latest
@@ -173,3 +199,16 @@ jobs:
           done
           echo 'Published odds did not return 200 JSON matching the local index' >&2
           exit 1
+      - name: Check published pages
+        if: steps.deploy.outputs.url != ''
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          check() { test "$(curl --silent --output /dev/null --write-out '%{http_code} %{content_type}' --connect-timeout 10 --max-time 30 "$DEPLOY_URL$1")" = "$2" || { echo "$1: expected $2" >&2; exit 1; }; }
+          check / '200 text/html; charset=utf-8'
+          check /en/ '200 text/html; charset=utf-8'
+          check /picks '200 text/html; charset=utf-8'
+          check /no-such-page '404 text/html; charset=utf-8'
+          check /sitemap.xml '200 application/xml; charset=utf-8'
+          check /llms.txt '200 text/plain; charset=utf-8'
+          curl --silent --max-time 30 "$DEPLOY_URL/en/" | grep -q FAQPage

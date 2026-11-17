@@ -10,6 +10,7 @@ import { useSheet } from '../sheets'
 import { useDebounced } from '../hooks'
 import { nowHHMM, todayISO } from '../format'
 import { loadTrips } from '../store'
+import { Faq, LangHint } from '../components/Faq'
 
 interface Field {
   text: string
@@ -195,6 +196,7 @@ export function Search() {
   return (
     <>
       <ScreenHeader title={tr('kurt')} deskOnly />
+      <LangHint />
       <div className="flex flex-col gap-5 px-5 pb-8 pt-4 lg:pt-0 lg:grid lg:grid-cols-[minmax(0,560px)_minmax(0,1fr)] lg:items-start lg:gap-x-14 lg:px-10 lg:pb-12">
         <div className="contents lg:flex lg:flex-col lg:gap-6">
           <div className={`${seen ? 'hidden lg:flex' : 'flex'} flex-col gap-3 rounded-[22px] bg-tint p-4 lg:p-6`}>
@@ -282,6 +284,7 @@ export function Search() {
           <HowItWorks big />
         </div>
       </div>
+      <Faq />
     </>
   )
 }
