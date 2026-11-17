@@ -94,6 +94,8 @@ export async function extensionOdds(body: OddsRequest, deps: { odds: OddsSource;
         if (both && both.p20 !== null) {
           Object.assign(result, both, { train }) // basis "estimate", the same number as the app
           counted = legs
+        } else if (legs.at(-1)!.from) {
+          counted = [{ ...counted[0], from: legs.at(-1)!.from }] // e.g. a regional feeder: the route still has its boarding stop
         }
       }
       // Only on request, so the default response stays the app's.

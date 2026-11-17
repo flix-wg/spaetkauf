@@ -155,3 +155,13 @@ test('a failed train file leaves successful cards usable',async()=>{
   assert.equal(response.results[0].p20,null);
   assert.ok(response.results.some(r=>r.p20!==null));
 });
+test('route scope boards where Transitous puts the last train, also after a regional feeder',async()=>{
+  const plan=JSON.parse(JSON.stringify(golden.plan));
+  plan.itineraries[0].legs[0].routeShortName='RE 1';
+  const tr=createTransitous({fetch:async url=>Response.json(new URL(url).pathname==='/api/v1/geocode'?golden.geocode[new URL(url).searchParams.get('text')]||[]:plan),storage:null,cacheStorage:null});
+  const rows=[[4,40,0,12,9,6,4,2,1,1,0,0]];
+  const routed={...odds,route:async key=>key==='fulda'?{muenchen:{trains:2,rows}}:null};
+  const body={...golden.cases[0].body,connections:[{dep:'06:00',arr:'12:00',trains:['RE 1','ICE 599']}],on_time:true,on_time_scope:'route'};
+  const [r]=(await extensionOdds(body,{odds:routed,tr})).results;
+  assert.deepEqual([r.basis,r.on_time_scope,r.on_time_n,r.on_time_route?.from],['last_train','route',40,'Fulda']);
+});
