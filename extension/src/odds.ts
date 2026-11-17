@@ -1,8 +1,8 @@
 import type { Leg, Pick } from '../../frontend/src/api'
 import { berlinLocal, weekdayBerlin, zonedToUtc } from '../../frontend/src/core/berlin.ts'
 import { LONG_DISTANCE_TYPES, parseTrain } from '../../frontend/src/core/matching.ts'
-import { connectionOdds, WEEKDAYS } from '../../frontend/src/core/odds.ts'
-import type { Odds } from '../../frontend/src/core/odds'
+import { connectionOdds, onTimeOdds, WEEKDAYS } from '../../frontend/src/core/odds.ts'
+import type { Leg as OddsLeg, Odds } from '../../frontend/src/core/odds'
 import { httpOddsSource } from '../../frontend/src/core/oddsSource.ts'
 import type { OddsSource } from '../../frontend/src/core/oddsSource'
 import { fetchPages, fillNames, resolve, rideInstead } from '../../frontend/src/core/picks.ts'
@@ -11,8 +11,8 @@ import type { Transitous } from '../../frontend/src/core/transitous'
 
 export { createTransitous, httpOddsSource }
 export interface Connection { dep: string; arr: string; trains: string[]; date?: string | null; posted?: boolean }
-export interface OddsRequest { from?: string | null; to: string; to_eva?: string | null; date: string; connections: Connection[] }
-export interface Result extends Omit<Odds, 'basis'> { i: number; basis: Odds['basis'] | 'last_train'; train: string | null; kurt: boolean }
+export interface OddsRequest { from?: string | null; to: string; to_eva?: string | null; date: string; connections: Connection[]; on_time?: boolean }
+export interface Result extends Omit<Odds, 'basis'> { i: number; basis: Odds['basis'] | 'last_train'; train: string | null; kurt: boolean; on_time?: number; on_time_runs?: number }
 export interface OddsResponse { to: string; date: string; kurt: number | null; link: string; results: Result[] }
 
 const TRANSIT_WAIT = 4000
@@ -26,7 +26,7 @@ const optional = <T>(work: Promise<T>) => work.catch(() => null)
 function valid(body: OddsRequest): boolean {
   const text = (value: unknown, max: number) => typeof value === 'string' && value.length <= max
   return text(body.to, 80) && body.to.length > 0 && (body.from == null || text(body.from, 80)) &&
-    (body.to_eva == null || /^\d{6,9}$/.test(body.to_eva)) && text(body.date, 10) && DAY.test(body.date) &&
+    (body.to_eva == null || /^\d{6,9}$/.test(body.to_eva)) && (body.on_time == null || typeof body.on_time === 'boolean') && text(body.date, 10) && DAY.test(body.date) &&
     Array.isArray(body.connections) && body.connections.length <= 30 && body.connections.every(c =>
       CLOCK.test(c.dep) && CLOCK.test(c.arr) && (c.date == null || DAY.test(c.date)) &&
       Array.isArray(c.trains) && c.trains.length <= 12 && c.trains.every(t => text(t, 20)))
@@ -80,13 +80,22 @@ export async function extensionOdds(body: OddsRequest, deps: { odds: OddsSource;
     const last = trains.at(-1)
     if (last && LONG_DISTANCE_TYPES.includes(last[0])) {
       const train = last.join(' ')
-      const history = await optional(connectionOdds(odds, [{ train, to: stop, dep, arr }]))
+      let counted: OddsLeg[] = [{ train, to: stop, dep, arr }]
+      const history = await optional(connectionOdds(odds, counted))
       if (history) Object.assign(result, history)
       if (result.p20 !== null) Object.assign(result, { train, basis: trains.length === 1 ? 'history' : 'last_train' })
       const legs = byRoute.get(`${connection.dep} ${train}`)
       if (result.p20 !== null && legs && legs.length > 1) {
         const both = await optional(connectionOdds(odds, legs))
-        if (both && both.p20 !== null) Object.assign(result, both, { train }) // basis "estimate", the same number as the app
+        if (both && both.p20 !== null) {
+          Object.assign(result, both, { train }) // basis "estimate", the same number as the app
+          counted = legs
+        }
+      }
+      // Only on request, so the default response stays the app's.
+      if (body.on_time && result.p20 !== null) {
+        const onTime = await optional(onTimeOdds(odds, counted))
+        if (onTime) Object.assign(result, { on_time: onTime.p, on_time_runs: onTime.runs })
       }
     }
     return result

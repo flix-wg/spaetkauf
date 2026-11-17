@@ -24,6 +24,22 @@ for(const c of golden.cases) test(`matches POST /api/ext/odds with Transitous ${
   const tr=createTransitous({fetch:transitous[c.transitous],storage:null,cacheStorage:null});
   assert.deepEqual(await extensionOdds(c.body,{odds,tr}),c.expected);
 });
+test('on-time chance comes only on request and never beats the late odds',async()=>{
+  let shown=0;
+  for(const c of golden.cases){
+    const tr=createTransitous({fetch:transitous[c.transitous],storage:null,cacheStorage:null});
+    const {results}=await extensionOdds({...c.body,on_time:true},{odds,tr});
+    for(const [i,r] of results.entries()){
+      const {on_time,on_time_runs,...rest}=r;
+      assert.deepEqual(rest,c.expected.results[i]);
+      if(r.p20===null){assert.equal(on_time,undefined);continue;}
+      shown++;
+      assert.ok(on_time>0&&on_time<=1-r.p20,`${r.train}: ${on_time} vs ${r.p20}`);
+      assert.ok(on_time_runs>=0&&on_time_runs<=r.n-r.late);
+    }
+  }
+  assert.ok(shown>0);
+});
 test('an unreachable site gives no odds and does not throw',async()=>{
   const original=globalThis.fetch;
   globalThis.fetch=async()=>{throw new TypeError('fetch failed');};

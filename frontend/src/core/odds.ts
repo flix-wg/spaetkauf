@@ -85,3 +85,11 @@ export async function connectionOdds(src: OddsSource, legs: Leg[], m = SHRINK_M)
   return { ...out, p20: round4(1 - share * (1 - rate(end, 20, m))), p60: round4(rate(end, 60, m)),
     late: end.ge20, n: end.n, basis: legs.length === 1 ? 'history' : 'estimate' }
 }
+
+// Chance to reach the last stop under 5 min late; a missed change counts as late. `runs` are the last train's own on-time runs.
+export async function onTimeOdds(src: OddsSource, legs: Leg[], m = SHRINK_M): Promise<{ p: number; runs: number } | null> {
+  const parts = await reach(src, legs, m)
+  if (!parts) return null
+  const [share, end] = parts
+  return { p: round4(share * (1 - rate(end, 5, m))), runs: end.n - end.ge5 }
+}

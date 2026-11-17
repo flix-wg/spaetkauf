@@ -6,7 +6,9 @@ for (const element of document.querySelectorAll('[data-i18n]')) element.textCont
 const DEFAULT_SERVER = 'https://kurtfaehrt.de';
 const input = document.getElementById('server');
 const message = document.getElementById('message');
-chrome.storage.sync.get({ server: DEFAULT_SERVER }).then(config => { input.value = config.server; });
+const onTime = document.getElementById('onTime');
+chrome.storage.sync.get({ server: DEFAULT_SERVER, showOnTime: false }).then(config => { input.value = config.server; onTime.checked = config.showOnTime === true; });
+onTime.addEventListener('change', () => chrome.storage.sync.set({ showOnTime: onTime.checked }));
 async function save(value) {
   try {
     const url = new URL(value);

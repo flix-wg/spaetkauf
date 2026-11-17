@@ -7,15 +7,26 @@ const { JSDOM } = require('jsdom');
 const result = { p20: 0.41, late: 14, n: 34, weekday: 'Saturday', basis: 'history', kurt: false };
 const card = { trains: ['ICE 599'] };
 test('odds text, Kurt, changes and missing history', () => {
-  assert.deepEqual(text(result, card), { line: '41 % chance of 20+ min late', kurt: false, detail: 'Late 14 of 34 Saturdays.' });
+  assert.deepEqual(text(result, card), { line: '41 % chance of 20+ min late', kurt: false, detail: 'Late 14 of 34 Saturdays.', onTime: null, onTimeDetail: null });
   assert.equal(text({ ...result, kurt: true }, card).line, 'Kurt’s pick: 41 % chance of 20+ min late');
   assert.equal(text({ ...result, p20: 0.416, basis: 'last_train', train: 'ICE 599' }, card).line, '42 % chance ICE 599 is 20+ min late');
-  assert.deepEqual(text({ ...result, basis: 'estimate', train: 'ICE 599' }, card), { line: '41 % chance of 20+ min late', kurt: false, detail: 'Counts a missed change. ICE 599 alone: late 14 of 34 Saturdays.' });
+  assert.deepEqual(text({ ...result, basis: 'estimate', train: 'ICE 599' }, card), { line: '41 % chance of 20+ min late', kurt: false, detail: 'Counts a missed change. ICE 599 alone: late 14 of 34 Saturdays.', onTime: null, onTimeDetail: null });
   assert.equal(text({ ...result, p20: null, basis: 'none', train: 'ICE 599' }, card).line, 'Not enough history for odds');
-  assert.deepEqual(text({ ...result, kurt: true }, { ...card, posted: true }), { line: 'Already posted: does not count', kurt: false, detail: null });
+  assert.deepEqual(text({ ...result, kurt: true }, { ...card, posted: true }), { line: 'Already posted: does not count', kurt: false, detail: null, onTime: null, onTimeDetail: null });
   for (const s of ['Verspätung aus vorheriger Fahrt', 'Zug fällt aus', 'Halt entfällt', 'Delayed by 12 min']) assert.ok(globalThis.SpkParse.posted(s), s);
   for (const s of ['Es liegen Meldungen vor.', 'Sitzplätze ausgebucht (1. Klasse)', 'Hohe Auslastung erwartet']) assert.ok(!globalThis.SpkParse.posted(s), s);
   assert.equal(text({ ...result, p20: NaN }, { trains: ['ICE 599', 'RE 4'] }).line, 'No odds: ends on a regional train');
+});
+test('on-time chance shows only with history and its own pill', () => {
+  const timed = { ...result, train: 'ICE 599', on_time: 0.523, on_time_runs: 18 };
+  assert.deepEqual(text(timed, card), { line: '41 % chance of 20+ min late', kurt: false, detail: 'Late 14 of 34 Saturdays.', onTime: '52 % on time', onTimeDetail: 'On time means under 5 min late at your stop. ICE 599: on time 18 of 34 Saturdays.' });
+  assert.match(text({ ...timed, basis: 'estimate' }, card).onTimeDetail, /A missed change counts as late\.$/);
+  assert.equal(text(timed, { ...card, posted: true }).onTime, null);
+  assert.equal(text({ ...timed, p20: null, basis: 'none' }, card).onTime, null);
+  const dom = new JSDOM('<article><span>Train</span></article>');
+  const doc = dom.window.document;
+  const host = render({ el: doc.querySelector('article'), core: doc.querySelector('span') }, timed, { server: 'https://example.test', link: '/' });
+  assert.match(host.getAttribute('aria-label'), /^41 % chance of 20\+ min late\. 52 % on time\. /);
 });
 test('closed badge stays outside interactive controls and clears after removal', () => {
   const dom = new JSDOM('<article><button><span>Train</span></button><button>Weiter</button></article>');
@@ -105,6 +116,9 @@ test('German runtime messages translate interpolated odds and missing-history st
     assert.equal(german.detail, 'Verspätet: 14 von 34 Samstagen.');
     assert.equal(text({ ...result, basis: 'none' }, card).line, 'Zu wenig vergangene Fahrten für Chancen');
     assert.equal(text(result, { ...card, posted: true }).line, 'Schon angekündigt: zählt nicht');
+    const timed = text({ ...result, basis: 'estimate', train: 'ICE 599', on_time: 0.523, on_time_runs: 18 }, card);
+    assert.equal(timed.onTime, '52 % pünktlich');
+    assert.equal(timed.onTimeDetail, 'Pünktlich heißt: weniger als 5 Min. verspätet an deinem Halt. ICE 599: pünktlich 18 von 34 Samstagen. Ein verpasster Umstieg zählt als verspätet.');
   } finally {
     delete globalThis.chrome;
   }

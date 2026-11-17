@@ -110,7 +110,15 @@ try {
   assert((await popup.locator('#health').innerText()).includes('Reachable'), 'Service worker reaches server without CORS middleware');
   assert.equal(await popup.locator('#error').innerText(), '');
   await popup.screenshot({ path: path.join(shots, 'x-popup.png') });
+  // Off by default; turning it on redraws the open page with an on-time pill.
+  const onTime = '[aria-label*="% on time"]';
+  assert.equal(await page.locator('spk-badge' + onTime).count(), 0);
+  await options.locator('#onTime').check();
+  await page.waitForFunction(selector => document.querySelectorAll('spk-badge' + selector).length === 5, onTime); // the sixth card has no history
+  await page.locator('spk-badge[data-kurt="true"]').locator('xpath=ancestor::li[1]').screenshot({ path: path.join(shots, 'x-ontime.png') });
   await options.screenshot({ path: path.join(shots, 'x-options.png') });
+  await options.locator('#onTime').uncheck();
+  await page.waitForFunction(selector => !document.querySelector('spk-badge' + selector) && document.querySelectorAll('spk-badge').length === 6, onTime);
   const realFile = 'real/bahn-results-2026-11-14.html';
   const html = await readFile(path.join(fixtures, realFile), 'utf8');
   const header = html.match(/<!--[\s\S]*?-->/)?.[0] || '';
@@ -120,7 +128,7 @@ try {
   await page.locator('spk-badge').first().waitFor({ timeout: 30000 });
   assert(await page.locator('spk-badge').count() >= 1);
   await page.screenshot({ path: path.join(shots, 'x-real.png'), fullPage: true });
-  console.log(`Passed: Transitous User-Agent rule, 6 badges from static odds after appending and replacing cards, no duplicate badges, Kurt once a backup appears, booking controls, popup, options, real fixture and service-worker server access. Screenshots: ${shots}`);
+  console.log(`Passed: Transitous User-Agent rule, 6 badges from static odds after appending and replacing cards, on-time pill on and off, no duplicate badges, Kurt once a backup appears, booking controls, popup, options, real fixture and service-worker server access. Screenshots: ${shots}`);
 } finally {
   await context?.close();
   await new Promise(resolve => server.close(resolve));
