@@ -59,8 +59,9 @@
       return;
     }
     const date = cards[0]?.date || ctx.date;
-    const body = { from: ctx.from, to: ctx.to, to_eva: ctx.toEva, date, connections: selected.map(c => ({ dep: c.dep, arr: c.arr, trains: c.trains, posted: c.posted, ...(c.date && c.date !== date ? { date: c.date } : {}) })) };
-    const config = await chrome.storage.sync.get({ server: 'https://kurtfaehrt.de' });
+    const config = await chrome.storage.sync.get({ server: 'https://kurtfaehrt.de', showOnTime: false, onTimeScope: 'all' });
+    if (!enabled || token !== generation) return;
+    const body = { from: ctx.from, to: ctx.to, to_eva: ctx.toEva, date, connections: selected.map(c => ({ dep: c.dep, arr: c.arr, trains: c.trains, posted: c.posted, ...(c.date && c.date !== date ? { date: c.date } : {}) })), ...(config.showOnTime === true ? { on_time: true, on_time_scope: ['weekday', 'route'].includes(config.onTimeScope) ? config.onTimeScope : 'all' } : {}) };
     const key = JSON.stringify([config.server, body]);
     if (key !== lastKey) {
       const response = await send({ type: 'odds', body });
@@ -94,7 +95,7 @@
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'sync') return;
     if (changes.enabled) enabled = changes.enabled.newValue !== false;
-    if (changes.enabled || changes.server) {
+    if (changes.enabled || changes.server || changes.showOnTime || changes.onTimeScope) {
       generation++;
       lastKey = null;
       lastResponse = null;

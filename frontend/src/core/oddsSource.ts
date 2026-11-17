@@ -2,6 +2,9 @@ export const GE_COLUMNS = ['ge5', 'ge10', 'ge15', 'ge20', 'ge30', 'ge45', 'ge60'
 export type Rates = Record<typeof GE_COLUMNS[number], number>
 export type TrainRow = [string, string, string, number, number, number, number, number, number, number, number, number, number, number, number, string, string]
 export interface TrainShard { type: string; number: string; rows: TrainRow[] }
+// [weekday, n, n_cancel, ge5 … ge120] of the runs that stopped at the boarding station, counted at the later stop
+export type RouteRow = [number, number, number, number, number, number, number, number, number, number, number, number]
+export type RouteShard = Record<string, { trains: number; rows: RouteRow[] }>
 export interface OddsIndex {
   meta: Record<string, string>
   numbers: Record<string, string[]>
@@ -12,6 +15,8 @@ export interface OddsIndex {
 export interface OddsSource {
   index(): Promise<OddsIndex>
   train(type: string, number: string): Promise<TrainShard | null>
+  // Every later stop reached from one boarding station; null when the station has no file.
+  route?(stationKey: string): Promise<RouteShard | null>
 }
 
 // Only answers that will not change (404, or the Pages HTML fallback) stay memoized as missing;
@@ -36,5 +41,6 @@ export function httpOddsSource(base: string, init: RequestInit = {}, timeoutMs =
   return {
     index: () => read<OddsIndex>('index.json'),
     train: (type, number) => read<TrainShard | null>(`trains/${encodeURIComponent(type)}-${encodeURIComponent(number)}.json`, true),
+    route: key => read<RouteShard | null>(`routes/${encodeURIComponent(key.replace(/ /g, '_'))}.json`, true),
   }
 }

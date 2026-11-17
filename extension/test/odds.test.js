@@ -24,6 +24,57 @@ for(const c of golden.cases) test(`matches POST /api/ext/odds with Transitous ${
   const tr=createTransitous({fetch:transitous[c.transitous],storage:null,cacheStorage:null});
   assert.deepEqual(await extensionOdds(c.body,{odds,tr}),c.expected);
 });
+test('on-time chance comes only on request and never beats the late odds',async()=>{
+  let shown=0;
+  for(const c of golden.cases){
+    const tr=createTransitous({fetch:transitous[c.transitous],storage:null,cacheStorage:null});
+    const {results}=await extensionOdds({...c.body,on_time:true,on_time_scope:'weekday'},{odds,tr});
+    for(const [i,r] of results.entries()){
+      const {on_time,on_time_runs,on_time_n,on_time_scope,on_time_late,on_time_late_runs,on_time_late_scope,...rest}=r;
+      assert.deepEqual(rest,c.expected.results[i]);
+      if(r.p20===null){assert.equal(on_time,undefined);continue;}
+      shown++;
+      assert.ok(on_time>0&&on_time<=1-r.p20,`${r.train}: ${on_time} vs ${r.p20}`);
+      assert.ok(on_time_runs>=0&&on_time_runs<=r.n-r.late);
+    }
+  }
+  assert.ok(shown>0);
+  // ICE 785 to München Hbf, recomputed from trains/ICE-785.json so a data refresh keeps this test valid.
+  // Rows: [station, eva, name, weekday, n, cancelled, ge5 … ge120, first, last]; a cancelled run counts as late,
+  // the late band is the bucket of the median late run without cancellations and needs 10 late runs.
+  const rows=read('trains/ICE-785.json').rows.filter(r=>r[0]==='muenchen');
+  const typeRate=read('index.json').type_rates.ICE.ge5;
+  const sum=rs=>rs.reduce((t,r)=>t.map((v,i)=>v+r[i+4]),Array(11).fill(0)); // [n, cancelled, ge5 … ge120]
+  const shrink=(k,n,p)=>(k+50*p)/(n+50);
+  const band=([,cancelled,...ge])=>{
+    const late=ge.map(v=>v-cancelled), buckets=[5,10,15,20,30,45,60,90,120];
+    if(late[0]<10) return [null,late[0]];
+    const low=late.findIndex(v=>v<=late[0]/2), high=late.findIndex(v=>v<late[0]/2);
+    return [[low===-1?120:buckets[low-1],high===-1?null:buckets[high]],late[0]];
+  };
+  const all=sum(rows), allRate=shrink(all[2],all[0],typeRate);
+  const expect=(day,scope)=>{
+    const end=scope==='all'?all:sum(rows.filter(r=>r[3]===day));
+    const p=scope==='all'?allRate:shrink(end[2],end[0],allRate);
+    const own=band(end), [late,lateRuns]=own[0]||scope==='all'?own:band(all);
+    return ['ICE 785',1-p,end[0]-end[2],end[0],scope,late,lateRuns,own[0]?scope:'all'];
+  };
+  const c=golden.cases[1]; // Saturday 2026-11-21
+  const tr=createTransitous({fetch:transitous[c.transitous],storage:null,cacheStorage:null});
+  const first=async(extra)=>(await extensionOdds({...c.body,on_time:true,...extra},{odds,tr})).results[0];
+  const pick=r=>[r.train,r.on_time,r.on_time_runs,r.on_time_n,r.on_time_scope,r.on_time_late,r.on_time_late_runs,r.on_time_late_scope];
+  const check=(got,want)=>{ // on_time is rounded to 4 places with ties to even
+    assert.ok(Math.abs(got[1]-want[1])<0.0001,`${got[1]} vs ${want[1]}`);
+    assert.deepEqual([...got.slice(0,1),...got.slice(2)],[...want.slice(0,1),...want.slice(2)]);
+  };
+  check(pick(await first({on_time_scope:'weekday'})),expect(5,'weekday'));
+  check(pick(await first({})),expect(null,'all'));
+  const sunday={connections:[{dep:'10:00',arr:'14:00',trains:['ICE 785'],date:'2026-11-22'}],on_time_scope:'weekday'};
+  check(pick(await first(sunday)),expect(6,'weekday'));
+  await assert.rejects(extensionOdds({...c.body,on_time:true,on_time_scope:'monday'},{odds,tr}));
+  const route=await first({on_time_scope:'route'});
+  assert.deepEqual([route.on_time_route_fallback,route.on_time_scope,route.on_time],[true,'all',(await first({})).on_time]);
+});
 test('an unreachable site gives no odds and does not throw',async()=>{
   const original=globalThis.fetch;
   globalThis.fetch=async()=>{throw new TypeError('fetch failed');};
@@ -124,4 +175,14 @@ test('a failed train file leaves successful cards usable',async()=>{
   }}});
   assert.equal(response.results[0].p20,null);
   assert.ok(response.results.some(r=>r.p20!==null));
+});
+test('route scope boards where Transitous puts the last train, also after a regional feeder',async()=>{
+  const plan=JSON.parse(JSON.stringify(golden.plan));
+  plan.itineraries[0].legs[0].routeShortName='RE 1';
+  const tr=createTransitous({fetch:async url=>Response.json(new URL(url).pathname==='/api/v1/geocode'?golden.geocode[new URL(url).searchParams.get('text')]||[]:plan),storage:null,cacheStorage:null});
+  const rows=[[4,40,0,12,9,6,4,2,1,1,0,0]];
+  const routed={...odds,route:async key=>key==='fulda'?{muenchen:{trains:2,rows}}:null};
+  const body={...golden.cases[0].body,connections:[{dep:'06:00',arr:'12:00',trains:['RE 1','ICE 599']}],on_time:true,on_time_scope:'route'};
+  const [r]=(await extensionOdds(body,{odds:routed,tr})).results;
+  assert.deepEqual([r.basis,r.on_time_scope,r.on_time_n,r.on_time_route?.from],['last_train','route',40,'Fulda']);
 });

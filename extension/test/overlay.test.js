@@ -7,15 +7,34 @@ const { JSDOM } = require('jsdom');
 const result = { p20: 0.41, late: 14, n: 34, weekday: 'Saturday', basis: 'history', kurt: false };
 const card = { trains: ['ICE 599'] };
 test('odds text, Kurt, changes and missing history', () => {
-  assert.deepEqual(text(result, card), { line: '41 % chance of 20+ min late', kurt: false, detail: 'Late 14 of 34 Saturdays.' });
+  assert.deepEqual(text(result, card), { line: '41 % chance of 20+ min late', kurt: false, detail: 'Late 14 of 34 Saturdays.', onTime: null, onTimeDetail: null });
   assert.equal(text({ ...result, kurt: true }, card).line, 'Kurt’s pick: 41 % chance of 20+ min late');
   assert.equal(text({ ...result, p20: 0.416, basis: 'last_train', train: 'ICE 599' }, card).line, '42 % chance ICE 599 is 20+ min late');
-  assert.deepEqual(text({ ...result, basis: 'estimate', train: 'ICE 599' }, card), { line: '41 % chance of 20+ min late', kurt: false, detail: 'Counts a missed change. ICE 599 alone: late 14 of 34 Saturdays.' });
+  assert.deepEqual(text({ ...result, basis: 'estimate', train: 'ICE 599' }, card), { line: '41 % chance of 20+ min late', kurt: false, detail: 'Counts a missed change. ICE 599 alone: late 14 of 34 Saturdays.', onTime: null, onTimeDetail: null });
   assert.equal(text({ ...result, p20: null, basis: 'none', train: 'ICE 599' }, card).line, 'Not enough history for odds');
-  assert.deepEqual(text({ ...result, kurt: true }, { ...card, posted: true }), { line: 'Already posted: does not count', kurt: false, detail: null });
+  assert.deepEqual(text({ ...result, kurt: true }, { ...card, posted: true }), { line: 'Already posted: does not count', kurt: false, detail: null, onTime: null, onTimeDetail: null });
   for (const s of ['Verspätung aus vorheriger Fahrt', 'Zug fällt aus', 'Halt entfällt', 'Delayed by 12 min']) assert.ok(globalThis.SpkParse.posted(s), s);
   for (const s of ['Es liegen Meldungen vor.', 'Sitzplätze ausgebucht (1. Klasse)', 'Hohe Auslastung erwartet']) assert.ok(!globalThis.SpkParse.posted(s), s);
   assert.equal(text({ ...result, p20: NaN }, { trains: ['ICE 599', 'RE 4'] }).line, 'No odds: ends on a regional train');
+});
+test('on-time chance shows only with history and its own pill', () => {
+  const timed = { ...result, train: 'ICE 599', on_time: 0.523, on_time_scope: 'all', on_time_n: 210, on_time_runs: 110, on_time_late: [20, 30], on_time_late_runs: 100, on_time_late_scope: 'all' };
+  assert.deepEqual(text(timed, card), { line: '41 % chance of 20+ min late', kurt: false, detail: 'Late 14 of 34 Saturdays.', onTime: '52 % on time · if late, typically 20–30 min', onTimeDetail: 'On time means under 5 min late at your stop. ICE 599: on time 110 of 210 runs on all days. When ICE 599 is late at your stop, half of those runs were under 30 min late (100 late runs on all days, cancellations not counted).' });
+  const weekday = { ...timed, on_time_scope: 'weekday', on_time_n: 34, on_time_runs: 18, on_time_late_scope: 'weekday', on_time_late_runs: 16 };
+  assert.equal(text(weekday, card).onTime, '52 % on time · if late, typically 20–30 min');
+  assert.equal(text(weekday, card).onTimeDetail, 'On time means under 5 min late at your stop. ICE 599: on time 18 of 34 Saturdays. When ICE 599 is late at your stop, half of those runs were under 30 min late (16 late runs on Saturdays, cancellations not counted).');
+  const bandOnly = text({ ...weekday, on_time_late_scope: 'all', on_time_late_runs: 100 }, card);
+  assert.equal(bandOnly.onTime, '52 % on time · if late, typically 20–30 min (all days)');
+  assert.match(bandOnly.onTimeDetail, /18 of 34 Saturdays\. When .*\(100 late runs on all days, cancellations not counted\)\. Too few late runs on this weekday for a typical delay, so it counts all days\.$/);
+  assert.equal(text({ ...timed, on_time_late: [120, null] }, card).onTime, '52 % on time · if late, typically 120+ min');
+  assert.equal(text({ ...timed, on_time_late: null }, card).onTime, '52 % on time');
+  assert.match(text({ ...timed, basis: 'estimate' }, card).onTimeDetail, /A missed change counts as late\. When/);
+  assert.equal(text(timed, { ...card, posted: true }).onTime, null);
+  assert.equal(text({ ...timed, p20: null, basis: 'none' }, card).onTime, null);
+  const dom = new JSDOM('<article><span>Train</span></article>');
+  const doc = dom.window.document;
+  const host = render({ el: doc.querySelector('article'), core: doc.querySelector('span') }, timed, { server: 'https://example.test', link: '/' });
+  assert.match(host.getAttribute('aria-label'), /^41 % chance of 20\+ min late\. 52 % on time · if late, typically 20–30 min\. /);
 });
 test('closed badge stays outside interactive controls and clears after removal', () => {
   const dom = new JSDOM('<article><button><span>Train</span></button><button>Weiter</button></article>');
@@ -105,7 +124,22 @@ test('German runtime messages translate interpolated odds and missing-history st
     assert.equal(german.detail, 'Verspätet: 14 von 34 Samstagen.');
     assert.equal(text({ ...result, basis: 'none' }, card).line, 'Zu wenig vergangene Fahrten für Chancen');
     assert.equal(text(result, { ...card, posted: true }).line, 'Schon angekündigt: zählt nicht');
+    const timed = text({ ...result, basis: 'estimate', train: 'ICE 599', on_time: 0.523, on_time_scope: 'weekday', on_time_n: 34, on_time_runs: 18, on_time_late: [20, 30], on_time_late_runs: 100, on_time_late_scope: 'all' }, card);
+    assert.equal(timed.onTime, '52 % pünktlich · sonst meist 20–30 Min. (alle Tage)');
+    assert.equal(timed.onTimeDetail, 'Pünktlich heißt: weniger als 5 Min. verspätet an deinem Halt. ICE 599: pünktlich 18 von 34 Samstagen. Ein verpasster Umstieg zählt als verspätet. Wenn ICE 599 an deinem Halt verspätet ist, war die Hälfte dieser Fahrten weniger als 30 Min. zu spät (100 verspätete Fahrten an allen Tagen, Ausfälle nicht mitgezählt). Zu wenige verspätete Fahrten an diesem Wochentag für eine typische Verspätung, daher zählen alle Tage.');
   } finally {
     delete globalThis.chrome;
   }
+});
+test('route on-time counts the stop pair and marks a fallback to this train', () => {
+  const routed = { ...result, train: 'ICE 599', on_time: 0.655, on_time_scope: 'route', on_time_n: 1240, on_time_runs: 812, on_time_late: [20, 30], on_time_late_runs: 428, on_time_late_scope: 'route', on_time_route: { from: 'Frankfurt(Main)Hbf', to: 'Berlin Hbf', trains: 14 } };
+  assert.deepEqual([text(routed, card).onTime, text(routed, card).onTimeDetail], ['66 % on time · if late, typically 20–30 min',
+    'On time means under 5 min late at your stop. Frankfurt(Main)Hbf → Berlin Hbf: on time 812 of 1240 runs of 14 trains. When trains on this route are late at your stop, half of those runs were under 30 min late (428 late runs, cancellations not counted).']);
+  const thinBand = text({ ...routed, on_time_late_scope: 'all', on_time_late_runs: 100 }, card);
+  assert.equal(thinBand.onTime, '66 % on time · if late, typically 20–30 min (this train)');
+  assert.match(thinBand.onTimeDetail, /of 14 trains\. When ICE 599 is late .*\(100 late runs on all days, .*\)\. Too few late runs on this route for a typical delay, so it counts ICE 599 on all days\.$/);
+  assert.match(text({ ...routed, on_time_route: { ...routed.on_time_route, trains: 1 } }, card).onTimeDetail, /812 of 1240 runs of 1 train\./);
+  const missing = text({ ...routed, on_time_scope: 'all', on_time_route: undefined, on_time_route_fallback: true, on_time_late_scope: 'all', on_time_late: null }, card);
+  assert.equal(missing.onTime, '66 % on time (this train)');
+  assert.match(missing.onTimeDetail, /ICE 599: on time 812 of 1240 runs on all days\. No route data for this stop pair, so this counts ICE 599 on all days\.$/);
 });

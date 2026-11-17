@@ -100,3 +100,33 @@ test('HTTP train shards return null for non-ok responses and invalid JSON', asyn
     assert.deepStrictEqual(await src.train('ICE', '1'), { type: 'ICE', number: '1', rows: [] })
   } finally { globalThis.fetch = original }
 })
+
+test('late band is the bucket of the median late run, spanning a bucket the median straddles', () => {
+  // [station, eva, name, weekday, n, cancelled, ge5 … ge120, first, last]; cancellations are left out of the band.
+  const row = (cancelled: number, ge: number[]) => ['s', '1', 'S', 5, 40, cancelled, ...ge, '', ''] as Parameters<typeof odds.lateBand>[0][number]
+  assert.deepStrictEqual(odds.lateBand([row(2, [13, 10, 8, 6, 4, 3, 2, 2, 2])]), [[15, 20], 11])
+  assert.deepStrictEqual(odds.lateBand([row(0, [10, 5, 5, 5, 5, 5, 5, 5, 5])]), [[5, null], 10])
+  assert.deepStrictEqual(odds.lateBand([row(0, [10, 9, 5, 2, 0, 0, 0, 0, 0])]), [[10, 20], 10])
+  assert.deepStrictEqual(odds.lateBand([row(0, [12, 12, 12, 12, 12, 12, 12, 12, 12])]), [[120, null], 12])
+  assert.deepStrictEqual(odds.lateBand([row(0, [9, 5, 0, 0, 0, 0, 0, 0, 0])]), [null, 9])
+})
+
+test('route scope counts every train from the boarding stop and falls back to this train', async () => {
+  const leg = { train: 'ICE 785', from: 'Augsburg Hbf', to: 'München Hbf', dep: '2027-03-26T10:00:00Z', arr: '2027-03-26T12:00:00Z' }
+  const routes: Record<string, object> = {
+    augsburg: { muenchen: { trains: 3, rows: [[4, 60, 2, 25, 18, 12, 9, 6, 4, 3, 2, 1], [5, 40, 0, 15, 12, 8, 6, 4, 2, 1, 1, 1]] } },
+    ulm: { muenchen: { trains: 1, rows: [[4, 30, 0, 6, 3, 2, 1, 0, 0, 0, 0, 0]] } },
+  }
+  const src = { ...fileSource, async route(key: string) { return routes[key] ?? null } }
+  const all = await odds.onTimeOdds(src, [leg], 'all')
+  const ge5 = (await fileSource.index()).type_rates.ICE.ge5
+  assert.deepStrictEqual(await odds.onTimeOdds(src, [leg], 'route'), {
+    p: odds.round4(1 - odds.shrink(40, 100, ge5, odds.SHRINK_M)), runs: 60, n: 100, scope: 'route',
+    late: [10, 15], lateRuns: 38, lateScope: 'route', route: { from: 'Augsburg Hbf', to: 'München Hbf', trains: 3 },
+  })
+  const thinBand = await odds.onTimeOdds(src, [{ ...leg, from: 'Ulm Hbf' }], 'route')
+  assert.deepStrictEqual([thinBand?.scope, thinBand?.n, thinBand?.late, thinBand?.lateScope], ['route', 30, all?.late, 'all'])
+  for (const from of ['Atlantis', undefined]) {
+    assert.deepStrictEqual(await odds.onTimeOdds(src, [{ ...leg, from }], 'route'), { ...all, routeFallback: true })
+  }
+})

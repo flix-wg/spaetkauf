@@ -15,6 +15,8 @@
     const kurt = result.kurt === true && !card?.posted;
     let line;
     let detail = null;
+    let onTime = null;
+    let onTimeDetail = null;
     if (card?.posted) line = msg("posted", "Already posted: does not count");
     else if (result.basis === 'none' || !Number.isFinite(result.p20)) {
       line = card?.trains?.length && root.SpkParse && !root.SpkParse.isLongDistance(card.trains.at(-1)) ? msg("regional", "No odds: ends on a regional train") : msg("noHistory", "Not enough history for odds");
@@ -27,9 +29,42 @@
         : result.basis === 'last_train'
           ? msg("lastOnly", "$1 alone: $2. Kurt could not match your change, so a missed change is not counted.", result.train, counts)
           : `${counts[0].toUpperCase() + counts.slice(1)}.`;
+      if (Number.isFinite(result.on_time) && Number.isFinite(result.on_time_runs)) {
+        const [low, high] = Array.isArray(result.on_time_late) ? result.on_time_late : [];
+        const route = result.on_time_scope === 'route' ? result.on_time_route : null;
+        const routeMissing = result.on_time_route_fallback === true;
+        const bandFallback = Number.isFinite(low) && result.on_time_scope !== 'all' && result.on_time_late_scope === 'all';
+        const day = msg('day' + result.weekday, result.weekday + 's');
+        // A fallback from the weekday counts all days; one from the route counts this train.
+        const marker = route || routeMissing ? msg("onTimeThisTrainMarker", "(this train)") : msg("onTimeAllDaysMarker", "(all days)");
+        onTime = msg("onTime", "$1 % on time", Math.round(result.on_time * 100));
+        if (Number.isFinite(low)) onTime += ' · ' + (Number.isFinite(high) ? msg("lateBand", "if late, typically $1–$2 min", low, high) : msg("lateBandOpen", "if late, typically $1+ min", low));
+        if (bandFallback || routeMissing) onTime += ' ' + marker;
+        const lateDays = result.on_time_late_scope === 'weekday' ? day : msg("allDays", "all days");
+        onTimeDetail = [
+          msg("onTimeNote", "On time means under 5 min late at your stop."),
+          route
+            ? route.trains === 1
+              ? msg("onTimeRouteCountsOne", "$1 → $2: on time $3 of $4 runs of 1 train.", route.from, route.to, result.on_time_runs, result.on_time_n)
+              : msg("onTimeRouteCounts", "$1 → $2: on time $3 of $4 runs of $5 trains.", route.from, route.to, result.on_time_runs, result.on_time_n, route.trains)
+            : msg("onTimeCounts", "$1: on time $2 of $3 $4.", result.train, result.on_time_runs, result.on_time_n, result.on_time_scope === 'weekday' ? day : msg("onTimeRunsAllDays", "runs on all days")),
+          routeMissing ? msg("onTimeRouteMissing", "No route data for this stop pair, so this counts $1 on all days.", result.train) : '',
+          result.basis === 'estimate' ? msg("onTimeChange", "A missed change counts as late.") : '',
+          !Number.isFinite(low) ? '' : result.on_time_late_scope === 'route'
+            ? Number.isFinite(high)
+              ? msg("lateBandRouteNote", "When trains on this route are late at your stop, half of those runs were under $1 min late ($2 late runs, cancellations not counted).", high, result.on_time_late_runs)
+              : msg("lateBandRouteNoteOpen", "When trains on this route are late at your stop, half of those runs were $1+ min late ($2 late runs, cancellations not counted).", low, result.on_time_late_runs)
+            : Number.isFinite(high)
+              ? msg("lateBandNote", "When $1 is late at your stop, half of those runs were under $2 min late ($3 late runs on $4, cancellations not counted).", result.train, high, result.on_time_late_runs, lateDays)
+              : msg("lateBandNoteOpen", "When $1 is late at your stop, half of those runs were $2+ min late ($3 late runs on $4, cancellations not counted).", result.train, low, result.on_time_late_runs, lateDays),
+          !bandFallback ? '' : route
+            ? msg("lateBandRouteFallback", "Too few late runs on this route for a typical delay, so it counts $1 on all days.", result.train)
+            : msg("lateBandFallback", "Too few late runs on this weekday for a typical delay, so it counts all days."),
+        ].filter(Boolean).join(' ');
+      }
     }
     if (kurt) line = msg("pickPrefix", "Kurt’s pick: ") + line;
-    return { line, kurt, detail };
+    return { line, kurt, detail, onTime, onTimeDetail };
   }
   function render(card, result, { link, server }) {
     const description = text(result, card);
@@ -42,11 +77,11 @@
     previous?.host.remove();
     const doc = card.el.ownerDocument;
     const host = doc.createElement('spk-badge');
-    host.setAttribute('aria-label', [description.line, description.detail].filter(Boolean).join('. '));
+    host.setAttribute('aria-label', [description.line, description.onTime, description.detail, description.onTimeDetail].filter(Boolean).map(part => part.replace(/\.$/, '')).join('. '));
     host.dataset.kurt = String(description.kurt);
     const shadow = host.attachShadow({ mode: 'closed' });
     const style = doc.createElement('style');
-    style.textContent = ':host{display:block;margin:6px 0;max-width:100%;font:12px/1.45 system-ui,sans-serif;color:#C93D00}*{box-sizing:border-box}.pill{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;max-width:100%;padding:4px 8px;border:1px solid #FD4F00;border-radius:14px;background:white}.kurt{background:#FD4F00;color:#14161A}button,a{font:inherit;color:inherit}button{border:1px solid currentColor;border-radius:50%;background:transparent;cursor:pointer;min-width:22px;min-height:22px;padding:0 5px}a{white-space:nowrap}.note{max-width:380px;background:white;color:#14161A;border:1px solid #FD4F00;border-radius:8px;padding:8px;margin-top:4px}.note p,.note ul{margin:0}.note ul{padding-left:16px;margin:4px 0}.lead{font-weight:600}.detail{margin-top:4px}.fine{color:#5B616B;font-size:11px}svg{flex-shrink:0}';
+    style.textContent = ':host{display:block;margin:6px 0;max-width:100%;font:12px/1.45 system-ui,sans-serif;color:#C93D00}*{box-sizing:border-box}.pill{display:inline-flex;vertical-align:middle;align-items:center;gap:6px;flex-wrap:wrap;max-width:100%;padding:4px 8px;border:1px solid #FD4F00;border-radius:14px;background:white}.kurt{background:#FD4F00;color:#14161A}button,a{font:inherit;color:inherit}button{border:1px solid currentColor;border-radius:50%;background:transparent;cursor:pointer;min-width:22px;min-height:22px;padding:0 5px}a{white-space:nowrap}.note{max-width:380px;background:white;color:#14161A;border:1px solid #FD4F00;border-radius:8px;padding:8px;margin-top:4px}.note p,.note ul{margin:0}.note ul{padding-left:16px;margin:4px 0}.lead{font-weight:600}.detail{margin-top:4px}.fine{color:#5B616B;font-size:11px}svg{flex-shrink:0}.on{margin-left:6px;border-color:#B8BCC3;color:#3A3F47}';
     shadow.append(style);
     const pill = doc.createElement('span');
     pill.className = 'pill' + (description.kurt ? ' kurt' : '');
@@ -70,10 +105,11 @@
     lead.className = 'lead';
     lead.textContent = note.lead;
     help.append(lead);
-    if (description.detail) {
+    for (const text of [description.detail, description.onTimeDetail]) {
+      if (!text) continue;
       const detail = doc.createElement('p');
       detail.className = 'detail';
-      detail.textContent = description.detail;
+      detail.textContent = text;
       help.append(detail);
     }
     const rules = doc.createElement('ul');
@@ -99,7 +135,14 @@
       anchor.textContent = msg("openKurt", "Open in Kurt");
       pill.append(anchor);
     }
-    shadow.append(pill, help);
+    shadow.append(pill);
+    if (description.onTime) {
+      const onTime = doc.createElement('span');
+      onTime.className = 'pill on';
+      onTime.textContent = description.onTime;
+      shadow.append(onTime);
+    }
+    shadow.append(help);
     for (const event of ['click', 'dblclick', 'pointerdown', 'pointerup', 'mousedown', 'mouseup', 'keydown', 'keyup', 'keypress']) {
       host.addEventListener(event, e => e.stopPropagation());
     }
