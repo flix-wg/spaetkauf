@@ -51,7 +51,9 @@ function render(value) {
   document.getElementById('preview').textContent = msg('onTime', '$1 % on time', Math.round((runs.length - late.length) / runs.length * 100)) + ' · ' + msg('lateBand', 'if late, typically $1–$2 min', low, high);
   document.getElementById('scopeNote').textContent = weekday
     ? msg('scopeNoteWeekday', 'A Saturday trip counts only Saturdays: closer to your trip, but fewer runs. With too few late runs, the typical delay counts all days.')
-    : msg('scopeNoteAll', 'Counts every run of this train at your stop. More runs, steadier numbers.');
+    : value === 'route'
+      ? msg('scopeNoteRoute', 'Counts every long-distance train from where you board to your stop: the most runs, but not only your train. Without enough runs on the route, it counts this train on all days.')
+      : msg('scopeNoteAll', 'Counts every run of this train at your stop. More runs, steadier numbers.');
 }
 function showOnTime(on) {
   scope.disabled = !on;
@@ -63,7 +65,7 @@ chrome.storage.sync.get({ server: DEFAULT_SERVER, showOnTime: false, onTimeScope
   if (config.server !== DEFAULT_SERVER) document.getElementById('advanced').open = true;
   onTime.checked = config.showOnTime === true;
   showOnTime(onTime.checked);
-  const value = config.onTimeScope === 'weekday' ? 'weekday' : 'all';
+  const value = ['weekday', 'route'].includes(config.onTimeScope) ? config.onTimeScope : 'all';
   for (const radio of scopes) radio.checked = radio.value === value;
   render(value);
 });

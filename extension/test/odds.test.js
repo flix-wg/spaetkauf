@@ -51,6 +51,8 @@ test('on-time chance comes only on request and never beats the late odds',async(
   const sunday={connections:[{dep:'10:00',arr:'14:00',trains:['ICE 785'],date:'2026-11-22'}],on_time_scope:'weekday'};
   assert.deepEqual(pick(await first(sunday)).slice(3),[44,'weekday',[15,20],116,'all']);
   await assert.rejects(extensionOdds({...c.body,on_time:true,on_time_scope:'monday'},{odds,tr}));
+  const route=await first({on_time_scope:'route'});
+  assert.deepEqual([route.on_time_route_fallback,route.on_time_scope,route.on_time],[true,'all',(await first({})).on_time]);
 });
 test('an unreachable site gives no odds and does not throw',async()=>{
   const original=globalThis.fetch;
@@ -152,4 +154,14 @@ test('a failed train file leaves successful cards usable',async()=>{
   }}});
   assert.equal(response.results[0].p20,null);
   assert.ok(response.results.some(r=>r.p20!==null));
+});
+test('route scope boards where Transitous puts the last train, also after a regional feeder',async()=>{
+  const plan=JSON.parse(JSON.stringify(golden.plan));
+  plan.itineraries[0].legs[0].routeShortName='RE 1';
+  const tr=createTransitous({fetch:async url=>Response.json(new URL(url).pathname==='/api/v1/geocode'?golden.geocode[new URL(url).searchParams.get('text')]||[]:plan),storage:null,cacheStorage:null});
+  const rows=[[4,40,0,12,9,6,4,2,1,1,0,0]];
+  const routed={...odds,route:async key=>key==='fulda'?{muenchen:{trains:2,rows}}:null};
+  const body={...golden.cases[0].body,connections:[{dep:'06:00',arr:'12:00',trains:['RE 1','ICE 599']}],on_time:true,on_time_scope:'route'};
+  const [r]=(await extensionOdds(body,{odds:routed,tr})).results;
+  assert.deepEqual([r.basis,r.on_time_scope,r.on_time_n,r.on_time_route?.from],['last_train','route',40,'Fulda']);
 });

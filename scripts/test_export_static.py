@@ -121,3 +121,26 @@ def test_golden_export_rejects_changed_backend_sql(sql):
 
     with pytest.raises(ValueError, match="Backend history SQL changed"):
         OrderedHistory(None).execute(sql)
+
+
+def test_route_counts_match_history(tmp_path):
+    if not HISTORY.is_file():
+        pytest.skip(f"History source not present: {HISTORY}")
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from export_static import export_routes, route_file
+
+    export_routes(HISTORY, tmp_path)
+    shard = json.loads((tmp_path / route_file("frankfurt main")).read_text())
+    route = shard["berlin"]
+    with duckdb.connect(str(HISTORY), read_only=True) as db:
+        n, late20, trains = db.execute("""
+            SELECT count(*), sum((d.arr_cancelled OR d.arr_delay >= 20)::INT), count(DISTINCT d.train_id)
+            FROM events d JOIN stops ds ON ds.id = d.stop_id
+            WHERE ds.station_key = 'berlin' AND d.arr_planned IS NOT NULL AND EXISTS (
+                SELECT 1 FROM events o JOIN stops os ON os.id = o.stop_id
+                WHERE o.run_id = d.run_id AND o.seq < d.seq AND os.station_key = 'frankfurt main'
+                  AND o.dep_planned IS NOT NULL)
+        """).fetchone()
+    assert route["trains"] == trains
+    assert sum(r[1] for r in route["rows"]) == n
+    assert sum(r[6] for r in route["rows"]) == late20
