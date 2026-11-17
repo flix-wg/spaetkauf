@@ -100,3 +100,13 @@ test('HTTP train shards return null for non-ok responses and invalid JSON', asyn
     assert.deepStrictEqual(await src.train('ICE', '1'), { type: 'ICE', number: '1', rows: [] })
   } finally { globalThis.fetch = original }
 })
+
+test('late band is the bucket of the median late run, spanning a bucket the median straddles', () => {
+  // [station, eva, name, weekday, n, cancelled, ge5 … ge120, first, last]; cancellations are left out of the band.
+  const row = (cancelled: number, ge: number[]) => ['s', '1', 'S', 5, 40, cancelled, ...ge, '', ''] as Parameters<typeof odds.lateBand>[0][number]
+  assert.deepStrictEqual(odds.lateBand([row(2, [13, 10, 8, 6, 4, 3, 2, 2, 2])]), [[15, 20], 11])
+  assert.deepStrictEqual(odds.lateBand([row(0, [10, 5, 5, 5, 5, 5, 5, 5, 5])]), [[5, null], 10])
+  assert.deepStrictEqual(odds.lateBand([row(0, [10, 9, 5, 2, 0, 0, 0, 0, 0])]), [[10, 20], 10])
+  assert.deepStrictEqual(odds.lateBand([row(0, [12, 12, 12, 12, 12, 12, 12, 12, 12])]), [[120, null], 12])
+  assert.deepStrictEqual(odds.lateBand([row(0, [9, 5, 0, 0, 0, 0, 0, 0, 0])]), [null, 9])
+})

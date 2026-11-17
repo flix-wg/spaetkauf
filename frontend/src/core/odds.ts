@@ -92,12 +92,14 @@ export interface OnTime { p: number; runs: number; n: number; scope: Scope; late
 
 // Bucket that holds the median delay of the 5+ min late runs, without cancellations.
 // The files only count runs at each bucket, so the answer is a band; null with too few late runs.
+// When exactly half the runs reach a bucket, the median straddles it and the band covers both sides.
 export function lateBand(rows: TrainRow[]): [Band | null, number] {
   const cancelled = rows.reduce((total, row) => total + row[5], 0)
   const ge = BUCKETS.map((_, i) => rows.reduce((total, row) => total + (row[i + 6] as number), 0) - cancelled)
   if (ge[0] < MIN_RUNS) return [null, ge[0]]
-  const i = ge.findIndex(count => count < ge[0] / 2)
-  return [i === -1 ? [BUCKETS.at(-1)!, null] : [BUCKETS[i - 1], BUCKETS[i]], ge[0]]
+  const low = ge.findIndex(count => count <= ge[0] / 2)
+  const high = ge.findIndex(count => count < ge[0] / 2)
+  return [[low === -1 ? BUCKETS.at(-1)! : BUCKETS[low - 1], high === -1 ? null : BUCKETS[high]], ge[0]]
 }
 
 // All-days counts as the stats, shrunk straight to the type rate.
