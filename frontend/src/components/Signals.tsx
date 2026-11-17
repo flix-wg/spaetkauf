@@ -144,7 +144,7 @@ export function SignalsArea({
       <p className="rounded-2xl bg-surface p-3.5 text-[13px] leading-snug text-muted">{tr('noRouteNewsFoundInTheLast')} </p>
     )
   } else {
-    const items = [...s.items].sort((a, b) => Number(weak(a.reason)) - Number(weak(b.reason)))
+    const items = s.items.toSorted((a, b) => Number(weak(a.reason)) - Number(weak(b.reason)))
     const shown = all ? items : items.slice(0, SHOW)
     body = (
       <>

@@ -56,6 +56,9 @@ function StationField({
         value={field.text}
         autoComplete="off"
         autoCapitalize="words"
+        autoCorrect="off"
+        spellCheck={false}
+        enterKeyHint="search"
         placeholder={label === tr('from') ? tr('hamburgExample') : tr('munichExample')}
         onFocus={() => setFocus(true)}
         onBlur={() => setTimeout(() => setFocus(false), 150)}
@@ -204,7 +207,8 @@ export function Search() {
               <button type="button" onClick={() => open('sources')} className="min-h-[36px] self-start text-[14px] font-semibold text-accent-text underline">{tr('howItWorksAndExceptions')} </button>
             </div>
         </div>
-        <form onSubmit={go} className="flex flex-col gap-3">
+        <search>
+<form onSubmit={go} className="flex flex-col gap-3">
           <div className="relative flex flex-col gap-3">
             <StationField label={tr('from')} field={from} onChange={setFrom} error={errs.from} />
             <StationField label={tr('to335')} field={to} onChange={setTo} error={errs.to} />
@@ -250,6 +254,7 @@ export function Search() {
             <IconSearch size={20} /> {busy ? tr('looking') : tr('findLateTrains')}
           </button>
         </form>
+</search>
         <div className="flex flex-col gap-2">
           <span className="text-[13px] font-semibold text-muted">{tr('tryABusyRoute')}</span>
           <div className="flex flex-wrap gap-2">

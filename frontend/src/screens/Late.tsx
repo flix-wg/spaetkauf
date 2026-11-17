@@ -12,7 +12,7 @@ export function Late() {
   const [s, retry] = useAsync(() => api.lateNow(), [], 60000)
   const d = s.status === 'ok' ? s.data : null
   const stale = d?.stale || (s.status === 'ok' && s.stale)
-  const list = d ? [...d.late].sort((a, b) => b.delay_min - a.delay_min) : []
+  const list = d ? d.late.toSorted((a, b) => b.delay_min - a.delay_min) : []
   return (
     <>
       <ScreenHeader title={tr('lateNow')} />
