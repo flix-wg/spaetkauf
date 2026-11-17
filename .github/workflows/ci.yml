@@ -29,6 +29,7 @@ jobs:
           cache-dependency-glob: backend/uv.lock
       - run: uv sync --frozen
       - run: uv run ruff check .
+      - run: bash ../scripts/fetch_data.sh odds.sqlite
       - run: uv run pytest -q
 
   frontend:
