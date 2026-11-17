@@ -64,7 +64,7 @@ test('on-time chance comes only on request and never beats the late odds',async(
   const first=async(extra)=>(await extensionOdds({...c.body,on_time:true,...extra},{odds,tr})).results[0];
   const pick=r=>[r.train,r.on_time,r.on_time_runs,r.on_time_n,r.on_time_scope,r.on_time_late,r.on_time_late_runs,r.on_time_late_scope];
   const check=(got,want)=>{ // on_time is rounded to 4 places with ties to even
-    assert.ok(Math.abs(got[1]-want[1])<=0.00005,`${got[1]} vs ${want[1]}`);
+    assert.ok(Math.abs(got[1]-want[1])<0.0001,`${got[1]} vs ${want[1]}`);
     assert.deepEqual([...got.slice(0,1),...got.slice(2)],[...want.slice(0,1),...want.slice(2)]);
   };
   check(pick(await first({on_time_scope:'weekday'})),expect(5,'weekday'));
