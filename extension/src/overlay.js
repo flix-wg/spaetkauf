@@ -30,16 +30,20 @@
           ? msg("lastOnly", "$1 alone: $2. Kurt could not match your change, so a missed change is not counted.", result.train, counts)
           : `${counts[0].toUpperCase() + counts.slice(1)}.`;
       if (Number.isFinite(result.on_time) && Number.isFinite(result.on_time_runs)) {
-        onTime = msg("onTime", "$1 % on time", Math.round(result.on_time * 100));
         const [low, high] = Array.isArray(result.on_time_late) ? result.on_time_late : [];
-        if (Number.isFinite(low)) onTime += ' · ' + (Number.isFinite(high) ? msg("lateBand", "if late, typically $1–$2 min", low, high) : msg("lateBandOpen", "if late, typically $1+ min", low));
+        const bandFallback = Number.isFinite(low) && result.on_time_scope === 'weekday' && result.on_time_late_scope === 'all';
+        const day = msg('day' + result.weekday, result.weekday + 's');
+        onTime = msg("onTime", "$1 % on time", Math.round(result.on_time * 100));
+        if (Number.isFinite(low)) onTime += ' · ' + (Number.isFinite(high) ? msg("lateBand", "if late, typically $1–$2 min", low, high) : msg("lateBandOpen", "if late, typically $1+ min", low)) + (bandFallback ? ' ' + msg("onTimeAllDaysMarker", "(all days)") : '');
+        const lateDays = result.on_time_late_scope === 'weekday' ? day : msg("allDays", "all days");
         onTimeDetail = [
           msg("onTimeNote", "On time means under 5 min late at your stop."),
-          msg("onTimeCounts", "$1: on time $2 of $3 $4.", result.train, result.on_time_runs, result.n, msg('day' + result.weekday, result.weekday + 's')),
+          msg("onTimeCounts", "$1: on time $2 of $3 $4.", result.train, result.on_time_runs, result.on_time_n, result.on_time_scope === 'weekday' ? day : msg("onTimeRunsAllDays", "runs on all days")),
           result.basis === 'estimate' ? msg("onTimeChange", "A missed change counts as late.") : '',
           !Number.isFinite(low) ? '' : Number.isFinite(high)
-            ? msg("lateBandNote", "When $1 is late at your stop, half of those runs were under $2 min late ($3 late runs on all weekdays, cancellations not counted).", result.train, high, result.on_time_late_runs)
-            : msg("lateBandNoteOpen", "When $1 is late at your stop, half of those runs were $2+ min late ($3 late runs on all weekdays, cancellations not counted).", result.train, low, result.on_time_late_runs),
+            ? msg("lateBandNote", "When $1 is late at your stop, half of those runs were under $2 min late ($3 late runs on $4, cancellations not counted).", result.train, high, result.on_time_late_runs, lateDays)
+            : msg("lateBandNoteOpen", "When $1 is late at your stop, half of those runs were $2+ min late ($3 late runs on $4, cancellations not counted).", result.train, low, result.on_time_late_runs, lateDays),
+          bandFallback ? msg("lateBandFallback", "Too few late runs on this weekday for a typical delay, so it counts all days.") : '',
         ].filter(Boolean).join(' ');
       }
     }

@@ -2,7 +2,7 @@ import type { Leg, Pick } from '../../frontend/src/api'
 import { berlinLocal, weekdayBerlin, zonedToUtc } from '../../frontend/src/core/berlin.ts'
 import { LONG_DISTANCE_TYPES, parseTrain } from '../../frontend/src/core/matching.ts'
 import { connectionOdds, onTimeOdds, WEEKDAYS } from '../../frontend/src/core/odds.ts'
-import type { Leg as OddsLeg, Odds } from '../../frontend/src/core/odds'
+import type { Leg as OddsLeg, Odds, Scope } from '../../frontend/src/core/odds'
 import { httpOddsSource } from '../../frontend/src/core/oddsSource.ts'
 import type { OddsSource } from '../../frontend/src/core/oddsSource'
 import { fetchPages, fillNames, resolve, rideInstead } from '../../frontend/src/core/picks.ts'
@@ -11,8 +11,9 @@ import type { Transitous } from '../../frontend/src/core/transitous'
 
 export { createTransitous, httpOddsSource }
 export interface Connection { dep: string; arr: string; trains: string[]; date?: string | null; posted?: boolean }
-export interface OddsRequest { from?: string | null; to: string; to_eva?: string | null; date: string; connections: Connection[]; on_time?: boolean }
-export interface Result extends Omit<Odds, 'basis'> { i: number; basis: Odds['basis'] | 'last_train'; train: string | null; kurt: boolean; on_time?: number; on_time_runs?: number; on_time_late?: [number, number | null] | null; on_time_late_runs?: number }
+export interface OddsRequest { from?: string | null; to: string; to_eva?: string | null; date: string; connections: Connection[]; on_time?: boolean; on_time_scope?: Scope }
+export interface Result extends Omit<Odds, 'basis'> { i: number; basis: Odds['basis'] | 'last_train'; train: string | null; kurt: boolean; on_time?: number; on_time_runs?: number; on_time_n?: number; on_time_scope?: Scope;
+  on_time_late?: [number, number | null] | null; on_time_late_runs?: number; on_time_late_scope?: Scope }
 export interface OddsResponse { to: string; date: string; kurt: number | null; link: string; results: Result[] }
 
 const TRANSIT_WAIT = 4000
@@ -26,7 +27,8 @@ const optional = <T>(work: Promise<T>) => work.catch(() => null)
 function valid(body: OddsRequest): boolean {
   const text = (value: unknown, max: number) => typeof value === 'string' && value.length <= max
   return text(body.to, 80) && body.to.length > 0 && (body.from == null || text(body.from, 80)) &&
-    (body.to_eva == null || /^\d{6,9}$/.test(body.to_eva)) && (body.on_time == null || typeof body.on_time === 'boolean') && text(body.date, 10) && DAY.test(body.date) &&
+    (body.to_eva == null || /^\d{6,9}$/.test(body.to_eva)) && (body.on_time == null || typeof body.on_time === 'boolean') &&
+    (body.on_time_scope == null || body.on_time_scope === 'weekday' || body.on_time_scope === 'all') && text(body.date, 10) && DAY.test(body.date) &&
     Array.isArray(body.connections) && body.connections.length <= 30 && body.connections.every(c =>
       CLOCK.test(c.dep) && CLOCK.test(c.arr) && (c.date == null || DAY.test(c.date)) &&
       Array.isArray(c.trains) && c.trains.length <= 12 && c.trains.every(t => text(t, 20)))
@@ -94,8 +96,9 @@ export async function extensionOdds(body: OddsRequest, deps: { odds: OddsSource;
       }
       // Only on request, so the default response stays the app's.
       if (body.on_time && result.p20 !== null) {
-        const onTime = await optional(onTimeOdds(odds, counted))
-        if (onTime) Object.assign(result, { on_time: onTime.p, on_time_runs: onTime.runs, on_time_late: onTime.late, on_time_late_runs: onTime.lateRuns })
+        const onTime = await optional(onTimeOdds(odds, counted, body.on_time_scope ?? 'all'))
+        if (onTime) Object.assign(result, { on_time: onTime.p, on_time_runs: onTime.runs, on_time_n: onTime.n, on_time_scope: onTime.scope,
+          on_time_late: onTime.late, on_time_late_runs: onTime.lateRuns, on_time_late_scope: onTime.lateScope })
       }
     }
     return result

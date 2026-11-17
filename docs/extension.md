@@ -2,7 +2,7 @@
 
 The extension in `extension/` adds Kurt's odds to a bahn.de results page you already have open. Each long-distance connection gets a badge, and one gets Kurt's mark: the highest odds of at least 30 % that has a backup on the same page leaving within 2 hours and arriving at most 20 minutes later. That is the rule the app uses. A card that already shows a delay or cancellation keeps its odds, loses the mark and says the posted delay won't count.
 
-Optionally (settings, off by default), each badge also shows how often the trip reaches your stop on time, meaning under 5 minutes late, and how late it typically is when it is late, from the same train files. See `docs/on-time.md`.
+Optionally (settings, off by default), each badge also shows how often the trip reaches your stop on time, meaning under 5 minutes late, and how late it typically is when it is late, from the same train files, counting all days or only your trip's weekday. See `docs/on-time.md`.
 
 The extension only reads the page. It never clicks, fills in or loads anything on bahn.de.
 

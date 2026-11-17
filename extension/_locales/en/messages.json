@@ -294,7 +294,7 @@
     }
   },
   "lateBandNote": {
-    "message": "When $ARG1$ is late at your stop, half of those runs were under $ARG2$ min late ($ARG3$ late runs on all weekdays, cancellations not counted).",
+    "message": "When $ARG1$ is late at your stop, half of those runs were under $ARG2$ min late ($ARG3$ late runs on $ARG4$, cancellations not counted).",
     "placeholders": {
       "arg1": {
         "content": "$1"
@@ -304,11 +304,14 @@
       },
       "arg3": {
         "content": "$3"
+      },
+      "arg4": {
+        "content": "$4"
       }
     }
   },
   "lateBandNoteOpen": {
-    "message": "When $ARG1$ is late at your stop, half of those runs were $ARG2$+ min late ($ARG3$ late runs on all weekdays, cancellations not counted).",
+    "message": "When $ARG1$ is late at your stop, half of those runs were $ARG2$+ min late ($ARG3$ late runs on $ARG4$, cancellations not counted).",
     "placeholders": {
       "arg1": {
         "content": "$1"
@@ -318,7 +321,34 @@
       },
       "arg3": {
         "content": "$3"
+      },
+      "arg4": {
+        "content": "$4"
       }
     }
+  },
+  "onTimeScope": {
+    "message": "Based on"
+  },
+  "onTimeScopeAll": {
+    "message": "This train on all days"
+  },
+  "onTimeScopeWeekday": {
+    "message": "This train on the same weekday"
+  },
+  "onTimeScopeHint": {
+    "message": "The same weekday is closer to your trip but has fewer runs. If it has too few late runs, the typical delay counts all days."
+  },
+  "onTimeAllDaysMarker": {
+    "message": "(all days)"
+  },
+  "onTimeRunsAllDays": {
+    "message": "runs on all days"
+  },
+  "allDays": {
+    "message": "all days"
+  },
+  "lateBandFallback": {
+    "message": "Too few late runs on this weekday for a typical delay, so it counts all days."
   }
 }

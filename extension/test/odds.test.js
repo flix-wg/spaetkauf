@@ -28,9 +28,9 @@ test('on-time chance comes only on request and never beats the late odds',async(
   let shown=0;
   for(const c of golden.cases){
     const tr=createTransitous({fetch:transitous[c.transitous],storage:null,cacheStorage:null});
-    const {results}=await extensionOdds({...c.body,on_time:true},{odds,tr});
+    const {results}=await extensionOdds({...c.body,on_time:true,on_time_scope:'weekday'},{odds,tr});
     for(const [i,r] of results.entries()){
-      const {on_time,on_time_runs,on_time_late,on_time_late_runs,...rest}=r;
+      const {on_time,on_time_runs,on_time_n,on_time_scope,on_time_late,on_time_late_runs,on_time_late_scope,...rest}=r;
       assert.deepEqual(rest,c.expected.results[i]);
       if(r.p20===null){assert.equal(on_time,undefined);continue;}
       shown++;
@@ -39,12 +39,18 @@ test('on-time chance comes only on request and never beats the late odds',async(
     }
   }
   assert.ok(shown>0);
-  // ICE 785 to München on a Saturday: 30 of 45 runs under 5 min late; over all weekdays the median
-  // of its 116 late runs (cancellations out) falls between 15 and 20 min. Checked by hand against the train file.
+  // ICE 785 to München Hbf, checked by hand against trains/ICE-785.json. Saturday: 30 of 45 runs under 5 min late;
+  // its 13 late runs (15 minus 2 cancelled) have the median between 20 and 30 min. All days: 187 of 319 on time;
+  // 116 late runs (132 minus 16 cancelled), median between 15 and 20. Sunday has 7 late runs, so its band uses all days.
   const c=golden.cases[1];
   const tr=createTransitous({fetch:transitous[c.transitous],storage:null,cacheStorage:null});
-  const [first]=(await extensionOdds({...c.body,on_time:true},{odds,tr})).results;
-  assert.deepEqual([first.train,first.on_time,first.on_time_runs,first.on_time_late,first.on_time_late_runs],['ICE 785',0.6158,30,[15,20],116]);
+  const first=async(extra)=>(await extensionOdds({...c.body,on_time:true,...extra},{odds,tr})).results[0];
+  const pick=r=>[r.train,r.on_time,r.on_time_runs,r.on_time_n,r.on_time_scope,r.on_time_late,r.on_time_late_runs,r.on_time_late_scope];
+  assert.deepEqual(pick(await first({on_time_scope:'weekday'})),['ICE 785',0.6158,30,45,'weekday',[20,30],13,'weekday']);
+  assert.deepEqual(pick(await first({})),['ICE 785',0.57,187,319,'all',[15,20],116,'all']);
+  const sunday={connections:[{dep:'10:00',arr:'14:00',trains:['ICE 785'],date:'2026-11-22'}],on_time_scope:'weekday'};
+  assert.deepEqual(pick(await first(sunday)).slice(3),[44,'weekday',[15,20],116,'all']);
+  await assert.rejects(extensionOdds({...c.body,on_time:true,on_time_scope:'monday'},{odds,tr}));
 });
 test('an unreachable site gives no odds and does not throw',async()=>{
   const original=globalThis.fetch;

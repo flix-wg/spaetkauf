@@ -6,8 +6,8 @@ An optional badge line that says how often a train reaches your stop on time, so
 
 Nothing new to export. Every train file (`/data/odds/trains/<type>-<number>.json`) already has, per stop and weekday, the runs `n` and the runs at least 5 minutes late `ge5` (a cancelled arrival counts as late). The on-time chance uses the same code path as the late chance:
 
-- One train: `1 − rate(ge5)`, with the same pull toward this train's other weekdays and its train type (`SHRINK_M = 50`).
-- With a change: `share × (1 − rate(ge5) of the last train)`, where `share` is the chance of making every change, as in the 20+ min number. A missed change is counted as not on time.
+- One train: `1 − rate(ge5)`, with the same pull toward the train type (`SHRINK_M = 50`). With the weekday scope (see below) it is pulled toward this train's other weekdays first, as the 20+ min number is.
+- With a change: `share × (1 − rate(ge5) of the last train)`, where `share` is the chance of making every change, from the same scope. A missed change is counted as not on time.
 
 Only long-distance trains have history, so a trip that ends on a regional train shows no on-time chance, the same as today.
 
@@ -23,11 +23,22 @@ Next to the on-time chance, the pill says how late the train typically is when i
 
 - The number is the **median** of the late runs (5+ min late), not the mean. A few 2-hour delays would pull a mean far above what most late runs look like.
 - The train files count runs at 5, 10, 15, 20, 30, 45, 60, 90 and 120 min, not exact minutes, so Kurt names the band the median falls in. Above 120 min it says "120+ min". No export change is needed.
-- It uses every weekday of that train at your stop, so there are enough runs (a single weekday often has only 10 to 30 late runs). Cancellations count as not on time, but they are left out here, since a cancelled train has no delay.
+- It uses the same days as the on-time chance (see below). Cancellations count as not on time, but they are left out here, since a cancelled train has no delay.
 - With fewer than 10 late runs, only the on-time chance shows.
 - With a change, the band is the last train's own; the popover names that train.
 
 On a sample of 10,500 train and stop pairs, the bands that show are mostly 10–15, 15–20 and 20–30 min.
+
+## Which days count
+
+A second setting picks what the on-time chance and the delay band are based on:
+
+- **This train on all days** (default): this train at your stop, every weekday. More runs, steadier numbers. A single weekday often has only 10 to 30 late runs.
+- **This train on the same weekday**: only the weekday of your trip, closer to it but thinner.
+
+A train only gets odds when its weekday has at least 10 runs, so the on-time chance always has enough. The delay band needs 10 late runs; when the weekday has fewer, the band counts all days, the pill adds "(all days)" after it and the popover says why. The orange 20+ min chance is not affected; it stays as it is.
+
+**Not offered: this route in general** (every train between your two stations). The files are one per train, with no index of which trains serve a pair of stations. Building that number would mean downloading every train file that might serve the route, or a new export with per-route totals and a data redeploy. That can come later if people ask for it.
 
 ## How it looks
 
@@ -42,7 +53,7 @@ When the setting is on, each badge with history gets a second, quieter pill next
 
 ## Setting
 
-A checkbox on the options page, under the server setting: **Show on-time chance** (`showOnTime` in `chrome.storage.sync`). **Off by default.** Kurt's pitch is the late train that frees your saver ticket. A second percentage pointing the other way on every card would add noise for most users and could be misread as the late chance. People who care about punctuality turn it on once, and Chrome sync carries it to their other browsers. Changing it redraws the badges on open bahn.de tabs without a reload.
+A checkbox on the options page, under the server setting: **Show on-time chance** (`showOnTime` in `chrome.storage.sync`). **Off by default.** Under it, **Based on** with two choices (`onTimeScope`, `all` or `weekday`, default `all`), greyed out while the checkbox is off. Kurt's pitch is the late train that frees your saver ticket. A second percentage pointing the other way on every card would add noise for most users and could be misread as the late chance. People who care about punctuality turn it on once, and Chrome sync carries it to their other browsers. Changing it redraws the badges on open bahn.de tabs without a reload.
 
 ## Copy
 
@@ -56,7 +67,15 @@ A checkbox on the options page, under the server setting: **Show on-time chance*
 | `onTimeChange` | A missed change counts as late. | Ein verpasster Umstieg zählt als verspätet. |
 | `lateBand` | if late, typically $1–$2 min | sonst meist $1–$2 Min. |
 | `lateBandOpen` | if late, typically $1+ min | sonst meist $1+ Min. |
-| `lateBandNote` | When $1 is late at your stop, half of those runs were under $2 min late ($3 late runs on all weekdays, cancellations not counted). | Wenn $1 an deinem Halt verspätet ist, war die Hälfte dieser Fahrten weniger als $2 Min. zu spät ($3 verspätete Fahrten an allen Wochentagen, Ausfälle nicht mitgezählt). |
+| `lateBandNote` | When $1 is late at your stop, half of those runs were under $2 min late ($3 late runs on $4, cancellations not counted). | Wenn $1 an deinem Halt verspätet ist, war die Hälfte dieser Fahrten weniger als $2 Min. zu spät ($3 verspätete Fahrten an $4, Ausfälle nicht mitgezählt). |
+| `onTimeScope` | Based on | Grundlage |
+| `onTimeScopeAll` | This train on all days | Dieser Zug an allen Tagen |
+| `onTimeScopeWeekday` | This train on the same weekday | Dieser Zug am gleichen Wochentag |
+| `onTimeScopeHint` | The same weekday is closer to your trip but has fewer runs. If it has too few late runs, the typical delay counts all days. | Der gleiche Wochentag passt genauer zu deiner Fahrt, hat aber weniger Fahrten. Hat er zu wenige verspätete Fahrten, zählen für die typische Verspätung alle Tage. |
+| `onTimeAllDaysMarker` | (all days) | (alle Tage) |
+| `onTimeRunsAllDays` | runs on all days | Fahrten an allen Tagen |
+| `allDays` | all days | allen Tagen |
+| `lateBandFallback` | Too few late runs on this weekday for a typical delay, so it counts all days. | Zu wenige verspätete Fahrten an diesem Wochentag für eine typische Verspätung, daher zählen alle Tage. |
 
 ## Not in scope
 

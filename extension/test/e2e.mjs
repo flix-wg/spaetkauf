@@ -116,6 +116,8 @@ try {
   await options.locator('#onTime').check();
   await page.waitForFunction(selector => document.querySelectorAll('spk-badge' + selector).length === 5, onTime); // the sixth card has no history
   await page.locator('spk-badge[data-kurt="true"]').locator('xpath=ancestor::li[1]').screenshot({ path: path.join(shots, 'x-ontime.png') });
+  await options.locator('input[name=scope][value=weekday]').check();
+  await page.waitForFunction(() => [...document.querySelectorAll('spk-badge')].some(badge => /on time \d+ of \d+ Saturdays/.test(badge.getAttribute('aria-label')))); // the fixture is a Saturday; all days says "runs on all days"
   await options.screenshot({ path: path.join(shots, 'x-options.png') });
   await options.locator('#onTime').uncheck();
   await page.waitForFunction(selector => !document.querySelector('spk-badge' + selector) && document.querySelectorAll('spk-badge').length === 6, onTime);

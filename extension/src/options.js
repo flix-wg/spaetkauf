@@ -7,8 +7,16 @@ const DEFAULT_SERVER = 'https://kurtfaehrt.de';
 const input = document.getElementById('server');
 const message = document.getElementById('message');
 const onTime = document.getElementById('onTime');
-chrome.storage.sync.get({ server: DEFAULT_SERVER, showOnTime: false }).then(config => { input.value = config.server; onTime.checked = config.showOnTime === true; });
-onTime.addEventListener('change', () => chrome.storage.sync.set({ showOnTime: onTime.checked }));
+const scope = document.getElementById('scope');
+const scopes = scope.querySelectorAll('input[name=scope]');
+chrome.storage.sync.get({ server: DEFAULT_SERVER, showOnTime: false, onTimeScope: 'all' }).then(config => {
+  input.value = config.server;
+  onTime.checked = config.showOnTime === true;
+  scope.disabled = !onTime.checked;
+  for (const radio of scopes) radio.checked = radio.value === (config.onTimeScope === 'weekday' ? 'weekday' : 'all');
+});
+onTime.addEventListener('change', () => { scope.disabled = !onTime.checked; chrome.storage.sync.set({ showOnTime: onTime.checked }); });
+for (const radio of scopes) radio.addEventListener('change', () => chrome.storage.sync.set({ onTimeScope: radio.value }));
 async function save(value) {
   try {
     const url = new URL(value);

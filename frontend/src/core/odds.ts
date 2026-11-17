@@ -1,6 +1,6 @@
 import { GE_COLUMNS } from './oddsSource.ts'
 import type { OddsSource, Rates, TrainRow } from './oddsSource'
-import { findStats, parseTrain } from './matching.ts'
+import { findStats, MIN_RUNS, parseTrain } from './matching.ts'
 import type { MatchedStats, Stats } from './matching'
 import { weekdayBerlin } from './berlin.ts'
 
@@ -86,26 +86,38 @@ export async function connectionOdds(src: OddsSource, legs: Leg[], m = SHRINK_M)
     late: end.ge20, n: end.n, basis: legs.length === 1 ? 'history' : 'estimate' }
 }
 
-export const LATE_MIN_RUNS = 10
-export interface OnTime { p: number; runs: number; late: [number, number | null] | null; lateRuns: number }
+export type Scope = 'weekday' | 'all'
+type Band = [number, number | null]
+export interface OnTime { p: number; runs: number; n: number; scope: Scope; late: Band | null; lateRuns: number; lateScope: Scope }
 
-// Bucket that holds the median delay of the 5+ min late runs, over all weekdays, without cancellations.
+// Bucket that holds the median delay of the 5+ min late runs, without cancellations.
 // The files only count runs at each bucket, so the answer is a band; null with too few late runs.
-export function lateBand(rows: TrainRow[]): [[number, number | null] | null, number] {
+export function lateBand(rows: TrainRow[]): [Band | null, number] {
   const cancelled = rows.reduce((total, row) => total + row[5], 0)
   const ge = BUCKETS.map((_, i) => rows.reduce((total, row) => total + (row[i + 6] as number), 0) - cancelled)
-  if (ge[0] < LATE_MIN_RUNS) return [null, ge[0]]
+  if (ge[0] < MIN_RUNS) return [null, ge[0]]
   const i = ge.findIndex(count => count < ge[0] / 2)
   return [i === -1 ? [BUCKETS.at(-1)!, null] : [BUCKETS[i - 1], BUCKETS[i]], ge[0]]
 }
 
+// All-days counts as the stats, shrunk straight to the type rate.
+const NO_PARENT = { n: 0, ...Object.fromEntries(GE_COLUMNS.map(col => [col, 0])) } as Rates & { n: number }
+const allDays = (s: HistoryStats): HistoryStats => ({ ...s, ...s.parent, parent: NO_PARENT })
+
 // Chance to reach the last stop under 5 min late; a missed change counts as late.
-// `runs` (on-time runs on that weekday) and the late band are the last train's own.
-export async function onTimeOdds(src: OddsSource, legs: Leg[], m = SHRINK_M): Promise<OnTime | null> {
-  const parts = await reach(src, legs, m)
+// A matched weekday always has MIN_RUNS runs (findStats), so the weekday scope needs no fallback for p.
+// The weekday late band falls back to all weekdays below MIN_RUNS late runs.
+export async function onTimeOdds(src: OddsSource, legs: Leg[], scope: Scope = 'all', m = SHRINK_M): Promise<OnTime | null> {
+  const parts = await reach(src, legs, m, scope === 'all' ? (s, t, k) => rate(allDays(s), t, k) : rate)
   if (!parts) return null
-  const [share, end] = parts
-  const shard = await src.train(end.train_type, end.train_number)
-  const [late, lateRuns] = lateBand(shard!.rows.filter(row => row[0] === end.station_key))
-  return { p: round4(share * (1 - rate(end, 5, m))), runs: end.n - end.ge5, late, lateRuns }
+  const [share, last] = parts
+  const end = scope === 'all' ? allDays(last) : last
+  const rows = (await src.train(last.train_type, last.train_number))!.rows.filter(row => row[0] === last.station_key)
+  let lateScope = scope
+  let [late, lateRuns] = lateBand(scope === 'weekday' ? rows.filter(row => row[3] === last.weekday) : rows)
+  if (!late && scope === 'weekday') {
+    [late, lateRuns] = lateBand(rows)
+    lateScope = 'all'
+  }
+  return { p: round4(share * (1 - rate(end, 5, m))), runs: end.n - end.ge5, n: end.n, scope, late, lateRuns, lateScope }
 }

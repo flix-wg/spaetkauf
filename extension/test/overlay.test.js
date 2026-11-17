@@ -18,8 +18,14 @@ test('odds text, Kurt, changes and missing history', () => {
   assert.equal(text({ ...result, p20: NaN }, { trains: ['ICE 599', 'RE 4'] }).line, 'No odds: ends on a regional train');
 });
 test('on-time chance shows only with history and its own pill', () => {
-  const timed = { ...result, train: 'ICE 599', on_time: 0.523, on_time_runs: 18, on_time_late: [20, 30], on_time_late_runs: 120 };
-  assert.deepEqual(text(timed, card), { line: '41 % chance of 20+ min late', kurt: false, detail: 'Late 14 of 34 Saturdays.', onTime: '52 % on time · if late, typically 20–30 min', onTimeDetail: 'On time means under 5 min late at your stop. ICE 599: on time 18 of 34 Saturdays. When ICE 599 is late at your stop, half of those runs were under 30 min late (120 late runs on all weekdays, cancellations not counted).' });
+  const timed = { ...result, train: 'ICE 599', on_time: 0.523, on_time_scope: 'all', on_time_n: 210, on_time_runs: 110, on_time_late: [20, 30], on_time_late_runs: 100, on_time_late_scope: 'all' };
+  assert.deepEqual(text(timed, card), { line: '41 % chance of 20+ min late', kurt: false, detail: 'Late 14 of 34 Saturdays.', onTime: '52 % on time · if late, typically 20–30 min', onTimeDetail: 'On time means under 5 min late at your stop. ICE 599: on time 110 of 210 runs on all days. When ICE 599 is late at your stop, half of those runs were under 30 min late (100 late runs on all days, cancellations not counted).' });
+  const weekday = { ...timed, on_time_scope: 'weekday', on_time_n: 34, on_time_runs: 18, on_time_late_scope: 'weekday', on_time_late_runs: 16 };
+  assert.equal(text(weekday, card).onTime, '52 % on time · if late, typically 20–30 min');
+  assert.equal(text(weekday, card).onTimeDetail, 'On time means under 5 min late at your stop. ICE 599: on time 18 of 34 Saturdays. When ICE 599 is late at your stop, half of those runs were under 30 min late (16 late runs on Saturdays, cancellations not counted).');
+  const bandOnly = text({ ...weekday, on_time_late_scope: 'all', on_time_late_runs: 100 }, card);
+  assert.equal(bandOnly.onTime, '52 % on time · if late, typically 20–30 min (all days)');
+  assert.match(bandOnly.onTimeDetail, /18 of 34 Saturdays\. When .*\(100 late runs on all days, cancellations not counted\)\. Too few late runs on this weekday for a typical delay, so it counts all days\.$/);
   assert.equal(text({ ...timed, on_time_late: [120, null] }, card).onTime, '52 % on time · if late, typically 120+ min');
   assert.equal(text({ ...timed, on_time_late: null }, card).onTime, '52 % on time');
   assert.match(text({ ...timed, basis: 'estimate' }, card).onTimeDetail, /A missed change counts as late\. When/);
@@ -118,9 +124,9 @@ test('German runtime messages translate interpolated odds and missing-history st
     assert.equal(german.detail, 'Verspätet: 14 von 34 Samstagen.');
     assert.equal(text({ ...result, basis: 'none' }, card).line, 'Zu wenig vergangene Fahrten für Chancen');
     assert.equal(text(result, { ...card, posted: true }).line, 'Schon angekündigt: zählt nicht');
-    const timed = text({ ...result, basis: 'estimate', train: 'ICE 599', on_time: 0.523, on_time_runs: 18, on_time_late: [20, 30], on_time_late_runs: 120 }, card);
-    assert.equal(timed.onTime, '52 % pünktlich · sonst meist 20–30 Min.');
-    assert.equal(timed.onTimeDetail, 'Pünktlich heißt: weniger als 5 Min. verspätet an deinem Halt. ICE 599: pünktlich 18 von 34 Samstagen. Ein verpasster Umstieg zählt als verspätet. Wenn ICE 599 an deinem Halt verspätet ist, war die Hälfte dieser Fahrten weniger als 30 Min. zu spät (120 verspätete Fahrten an allen Wochentagen, Ausfälle nicht mitgezählt).');
+    const timed = text({ ...result, basis: 'estimate', train: 'ICE 599', on_time: 0.523, on_time_scope: 'weekday', on_time_n: 34, on_time_runs: 18, on_time_late: [20, 30], on_time_late_runs: 100, on_time_late_scope: 'all' }, card);
+    assert.equal(timed.onTime, '52 % pünktlich · sonst meist 20–30 Min. (alle Tage)');
+    assert.equal(timed.onTimeDetail, 'Pünktlich heißt: weniger als 5 Min. verspätet an deinem Halt. ICE 599: pünktlich 18 von 34 Samstagen. Ein verpasster Umstieg zählt als verspätet. Wenn ICE 599 an deinem Halt verspätet ist, war die Hälfte dieser Fahrten weniger als 30 Min. zu spät (100 verspätete Fahrten an allen Tagen, Ausfälle nicht mitgezählt). Zu wenige verspätete Fahrten an diesem Wochentag für eine typische Verspätung, daher zählen alle Tage.');
   } finally {
     delete globalThis.chrome;
   }
