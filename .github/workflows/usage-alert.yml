@@ -1,0 +1,45 @@
+name: Usage alert
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+env:
+  # Open an issue when the last 7 full days exceed this many unique visitors.
+  THRESHOLD: 5000
+  ISSUE_TITLE: "Usage alert: write to Transitous"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      CF_ANALYTICS_TOKEN: ${{ secrets.CF_ANALYTICS_TOKEN }}
+      CF_ZONE_ID: ${{ vars.CF_ZONE_ID || secrets.CF_ZONE_ID }}
+    steps:
+      - name: Skip without configuration
+        if: env.CF_ANALYTICS_TOKEN == '' || env.CF_ZONE_ID == ''
+        run: echo "::notice::CF_ANALYTICS_TOKEN secret or CF_ZONE_ID variable is not set; skipping the usage check."
+      - uses: actions/checkout@v7
+        if: env.CF_ANALYTICS_TOKEN != '' && env.CF_ZONE_ID != ''
+      - name: Read Cloudflare analytics
+        id: usage
+        if: env.CF_ANALYTICS_TOKEN != '' && env.CF_ZONE_ID != ''
+        run: python3 scripts/usage_alert.py
+      - name: Open issue unless one is open
+        if: steps.usage.outputs.alert == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          open=$(gh issue list --state open --limit 500 --json title --jq '[.[] | select(.title == env.ISSUE_TITLE)] | length')
+          if [ "$open" -gt 0 ]; then
+            echo "An open \"$ISSUE_TITLE\" issue already exists; nothing to do."
+          else
+            gh issue create --title "$ISSUE_TITLE" --body-file usage-alert.md
+          fi
