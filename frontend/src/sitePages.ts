@@ -7,6 +7,26 @@ import { COPY, LLMS_TXT, META, ORIGIN, esc, jsonLd, landingHtml, landingPath, le
 // Screens that only make sense in the running app. They get the app shell, kept out of the index.
 const APP_ROUTES = ['/picks', '/trips', '/trips/*', '/trip/*', '/late', '/lookup']
 
+// Search engines and the bots that fetch pages to answer a question are welcome. Bots that only collect
+// training data are not. Based on Cloudflare's managed list; user-triggered fetchers fall under *.
+const ALLOW_BOTS = [
+  'Googlebot', 'Bingbot', 'Applebot', 'DuckAssistBot', 'OAI-SearchBot', 'ChatGPT-User', 'PerplexityBot',
+  'Perplexity-User', 'Claude-SearchBot', 'Claude-User', 'Google-Extended', 'Applebot-Extended',
+]
+const BLOCK_BOTS = [
+  'GPTBot', 'ClaudeBot', 'anthropic-ai', 'Claude-Web', 'CCBot', 'Bytespider', 'meta-externalagent', 'Amazonbot',
+  'cohere-ai', 'MistralAI-Training', 'Diffbot', 'omgili', 'GoogleOther', 'Google-CloudVertexBot', 'Baiduspider',
+  'PetalBot', 'AwarioSmartBot', 'AwarioRssBot', 'QualifiedBot', 'Cotoyogi', 'ICC-Crawler', 'atlassian-bot',
+  'FishBot', 'BorderxBot', 'NavuBot', 'SemrushBot-SWA', 'WARDBot', 'magpie-crawler', 'KimiBot',
+  'CitibotSiteCrawler', 'FireCrawl', 'FirecrawlAgent', 'ChathiveCrawler',
+]
+
+const group = (bots: string[], rule: string) => bots.map((bot) => `User-agent: ${bot}`).join('\n') + `\n${rule}\n`
+
+function robotsTxt() {
+  return [group(ALLOW_BOTS, 'Allow: /'), group(BLOCK_BOTS, 'Disallow: /'), group(['*'], 'Allow: /'), `Sitemap: ${ORIGIN}/sitemap.xml\n`].join('\n')
+}
+
 interface Page { lang: Lang; title: string; description: string; path?: string; alternates?: boolean; body: string; ld?: object }
 
 function render(shell: string, p: Page) {
@@ -81,8 +101,7 @@ ${(['de', 'en'] as Lang[]).map((lang) => `  <url><loc>${ORIGIN}${landingPath(lan
 </urlset>
 `,
         'llms.txt': LLMS_TXT,
-        // Cloudflare's managed robots.txt carries the crawler rules and appends this file.
-        'robots.txt': `Sitemap: ${ORIGIN}/sitemap.xml\n`,
+        'robots.txt': robotsTxt(),
         // Pages serves 404.html for unknown paths once it exists, so the app's own routes are rewritten to the shell.
         '_redirects': APP_ROUTES.map((route) => `${route} /app 200`).join('\n') + '\n',
       }

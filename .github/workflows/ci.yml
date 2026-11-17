@@ -78,6 +78,20 @@ jobs:
           for name in ("sitemap.xml", "llms.txt", "robots.txt", "_redirects", "og.png", "og-en.png", "favicon.ico"):
               assert (dist / name).stat().st_size, name
           assert "impressum" not in (dist / "sitemap.xml").read_text()
+          robots = (dist / "robots.txt").read_text()
+          assert "Content-Signal" not in robots
+          rules, group = {}, []
+          for line in robots.splitlines():
+              key, _, value = line.partition(":")
+              if key == "User-agent":
+                  group.append(value.strip().lower())
+              elif key in ("Allow", "Disallow"):
+                  rules.update(dict.fromkeys(group, key))
+                  group = []
+          for bot in ("googlebot", "bingbot", "oai-searchbot", "chatgpt-user", "perplexitybot", "claude-searchbot", "claude-user", "google-extended", "*"):
+              assert rules.get(bot) == "Allow", bot
+          for bot in ("gptbot", "claudebot", "ccbot", "bytespider", "meta-externalagent", "amazonbot"):
+              assert rules.get(bot) == "Disallow", bot
           name = "Erika Mustermann"
           assert name in (dist / "impressum.html").read_text()
           for page in ("index.html", "en/index.html", "404.html", "app.html", "llms.txt", "sitemap.xml"):
