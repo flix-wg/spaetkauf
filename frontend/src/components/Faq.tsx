@@ -1,15 +1,15 @@
 import { useLocation } from 'react-router-dom'
 import { useT } from '../i18n'
-import { browserLang, savedLang } from '../i18n-core'
+import { browserLang, changeLang, savedLang } from '../i18n-core'
 import { COPY, FAQ, landingPath, pathLang } from '../site'
 import { IconChevron } from './Icons'
 
 // A plain link, so the page loads in the other language the same way a search engine sees it.
 function OtherLang({ className }: { className: string }) {
-  const { lang, setLang } = useT()
+  const { lang } = useT()
   const other = lang === 'de' ? 'en' : 'de'
-  // Saved, so a choice made earlier in Settings doesn't switch `/` back.
-  return <a href={landingPath(other)} hrefLang={other} lang={other} onClick={() => setLang(other)} className={className}>{COPY[lang].other}</a>
+  // Saved, so a choice made earlier in Settings doesn't switch `/` back. No re-render: the page reloads anyway.
+  return <a href={landingPath(other)} hrefLang={other} lang={other} onClick={() => changeLang(other)} className={className}>{COPY[lang].other}</a>
 }
 
 // First visit on the landing page in a language the browser doesn't prefer: offer the other one.
