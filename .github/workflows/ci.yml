@@ -78,6 +78,8 @@ jobs:
           for name in ("sitemap.xml", "llms.txt", "robots.txt", "_redirects", "og.png", "og-en.png", "favicon.ico"):
               assert (dist / name).stat().st_size, name
           assert "impressum" not in (dist / "sitemap.xml").read_text()
+          robots = (dist / "robots.txt").read_text()
+          assert "User-agent: GPTBot\nUser-agent" in robots and "User-agent: OAI-SearchBot" in robots and "Content-Signal" not in robots
           name = "Erika Mustermann"
           assert name in (dist / "impressum.html").read_text()
           for page in ("index.html", "en/index.html", "404.html", "app.html", "llms.txt", "sitemap.xml"):
