@@ -48,7 +48,7 @@ test('on-time chance comes only on request and never beats the late odds',async(
   const shrink=(k,n,p)=>(k+50*p)/(n+50);
   const band=([,cancelled,...ge])=>{
     const late=ge.map(v=>v-cancelled), buckets=[5,10,15,20,30,45,60,90,120];
-    if(late[0]<10) return null;
+    if(late[0]<10) return [null,late[0]];
     const low=late.findIndex(v=>v<=late[0]/2), high=late.findIndex(v=>v<late[0]/2);
     return [[low===-1?120:buckets[low-1],high===-1?null:buckets[high]],late[0]];
   };
@@ -56,8 +56,8 @@ test('on-time chance comes only on request and never beats the late odds',async(
   const expect=(day,scope)=>{
     const end=scope==='all'?all:sum(rows.filter(r=>r[3]===day));
     const p=scope==='all'?allRate:shrink(end[2],end[0],allRate);
-    const [late,lateRuns]=band(end)||band(all), lateScope=band(end)?scope:'all';
-    return ['ICE 785',Math.round((1-p)*1e4)/1e4,end[0]-end[2],end[0],scope,late,lateRuns,lateScope];
+    const own=band(end), [late,lateRuns]=own[0]||scope==='all'?own:band(all);
+    return ['ICE 785',Math.round((1-p)*1e4)/1e4,end[0]-end[2],end[0],scope,late,lateRuns,own[0]?scope:'all'];
   };
   const c=golden.cases[1]; // Saturday 2026-11-21
   const tr=createTransitous({fetch:transitous[c.transitous],storage:null,cacheStorage:null});
