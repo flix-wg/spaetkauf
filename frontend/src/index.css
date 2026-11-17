@@ -392,6 +392,14 @@ summary {
 .sheet-in {
   animation: sheet-up 0.2s ease-out;
 }
+dialog:modal {
+  overscroll-behavior: contain;
+}
+dialog::backdrop {
+  background: var(--color-overlay, rgb(0 0 0 / 0.45));
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
 .meter-fill {
   transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
 }

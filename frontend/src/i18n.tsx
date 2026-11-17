@@ -32,7 +32,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       document.documentElement.dataset.theme = resolved
       document.documentElement.style.colorScheme = resolved
       document.documentElement.style.backgroundColor = 'var(--color-page)'
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', resolved === 'dark' ? '#121316' : '#FD4F00')
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', resolved === 'dark' ? '#121316' : '#ffffff')
+      document.querySelector('meta[name="color-scheme"]')?.setAttribute('content', resolved)
     }
     apply()
     media.addEventListener('change', apply)

@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#FD4F00" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="description" content="Buy the cheap ticket for the train that is usually late. Ride the better one." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -29,7 +30,8 @@
       document.documentElement.lang = lang
       document.documentElement.style.colorScheme = resolved
       document.documentElement.style.backgroundColor = resolved === 'dark' ? '#121316' : '#FD4F00'
-      document.querySelector('meta[name="theme-color"]').content = resolved === 'dark' ? '#121316' : '#fff'
+      document.querySelector('meta[name="theme-color"]').content = resolved === 'dark' ? '#121316' : '#ffffff'
+      document.querySelector('meta[name="color-scheme"]').content = resolved
     </script>
   </head>
   <body>

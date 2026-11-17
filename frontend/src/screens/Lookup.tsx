@@ -98,21 +98,22 @@ export function Lookup() {
               </button>
             ))}
           </div>
-          <form onSubmit={submit} className="flex flex-col gap-3">
+          <search>
+<form onSubmit={submit} className="flex flex-col gap-3">
             {by === 'train' ? (
               <div>
                 <label htmlFor="lk-train" className={label}>{tr('train')}</label>
-                <input id="lk-train" value={train} onChange={(e) => setTrain(e.target.value)} placeholder={tr('eGIce1103')} autoComplete="off" className={input} />
+                <input id="lk-train" value={train} onChange={(e) => setTrain(e.target.value)} placeholder={tr('eGIce1103')} autoComplete="off" autoCapitalize="characters" autoCorrect="off" spellCheck={false} enterKeyHint="search" className={input} />
               </div>
             ) : (
               <>
                 <div>
                   <label htmlFor="lk-from" className={label}>{tr('from')}</label>
-                  <input id="lk-from" value={from} onChange={(e) => setFrom(e.target.value)} placeholder={tr('eGHamburgHbf')} autoComplete="off" className={input} />
+                  <input id="lk-from" value={from} onChange={(e) => setFrom(e.target.value)} placeholder={tr('eGHamburgHbf')} autoComplete="off" autoCapitalize="words" autoCorrect="off" spellCheck={false} enterKeyHint="search" className={input} />
                 </div>
                 <div>
                   <label htmlFor="lk-to" className={label}>{tr('to335')}</label>
-                  <input id="lk-to" value={to} onChange={(e) => setTo(e.target.value)} placeholder={tr('eGMNchenHbf')} autoComplete="off" className={input} />
+                  <input id="lk-to" value={to} onChange={(e) => setTo(e.target.value)} placeholder={tr('eGMNchenHbf')} autoComplete="off" autoCapitalize="words" autoCorrect="off" spellCheck={false} enterKeyHint="search" className={input} />
                 </div>
               </>
             )}
@@ -129,6 +130,7 @@ export function Lookup() {
             <button type="submit" className="btn-primary mt-1 !min-h-[54px] !text-[16px]">
               <IconSearch size={20} /> {tr('lookUp')} </button>
           </form>
+</search>
         </div>
         <div className="flex flex-col gap-3">
           {res.status === 'loading' && <Loading label={tr('kurtIsReadingTheOldTimetables')} />}

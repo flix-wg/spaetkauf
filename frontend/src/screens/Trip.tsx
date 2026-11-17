@@ -8,6 +8,7 @@ import { Flap } from '../components/Flap'
 import { Interested } from '../components/Interested'
 import { Kurt } from '../components/Kurt'
 import { Meter } from '../components/Meter'
+import { Modal } from '../components/Modal'
 import { hasOdds } from '../components/PickCard'
 import { InlinePrice } from '../components/PriceForm'
 import { ScreenHeader } from '../components/Shell'
@@ -321,27 +322,12 @@ const DE_DAY = new Intl.DateTimeFormat('de-DE', {
 // The 20-minute forecast is the rule's trigger, but it is Transitous' figure, not DB's: say whose it is.
 function Zugbindung({ t, dest, full, setFull }: { t: Trip; dest: string; full: boolean; setFull: (v: boolean) => void }) {
   useT()
-  const opener = useRef<HTMLButtonElement>(null)
   const close = useRef<HTMLButtonElement>(null)
   const b = t.booked
   const trains = b.legs.map((l) => l.train).join(' + ')
   const cancelled = t.state === 'cancelled'
   const d = t.delay_min ?? 0
   const asOf = t.updated_at ? hhmm(t.updated_at) : null
-  useEffect(() => {
-    if (!full) return
-    const root = document.getElementById('root')
-    const back = opener.current
-    root?.setAttribute('inert', '')
-    close.current?.focus()
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setFull(false)
-    window.addEventListener('keydown', onKey)
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      root?.removeAttribute('inert')
-      back?.focus()
-    }
-  }, [full, setFull])
   return (
     <section aria-label={tr('trainBinding')} className="flex flex-col gap-2 rounded-2xl border-2 border-ink bg-page p-3.5 lg:p-5">
       <span className="tag">{tr('zugbindungLiftedAt20Min')}</span>
@@ -355,9 +341,14 @@ function Zugbindung({ t, dest, full, setFull }: { t: Trip; dest: string; full: b
       </p>
       <p className="text-[12px] text-muted">
         {asOf ? tx('readingAsOf', asOf) : ''}{tr('transitousRealTimeDataNotDbS')} </p>
-      <button ref={opener} type="button" className="btn-primary" onClick={() => setFull(true)}>{tr('showToConductor')}</button>
+      <button type="button" className="btn-primary" onClick={() => setFull(true)}>{tr('showToConductor')}</button>
       {full && createPortal(
-        <div role="dialog" aria-modal="true" aria-label="Zugbindung aufgehoben" className="fixed inset-0 z-50 flex flex-col gap-5 overflow-y-auto bg-white p-6 text-black conductor">
+        <Modal
+          onClose={() => setFull(false)}
+          initialFocus={close}
+          aria-label="Zugbindung aufgehoben"
+          className="conductor m-0 h-dvh max-h-none w-full max-w-none flex-col gap-5 overflow-y-auto border-0 bg-white p-6 text-black outline-none open:flex"
+        >
           <p className="font-display text-[34px] font-bold leading-tight">{cancelled ? 'Zug fällt aus' : `Verspätung am Ziel erwartet: +${d} Min.`}</p>
           <p className="text-[18px] font-semibold">Zugbindung aufgehoben nach BB Personenverkehr 9.1.1, sobald die DB mindestens 20 Min. Verspätung am Ziel erwartet (9.1.4).</p>
           <div className="flex flex-col gap-1 border-y-4 border-black py-4">
@@ -371,7 +362,7 @@ function Zugbindung({ t, dest, full, setFull }: { t: Trip; dest: string; full: b
           </p>
           <p className="text-[15px]">{asOf ? `Stand ${asOf} Uhr · ` : ''}Echtzeitdaten von Transitous, nicht von der DB</p>
           <button ref={close} type="button" className="btn-primary mt-auto !min-h-[56px]" onClick={() => setFull(false)}>Schließen</button>
-        </div>,
+        </Modal>,
         document.body,
       )}
     </section>
