@@ -22,6 +22,7 @@ export function App() {
       <Routes>
         <Route element={<Shell />}>
           <Route path="/" element={<Search />} />
+          <Route path="/en" element={<Search />} />
           <Route path="/picks" element={<Picks />} />
           <Route path="/trips" element={<Trips />} />
           <Route path="/trip/:id" element={<TripScreen />} />

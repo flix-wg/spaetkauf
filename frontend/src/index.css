@@ -516,3 +516,22 @@ dialog::backdrop {
 .on-accent :is(.bg-page, .bg-surface, .bg-tint) .text-accent-text { color: var(--color-accent-text); }
 .on-accent :is(.bg-page, .bg-surface, .bg-tint) .border-ink { border-color: var(--color-ink); }
 .on-accent :is(.bg-page, .bg-surface, .bg-tint) :focus-visible { outline-color: var(--color-ink); }
+
+/* Text written into the HTML at build time (src/site.ts) for crawlers and no-JS readers. The app replaces it. */
+.seo {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  font-size: 16px;
+  line-height: 1.55;
+}
+.seo h1 { margin: 20px 0 12px; font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1.2; }
+.seo h2 { margin: 28px 0 8px; font-size: 21px; font-weight: 700; }
+.seo h3 { margin: 18px 0 4px; font-weight: 700; }
+.seo p, .seo ol, .seo ul { margin: 8px 0; }
+.seo ol { list-style: decimal; padding-left: 22px; }
+.seo ul { list-style: disc; padding-left: 22px; }
+.seo a { text-decoration: underline; }
+.seo footer { margin-top: 32px; font-size: 14px; }
+/* Returning in the same session skips the splash; keep the text from flashing before the app paints. */
+.splash-skip .seo { visibility: hidden; }

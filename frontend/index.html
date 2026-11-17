@@ -18,13 +18,16 @@
         if (sessionStorage.getItem('spaetkauf.splash')) document.documentElement.classList.add('splash-skip')
       } catch {}
       let pref = 'system'
-      let lang = navigator.languages?.[0]?.toLowerCase().startsWith('de') ? 'de' : 'en'
+      // Same rule as initialLang in src/i18n-core.ts.
+      const path = location.pathname
+      let lang = path === '/' || navigator.languages?.[0]?.toLowerCase().startsWith('de') ? 'de' : 'en'
       try {
         const saved = localStorage.getItem('spaetkauf.lang')
         if (saved === 'de' || saved === 'en') lang = saved
         const theme = localStorage.getItem('spaetkauf.theme')
         if (theme === 'light' || theme === 'dark') pref = theme
       } catch {}
+      if (/^\/en(?:\/|$)/.test(path)) lang = 'en'
       const resolved = pref === 'system' ? matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light' : pref
       document.documentElement.dataset.theme = resolved
       document.documentElement.lang = lang

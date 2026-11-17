@@ -57,6 +57,21 @@ jobs:
       - run: npm test
       - run: npm run typecheck
       - run: npm run build
+      - name: Check static pages
+        run: |
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          dist = Path("dist")
+          for page, text in {"index.html": "Häufige Fragen", "en/index.html": "Questions and answers", "impressum.html": "Anbieter", "datenschutz.html": "Deine Rechte"}.items():
+              html = (dist / page).read_text()
+              assert text in html and 'rel="canonical"' in html, page
+          for page in ("index.html", "en/index.html"):
+              assert "FAQPage" in (dist / page).read_text(), page
+          for page in ("404.html", "app.html"):
+              assert "noindex" in (dist / page).read_text(), page
+          for name in ("sitemap.xml", "llms.txt", "robots.txt", "_redirects", "og.png", "og-en.png", "favicon.ico"):
+              assert (dist / name).stat().st_size, name
+          PYTHON
 
   extension:
     runs-on: ubuntu-latest
@@ -173,3 +188,16 @@ jobs:
           done
           echo 'Published odds did not return 200 JSON matching the local index' >&2
           exit 1
+      - name: Check published pages
+        if: steps.deploy.outputs.url != ''
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          check() { test "$(curl --silent --output /dev/null --write-out '%{http_code} %{content_type}' --connect-timeout 10 --max-time 30 "$DEPLOY_URL$1")" = "$2" || { echo "$1: expected $2" >&2; exit 1; }; }
+          check / '200 text/html; charset=utf-8'
+          check /en/ '200 text/html; charset=utf-8'
+          check /picks '200 text/html; charset=utf-8'
+          check /no-such-page '404 text/html; charset=utf-8'
+          check /sitemap.xml '200 application/xml; charset=utf-8'
+          check /llms.txt '200 text/plain; charset=utf-8'
+          curl --silent --max-time 30 "$DEPLOY_URL/en/" | grep -q FAQPage

@@ -5,6 +5,7 @@ import { resolve } from 'node:path'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { sitePages } from './src/sitePages.ts'
 
 const duckdbFiles = ['duckdb-eh.wasm.gz', 'duckdb-browser-eh.worker.js']
 const duckdbAsset = (file: string) => file.endsWith('.gz')
@@ -30,6 +31,7 @@ export default defineConfig({
     },
     react(),
     tailwindcss(),
+    sitePages(),
     VitePWA({
       strategies: 'injectManifest',
       srcDir: 'src',

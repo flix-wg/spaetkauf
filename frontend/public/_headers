@@ -1,3 +1,7 @@
+/llms.txt
+  Content-Type: text/plain; charset=utf-8
+/sitemap.xml
+  Content-Type: application/xml; charset=utf-8
 /data/*
   Cache-Control: no-cache
 /assets/*
@@ -6,6 +10,6 @@
   Content-Type: application/octet-stream
   ! Content-Encoding
 /*
-  Content-Security-Policy: default-src 'self'; connect-src 'self' blob: https://api.transitous.org https://cloudflareinsights.com; script-src 'self' https://static.cloudflareinsights.com 'wasm-unsafe-eval' 'sha256-kvhhkNz55iZ9zKvkFLT8OjKZn3h7sLwNw5u12Dqmhe0=' 'sha256-n7BBYxCoGayr2QKnjgi9v2BtlXeQgXwCmNN3L0Mu9G0=' 'sha256-mSpHafW08+q4NAGSFrdeSgn4ElJ2bOPLmHJc1oxS0f0='; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; connect-src 'self' blob: https://api.transitous.org https://cloudflareinsights.com; script-src 'self' https://static.cloudflareinsights.com 'wasm-unsafe-eval' 'sha256-PSDP06pYuFbbgI/4uc3F9JKD0uDSn0XyJSx034LMQt4=' 'sha256-n7BBYxCoGayr2QKnjgi9v2BtlXeQgXwCmNN3L0Mu9G0=' 'sha256-mSpHafW08+q4NAGSFrdeSgn4ElJ2bOPLmHJc1oxS0f0='; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
