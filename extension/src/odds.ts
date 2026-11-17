@@ -12,7 +12,7 @@ import type { Transitous } from '../../frontend/src/core/transitous'
 export { createTransitous, httpOddsSource }
 export interface Connection { dep: string; arr: string; trains: string[]; date?: string | null; posted?: boolean }
 export interface OddsRequest { from?: string | null; to: string; to_eva?: string | null; date: string; connections: Connection[]; on_time?: boolean }
-export interface Result extends Omit<Odds, 'basis'> { i: number; basis: Odds['basis'] | 'last_train'; train: string | null; kurt: boolean; on_time?: number; on_time_runs?: number }
+export interface Result extends Omit<Odds, 'basis'> { i: number; basis: Odds['basis'] | 'last_train'; train: string | null; kurt: boolean; on_time?: number; on_time_runs?: number; on_time_late?: [number, number | null] | null; on_time_late_runs?: number }
 export interface OddsResponse { to: string; date: string; kurt: number | null; link: string; results: Result[] }
 
 const TRANSIT_WAIT = 4000
@@ -95,7 +95,7 @@ export async function extensionOdds(body: OddsRequest, deps: { odds: OddsSource;
       // Only on request, so the default response stays the app's.
       if (body.on_time && result.p20 !== null) {
         const onTime = await optional(onTimeOdds(odds, counted))
-        if (onTime) Object.assign(result, { on_time: onTime.p, on_time_runs: onTime.runs })
+        if (onTime) Object.assign(result, { on_time: onTime.p, on_time_runs: onTime.runs, on_time_late: onTime.late, on_time_late_runs: onTime.lateRuns })
       }
     }
     return result

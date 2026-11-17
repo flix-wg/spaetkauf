@@ -273,5 +273,52 @@
   },
   "onTimeChange": {
     "message": "Ein verpasster Umstieg zählt als verspätet."
+  },
+  "lateBand": {
+    "message": "sonst meist $ARG1$–$ARG2$ Min.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "lateBandOpen": {
+    "message": "sonst meist $ARG1$+ Min.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "lateBandNote": {
+    "message": "Wenn $ARG1$ an deinem Halt verspätet ist, war die Hälfte dieser Fahrten weniger als $ARG2$ Min. zu spät ($ARG3$ verspätete Fahrten an allen Wochentagen, Ausfälle nicht mitgezählt).",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "lateBandNoteOpen": {
+    "message": "Wenn $ARG1$ an deinem Halt verspätet ist, war die Hälfte dieser Fahrten $ARG2$+ Min. zu spät ($ARG3$ verspätete Fahrten an allen Wochentagen, Ausfälle nicht mitgezählt).",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
   }
 }

@@ -1,5 +1,5 @@
 import { GE_COLUMNS } from './oddsSource.ts'
-import type { OddsSource, Rates } from './oddsSource'
+import type { OddsSource, Rates, TrainRow } from './oddsSource'
 import { findStats, parseTrain } from './matching.ts'
 import type { MatchedStats, Stats } from './matching'
 import { weekdayBerlin } from './berlin.ts'
@@ -86,10 +86,26 @@ export async function connectionOdds(src: OddsSource, legs: Leg[], m = SHRINK_M)
     late: end.ge20, n: end.n, basis: legs.length === 1 ? 'history' : 'estimate' }
 }
 
-// Chance to reach the last stop under 5 min late; a missed change counts as late. `runs` are the last train's own on-time runs.
-export async function onTimeOdds(src: OddsSource, legs: Leg[], m = SHRINK_M): Promise<{ p: number; runs: number } | null> {
+export const LATE_MIN_RUNS = 10
+export interface OnTime { p: number; runs: number; late: [number, number | null] | null; lateRuns: number }
+
+// Bucket that holds the median delay of the 5+ min late runs, over all weekdays, without cancellations.
+// The files only count runs at each bucket, so the answer is a band; null with too few late runs.
+export function lateBand(rows: TrainRow[]): [[number, number | null] | null, number] {
+  const cancelled = rows.reduce((total, row) => total + row[5], 0)
+  const ge = BUCKETS.map((_, i) => rows.reduce((total, row) => total + (row[i + 6] as number), 0) - cancelled)
+  if (ge[0] < LATE_MIN_RUNS) return [null, ge[0]]
+  const i = ge.findIndex(count => count < ge[0] / 2)
+  return [i === -1 ? [BUCKETS.at(-1)!, null] : [BUCKETS[i - 1], BUCKETS[i]], ge[0]]
+}
+
+// Chance to reach the last stop under 5 min late; a missed change counts as late.
+// `runs` (on-time runs on that weekday) and the late band are the last train's own.
+export async function onTimeOdds(src: OddsSource, legs: Leg[], m = SHRINK_M): Promise<OnTime | null> {
   const parts = await reach(src, legs, m)
   if (!parts) return null
   const [share, end] = parts
-  return { p: round4(share * (1 - rate(end, 5, m))), runs: end.n - end.ge5 }
+  const shard = await src.train(end.train_type, end.train_number)
+  const [late, lateRuns] = lateBand(shard!.rows.filter(row => row[0] === end.station_key))
+  return { p: round4(share * (1 - rate(end, 5, m))), runs: end.n - end.ge5, late, lateRuns }
 }

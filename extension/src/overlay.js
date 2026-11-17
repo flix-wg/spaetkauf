@@ -31,10 +31,15 @@
           : `${counts[0].toUpperCase() + counts.slice(1)}.`;
       if (Number.isFinite(result.on_time) && Number.isFinite(result.on_time_runs)) {
         onTime = msg("onTime", "$1 % on time", Math.round(result.on_time * 100));
+        const [low, high] = Array.isArray(result.on_time_late) ? result.on_time_late : [];
+        if (Number.isFinite(low)) onTime += ' · ' + (Number.isFinite(high) ? msg("lateBand", "if late, typically $1–$2 min", low, high) : msg("lateBandOpen", "if late, typically $1+ min", low));
         onTimeDetail = [
           msg("onTimeNote", "On time means under 5 min late at your stop."),
           msg("onTimeCounts", "$1: on time $2 of $3 $4.", result.train, result.on_time_runs, result.n, msg('day' + result.weekday, result.weekday + 's')),
           result.basis === 'estimate' ? msg("onTimeChange", "A missed change counts as late.") : '',
+          !Number.isFinite(low) ? '' : Number.isFinite(high)
+            ? msg("lateBandNote", "When $1 is late at your stop, half of those runs were under $2 min late ($3 late runs on all weekdays, cancellations not counted).", result.train, high, result.on_time_late_runs)
+            : msg("lateBandNoteOpen", "When $1 is late at your stop, half of those runs were $2+ min late ($3 late runs on all weekdays, cancellations not counted).", result.train, low, result.on_time_late_runs),
         ].filter(Boolean).join(' ');
       }
     }

@@ -30,7 +30,7 @@ test('on-time chance comes only on request and never beats the late odds',async(
     const tr=createTransitous({fetch:transitous[c.transitous],storage:null,cacheStorage:null});
     const {results}=await extensionOdds({...c.body,on_time:true},{odds,tr});
     for(const [i,r] of results.entries()){
-      const {on_time,on_time_runs,...rest}=r;
+      const {on_time,on_time_runs,on_time_late,on_time_late_runs,...rest}=r;
       assert.deepEqual(rest,c.expected.results[i]);
       if(r.p20===null){assert.equal(on_time,undefined);continue;}
       shown++;
@@ -39,6 +39,12 @@ test('on-time chance comes only on request and never beats the late odds',async(
     }
   }
   assert.ok(shown>0);
+  // ICE 785 to München on a Saturday: 30 of 45 runs under 5 min late; over all weekdays the median
+  // of its 116 late runs (cancellations out) falls between 15 and 20 min. Checked by hand against the train file.
+  const c=golden.cases[1];
+  const tr=createTransitous({fetch:transitous[c.transitous],storage:null,cacheStorage:null});
+  const [first]=(await extensionOdds({...c.body,on_time:true},{odds,tr})).results;
+  assert.deepEqual([first.train,first.on_time,first.on_time_runs,first.on_time_late,first.on_time_late_runs],['ICE 785',0.6158,30,[15,20],116]);
 });
 test('an unreachable site gives no odds and does not throw',async()=>{
   const original=globalThis.fetch;

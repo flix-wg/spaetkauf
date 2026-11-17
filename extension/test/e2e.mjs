@@ -111,7 +111,7 @@ try {
   assert.equal(await popup.locator('#error').innerText(), '');
   await popup.screenshot({ path: path.join(shots, 'x-popup.png') });
   // Off by default; turning it on redraws the open page with an on-time pill.
-  const onTime = '[aria-label*="% on time"]';
+  const onTime = '[aria-label*="% on time · if late, typically"]';
   assert.equal(await page.locator('spk-badge' + onTime).count(), 0);
   await options.locator('#onTime').check();
   await page.waitForFunction(selector => document.querySelectorAll('spk-badge' + selector).length === 5, onTime); // the sixth card has no history
