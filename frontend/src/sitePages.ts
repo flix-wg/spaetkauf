@@ -63,10 +63,11 @@ export function sitePages(): Plugin {
       const landing = (lang: Lang): Page => ({
         lang, ...META[lang], path: landingPath(lang), alternates: true, body: landingHtml(lang), ld: jsonLd(lang),
       })
+      // Legal pages carry the operator's name, which the law requires there but nowhere else: no path, so noindex.
       const legal = (page: LegalPage, title: string, description: string): Page => ({
-        lang: 'de', title, description, path: `/${page}`, body: legalPageHtml(page, operator),
+        lang: 'de', title, description, body: legalPageHtml(page, operator),
       })
-      const notFound = '<div class="seo"><main><h1>Seite nicht gefunden</h1><p>Diese Seite gibt es nicht. <a href="/">Zu Kurt</a></p><p lang="en">This page doesn’t exist. <a href="/en/">Go to Kurt</a></p></main></div>'
+      const notFound = '<div class="seo"><main><h1>Seite nicht gefunden</h1><p>Diese Seite gibt es nicht. <a href="/">Zu Kurt</a></p><p lang="en">This page doesn’t exist. <a href="/en/">Go to Kurt</a></p></main><footer><a href="/impressum">Impressum</a> · <a href="/datenschutz">Datenschutz</a></footer></div>'
       const files: Record<string, string> = {
         'index.html': render(shell, landing('de')),
         'en/index.html': render(shell, landing('en')),
@@ -77,8 +78,6 @@ export function sitePages(): Plugin {
         'sitemap.xml': `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${(['de', 'en'] as Lang[]).map((lang) => `  <url><loc>${ORIGIN}${landingPath(lang)}</loc>${(['de', 'en'] as Lang[]).map((l) => `<xhtml:link rel="alternate" hreflang="${l}" href="${ORIGIN}${landingPath(l)}"/>`).join('')}</url>`).join('\n')}
-  <url><loc>${ORIGIN}/impressum</loc></url>
-  <url><loc>${ORIGIN}/datenschutz</loc></url>
 </urlset>
 `,
         'llms.txt': LLMS_TXT,
