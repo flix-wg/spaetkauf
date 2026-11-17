@@ -2,7 +2,8 @@
 importScripts('../dist/odds.js');
 const msg = (key, fallback, ...values) => globalThis.chrome?.i18n?.getMessage(key, values.map(String)) || fallback.replace(/\$(\d+)/g, (_, n) => String(values[Number(n) - 1] ?? ''));
 
-const DEFAULT_SERVER = 'https://kurt-34y.pages.dev';
+const DEFAULT_SERVER = 'https://kurtfaehrt.de';
+const LEGACY_SERVERS = ['https://65-108-33-75.sslip.io', 'https://kurt-34y.pages.dev'];
 const oddsCache = new Map();
 const pending = new Map();
 const sources = new Map();
@@ -19,7 +20,7 @@ const userAgent = chrome.declarativeNetRequest.updateSessionRules({
 });
 async function settings() {
   const config = await chrome.storage.sync.get({ enabled: true, server: DEFAULT_SERVER });
-  if (config.server === 'https://65-108-33-75.sslip.io') {
+  if (LEGACY_SERVERS.includes(config.server)) {
     config.server = DEFAULT_SERVER;
     await chrome.storage.sync.set({ server: DEFAULT_SERVER });
   }
