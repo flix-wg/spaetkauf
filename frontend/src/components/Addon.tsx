@@ -1,18 +1,11 @@
 import { tr, useT } from '../i18n'
 import { useState } from 'react'
-import { ADDON_SOURCE, ADDON_ZIP, cardHidden, hideCard, onPhone } from '../addon'
+import { ADDON_SOURCE, ADDON_STORE, cardHidden, hideCard, onPhone } from '../addon'
 import { useSheet } from '../sheets'
 import { IconClose, IconExternal } from './Icons'
 import { Kurt } from './Kurt'
 
 const WHAT = () => tr('showsKurtSOddsAndPickAs')
-
-const STEPS = () => [
-  <>{tr('downloadTheAddOnAndUnzipIt')}</>,
-  <>{tr('open')} <span className="mono rounded bg-surface px-1.5 py-0.5 text-[13px]">chrome://extensions</span> {tr('inTheAddressBar')} </>,
-  <>{tr('turnOnDeveloperModeTopRight')}</>,
-  <>{tr('clickLoadUnpackedAndPickTheUnzipped')}</>,
-]
 
 // What the badge looks like on bahn.de, so people know what to look for.
 function SampleBadge() {
@@ -33,22 +26,11 @@ export function AddonSheet() {
         <p className="rounded-xl bg-surface p-3 font-semibold">{tr('itIsAnAddOnForChrome')} </p>
       ) : (
         <>
-          <ol className="flex flex-col gap-3" aria-label={tr('installSteps')}>
-            {STEPS().map((t, i) => (
-              <li key={i} className="flex gap-3 text-[15px] font-semibold leading-snug lg:text-[16px]">
-                <span className="mono flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ink text-[13px] font-bold text-page">
-                  {i + 1}
-                </span>
-                <span className="pt-0.5">{t}</span>
-              </li>
-            ))}
-          </ol>
-          <a href={ADDON_ZIP} download className="btn-primary">{tr('downloadTheAddOn')} </a>
+          <a href={ADDON_STORE} target="_blank" rel="noopener noreferrer" className="btn-primary">{tr('getItInTheChromeWebStore')} </a>
           <p className="text-muted">{tr('thenOpenASearchOnBahnDe')} </p>
         </>
       )}
-      <p className="text-[12px] text-muted lg:text-[14px]">{tr('notInTheChromeWebStoreYet')}{' '}
-        <a href={ADDON_SOURCE} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-accent-text underline">{tr('sourceOnGithub')} <IconExternal size={14} />
+      <p className="text-[12px] text-muted lg:text-[14px]"><a href={ADDON_SOURCE} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-accent-text underline">{tr('sourceOnGithub')} <IconExternal size={14} />
         </a>
       </p>
     </div>

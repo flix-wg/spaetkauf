@@ -23,7 +23,7 @@ Checks: in `frontend/`, run `npm test`, `npm run typecheck` and `npm run build`;
 
 ## Browser extension
 
-The extension shows Kurt's odds on a bahn.de results page. Until the store versions are out, install it by hand: clone this repo, run `npm ci && npm run build` in `extension/`, open `chrome://extensions`, turn on Developer mode, click Load unpacked and pick the `extension/` folder. It works out the odds itself from the Kurt site's static files; set that site in the extension's options.
+The extension shows Kurt's odds on a bahn.de results page. Install it from the [Chrome Web Store](https://chromewebstore.google.com/detail/hkoaajnnlmdnbnmkllghpnbidcjffppd), or by hand: clone this repo, run `npm ci && npm run build` in `extension/`, open `chrome://extensions`, turn on Developer mode, click Load unpacked and pick the `extension/` folder. It works out the odds itself from the Kurt site's static files; set that site in the extension's options.
 
 More in `docs/`: [how the odds are computed](docs/odds.md), [run history](docs/history.md), [the extension](docs/extension.md) and [self-hosting](docs/self-hosting.md).
 
