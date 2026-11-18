@@ -64,7 +64,7 @@ export const FAQ: Record<Lang, [string, string][]> = {
     ['Was kostet Kurt?',
       'Nichts. Kurt hat keine Werbung, kein Konto und setzt keine Cookies. Gespeicherte Fahrten bleiben in deinem Browser. Der Quellcode ist offen auf GitHub.'],
     ['Gibt es Kurt direkt auf bahn.de?',
-      'Ja, als Erweiterung für Chrome. Sie zeigt die Verspätungsquote neben jedem Zug in den Suchergebnissen auf bahn.de. Den Download findest du in Kurt unter „So funktioniert Kurt“.'],
+      'Ja, als Erweiterung für Chrome. Sie zeigt die Verspätungsquote neben jedem Zug in den Suchergebnissen auf bahn.de. Du findest sie im Chrome Web Store unter „Kurt: Verspätungschancen“.'],
   ],
   en: [
     ['What is Kurt?',
@@ -82,7 +82,7 @@ export const FAQ: Record<Lang, [string, string][]> = {
     ['What does Kurt cost?',
       'Nothing. Kurt has no ads, no account and sets no cookies. Saved trips stay in your browser. The source code is open on GitHub.'],
     ['Is Kurt available on bahn.de?',
-      'Yes, as a Chrome extension. It shows the delay rate next to each train in the search results on bahn.de. You’ll find the download in Kurt under “How Kurt works”.'],
+      'Yes, as a Chrome extension. It shows the delay rate next to each train in the search results on bahn.de. Find it in the Chrome Web Store as “Kurt: late-train odds”.'],
   ],
 }
 

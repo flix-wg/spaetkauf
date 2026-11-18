@@ -1,10 +1,11 @@
-// The Chrome add-on for bahn.de: where its files are and whether this device can install it.
+// The Chrome add-on for bahn.de: where to get it and whether this device can install it.
+export const ADDON_STORE = "https://chromewebstore.google.com/detail/hkoaajnnlmdnbnmkllghpnbidcjffppd"
 export const ADDON_ZIP = '/kurt-extension.zip'
 export const ADDON_SOURCE = 'https://github.com/flix-wg/spaetkauf/tree/main/extension'
 
 const KEY = 'spaetkauf.addonCard'
 
-// Phones and tablets cannot load an unpacked extension. iPadOS reports a Mac, so touch decides there.
+// Phones and tablets cannot install Chrome extensions. iPadOS reports a Mac, so touch decides there.
 export function isPhone(ua: string, touchPoints = 0) {
   return /Android|iPhone|iPad|iPod|Mobi/i.test(ua) || (/Macintosh/.test(ua) && touchPoints > 1)
 }
